@@ -1,0 +1,31 @@
+.moduleAnchor {
+  --landing-style-module: "scroll-top";
+}
+
+:global(.scroll-top) {
+  position: fixed;
+  right: 30px;
+  bottom: 30px;
+  width: 46px;
+  height: 46px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  border: 1px solid #dfe7f3;
+  border-radius: 50%;
+  appearance: none;
+  background: #ffffff;
+  color: #0b1536;
+  font-weight: 1000;
+  box-shadow: 0 14px 34px rgba(28, 50, 94, 0.12);
+  transition:
+    transform 0.28s var(--spring),
+    background 0.28s ease,
+    color 0.28s ease;
+}
+
+:global(.scroll-top:hover) {
+  transform: translateY(-5px);
+  background: var(--navy);
+  color: #ffffff;
+}

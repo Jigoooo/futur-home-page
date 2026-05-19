@@ -1,4 +1,4 @@
-import type { IconName } from '@/types/landing';
+import type { IconName } from '../model/types';
 
 interface IconProps {
   name: IconName;

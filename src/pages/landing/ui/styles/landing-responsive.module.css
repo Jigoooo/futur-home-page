@@ -1,0 +1,558 @@
+.moduleAnchor {
+  --landing-style-module: "landing-responsive";
+}
+
+@media (max-width: 1180px) {
+  :global(.container) {
+    width: min(100% - 52px, 1040px);
+  }
+
+  :global(.hero) {
+    min-height: auto;
+    padding-top: 82px;
+  }
+
+  :global(.hero-grid),
+  :global(.service-layout),
+  :global(.team-layout),
+  :global(.process-layout),
+  :global(.contact-layout),
+  :global(.case-panel-inner) {
+    grid-template-columns: 1fr;
+  }
+
+  :global(.hero-grid) {
+    gap: 70px;
+  }
+
+  :global(.hero-visual) {
+    width: 100%;
+    max-width: 720px;
+    margin: 0 auto;
+  }
+
+  :global(.service-layout),
+  :global(.team-layout),
+  :global(.process-layout),
+  :global(.contact-layout) {
+    gap: 72px;
+  }
+
+  :global(.team-lead),
+  :global(.process-lead),
+  :global(.contact-card) {
+    position: relative;
+    top: auto;
+  }
+
+  :global(.case-visual) {
+    min-height: 430px;
+  }
+
+  :global(.footer-grid) {
+    grid-template-columns: 1.4fr 1fr 1fr;
+  }
+
+  :global(.footer-top) {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+
+  :global(.footer-contact) {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 900px) {
+  :global(.container) {
+    width: min(100% - 36px, 720px);
+  }
+
+  :global(.nav) {
+    top: 10px;
+    height: 68px;
+    padding: 0 16px 0 18px;
+    border-radius: 22px;
+  }
+
+  :global(.nav-menu) {
+    display: none;
+  }
+
+  :global(.logo) {
+    font-size: 22px;
+  }
+
+  :global(.nav .btn) {
+    min-height: 42px;
+    padding: 0 16px;
+    font-size: 13px;
+  }
+
+  :global(.hero) {
+    padding: 58px 0 150px;
+  }
+
+  :global(.hero-grid) {
+    gap: 54px;
+  }
+
+  :global(h1) {
+    font-size: clamp(38px, 10vw, 52px);
+    line-height: 1.14;
+  }
+
+  :global(.hero-copy p) {
+    font-size: 17px;
+    line-height: 1.8;
+  }
+
+  :global(.hero-actions) {
+    flex-wrap: wrap;
+    margin-bottom: 42px;
+  }
+
+  :global(.hero-actions .btn) {
+    flex: 1 1 180px;
+  }
+
+  :global(.hero-points),
+  :global(.stage-grid),
+  :global(.contact-form .stage-grid),
+  :global(.service-list),
+  :global(.role-grid),
+  :global(.review-grid),
+  :global(.form-grid),
+  :global(.service-checks) {
+    grid-template-columns: 1fr;
+  }
+
+  :global(.hero-visual) {
+    height: 420px;
+  }
+
+  :global(.hero-panel) {
+    left: 50%;
+    top: 48px;
+    width: min(420px, calc(100% - 24px));
+    height: 310px;
+    padding: 28px;
+    translate: -50% 0;
+    transform: translateX(-50%);
+  }
+
+  :global(.float-card) {
+    display: none;
+  }
+
+  :global(.visual-orbit) {
+    left: 26px;
+    right: 26px;
+  }
+
+  :global(.b4) {
+    left: auto;
+    right: 28px;
+  }
+
+  :global(.section),
+  :global(.case-section),
+  :global(.process-section),
+  :global(.review-section),
+  :global(.contact-section) {
+    padding-top: 130px;
+    padding-bottom: 150px;
+  }
+
+  :global(.stage-card) {
+    min-height: 88px;
+  }
+
+  :global(.contact-form .stage-card) {
+    min-height: 88px;
+  }
+
+  :global(.section-title) {
+    font-size: clamp(33px, 8vw, 42px);
+    line-height: 1.2;
+  }
+
+  :global(.section-desc) {
+    font-size: 16px;
+    line-height: 1.78;
+  }
+
+  :global(.service-card) {
+    min-height: auto;
+    padding: 32px;
+    border-radius: 32px;
+  }
+
+  :global(.case-head) {
+    display: grid;
+    align-items: start;
+    gap: 28px;
+  }
+
+  :global(.tabs) {
+    width: 100%;
+    justify-content: flex-start;
+    overflow-x: auto;
+    border-radius: 24px;
+  }
+
+  :global(.tab) {
+    flex: 0 0 auto;
+  }
+
+  :global(.case-panel-inner) {
+    gap: 38px;
+    padding: 30px;
+  }
+
+  :global(.case-title) {
+    font-size: 36px;
+  }
+
+  :global(.case-metrics) {
+    grid-template-columns: 1fr;
+  }
+
+  :global(.case-visual) {
+    min-height: auto;
+    display: grid;
+    gap: 16px;
+    overflow: visible;
+    padding: 22px;
+  }
+
+  :global(.device-card),
+  :global(.side-note) {
+    position: relative;
+    left: auto;
+    right: auto;
+    top: auto;
+    bottom: auto;
+  }
+
+  :global(.device-card) {
+    height: 220px;
+    padding: 20px;
+  }
+
+  :global(.side-note) {
+    grid-template-columns: 42px minmax(0, 1fr);
+    gap: 12px;
+    padding: 16px;
+  }
+
+  :global(.note-icon) {
+    width: 42px;
+    height: 42px;
+    border-radius: 16px;
+  }
+
+  :global(.timeline) {
+    padding-left: 24px;
+  }
+
+  :global(.step) {
+    grid-template-columns: 40px 1fr;
+  }
+
+  :global(.step-no) {
+    margin-left: -24px;
+  }
+
+  :global(.quote-big),
+  :global(.quote-small) {
+    min-height: auto;
+    padding: 30px;
+  }
+
+  :global(.cta-wrap) {
+    grid-template-columns: 1fr;
+    padding: 36px 28px;
+    border-radius: 34px;
+  }
+
+  :global(.cta-actions),
+  :global(.footer-contact) {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
+  :global(.contact-form) {
+    padding: 28px;
+    border-radius: 34px;
+  }
+
+  :global(.form-actions) {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  :global(.submit-btn) {
+    width: 100%;
+  }
+
+  :global(.footer) {
+    padding-top: 62px;
+  }
+
+  :global(.footer-top) {
+    margin-bottom: 56px;
+    padding: 38px 28px;
+    border-radius: 34px;
+  }
+
+  :global(.footer-top h2) {
+    font-size: 30px;
+  }
+
+  :global(.footer-grid) {
+    grid-template-columns: 1fr 1fr;
+    gap: 36px;
+  }
+
+  :global(.copyright) {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  :global(.scroll-top) {
+    right: 18px;
+    bottom: 18px;
+  }
+
+  :global(.cursor-aura),
+  :global(.cursor-dot) {
+    display: none !important;
+  }
+}
+
+@media (max-width: 560px) {
+  :global(.container) {
+    width: calc(100% - 28px);
+  }
+
+  :global(.nav) {
+    margin-top: 10px;
+  }
+
+  :global(.nav .btn) {
+    width: auto;
+    min-width: 106px;
+    padding: 0 14px;
+  }
+
+  :global(.eyebrow) {
+    font-size: 12px;
+  }
+
+  :global(.hero) {
+    padding-top: 46px;
+  }
+
+  :global(.hero-actions) {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  :global(.btn) {
+    width: 100%;
+    min-height: 52px;
+  }
+
+  :global(.hero-visual) {
+    height: 360px;
+  }
+
+  :global(.hero-panel) {
+    height: auto;
+    min-height: 270px;
+    padding: 28px;
+    border-radius: 34px;
+  }
+
+  :global(.panel-title) {
+    margin-bottom: 18px;
+    font-size: clamp(25px, 7vw, 31px);
+  }
+
+  :global(.mini-chart) {
+    position: relative;
+    right: auto;
+    bottom: auto;
+    width: 100%;
+    max-width: 176px;
+    height: 72px;
+    margin: 18px 0 0 auto;
+  }
+
+  :global(.mini-chart svg) {
+    left: 12px;
+    top: 14px;
+    width: calc(100% - 24px);
+    height: 44px;
+  }
+
+  :global(.case-panel-inner) {
+    padding: 22px;
+  }
+
+  :global(.case-visual) {
+    padding: 16px;
+    border-radius: 28px;
+  }
+
+  :global(.device-card) {
+    height: 206px;
+    padding: 18px;
+    border-radius: 24px;
+  }
+
+  :global(.side-note) {
+    border-radius: 20px;
+  }
+
+  :global(.section),
+  :global(.case-section),
+  :global(.process-section),
+  :global(.review-section),
+  :global(.contact-section) {
+    padding-top: 96px;
+    padding-bottom: 112px;
+  }
+
+  :global(.nowrap) {
+    white-space: normal;
+  }
+
+  :global(.desktop-break) {
+    display: none;
+  }
+
+  :global(.section-title br),
+  :global(.case-title br) {
+    display: none;
+  }
+
+  :global(.stage-card) {
+    grid-template-columns: 40px minmax(0, 1fr);
+    padding: 15px;
+  }
+
+  :global(.form-section-head h3) {
+    font-size: 23px;
+  }
+
+  :global(.stage-index) {
+    width: 40px;
+    height: 40px;
+  }
+
+  :global(.service-tile .check-ui) {
+    grid-template-columns: 26px minmax(0, 1fr);
+    min-height: 82px;
+    padding: 15px;
+  }
+
+  :global(.footer-grid) {
+    grid-template-columns: 1fr;
+  }
+
+  :global(.footer-contact) {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  :global(.footer-pill) {
+    width: 100%;
+  }
+}
+
+@media (hover: none), (pointer: coarse) {
+  :global(.btn:hover),
+  :global(.point:hover),
+  :global(.service-card:hover),
+  :global(.tab:hover),
+  :global(.metric:hover),
+  :global(.role-card:hover),
+  :global(.step:hover .step-card),
+  :global(.quote-big:hover),
+  :global(.quote-small:hover),
+  :global(.footer-pill:hover),
+  :global(.footer a:not(.social):not(.footer-pill):hover),
+  :global(.social:hover),
+  :global(.scroll-top:hover) {
+    transform: none;
+  }
+
+  :global(.btn:hover),
+  :global(.point:hover),
+  :global(.service-card:hover),
+  :global(.metric:hover),
+  :global(.role-card:hover),
+  :global(.step:hover .step-card),
+  :global(.quote-big:hover),
+  :global(.quote-small:hover),
+  :global(.footer-pill:hover),
+  :global(.social:hover) {
+    box-shadow: inherit;
+  }
+
+  :global(.select-trigger:hover),
+  :global(.input:hover),
+  :global(.textarea-input:hover) {
+    border-color: #dfe8f5;
+    background: #ffffff;
+  }
+
+  :global(.select-option:hover) {
+    border-color: transparent;
+    background: #ffffff;
+    color: #4d5c78;
+  }
+
+  :global(.btn:hover::before),
+  :global(.btn:hover::after),
+  :global(.service-card:hover::after) {
+    opacity: 0;
+  }
+
+  :global(.btn:hover .btn-label),
+  :global(.btn:hover .btn-arrow),
+  :global(.service-card:hover .service-icon),
+  :global(.service-card:hover .card-link),
+  :global(.service-card:hover .card-link i),
+  :global(.role-card:hover .role-badge),
+  :global(.role-card:hover .tag),
+  :global(.case-panel:hover .device-card) {
+    transform: none;
+  }
+
+  :global(.service-card:hover .card-link::before) {
+    transform: scaleX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :global(.motion-up),
+  :global(.motion-left),
+  :global(.motion-right) {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  :global(.timeline::before) {
+    opacity: 1 !important;
+    transform: scaleY(1) !important;
+  }
+
+  :global(.cursor-aura),
+  :global(.cursor-dot) {
+    display: none !important;
+  }
+}

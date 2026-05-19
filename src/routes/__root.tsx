@@ -3,7 +3,6 @@
 import { createRootRoute } from '@tanstack/react-router';
 
 import globalsUrl from '../styles/globals.css?url';
-import landingUrl from '../styles/landing.css?url';
 import tokensUrl from '../styles/tokens.css?url';
 import { COMPANY_INFOS } from '@/entities/company';
 import { RootComponent } from '@/pages/root';
@@ -26,7 +25,6 @@ export const Route = createRootRoute({
       },
       { rel: 'stylesheet', href: tokensUrl },
       { rel: 'stylesheet', href: globalsUrl },
-      { rel: 'stylesheet', href: landingUrl },
     ],
     meta: [
       { charSet: 'utf-8' },

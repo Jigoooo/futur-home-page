@@ -1,6 +1,6 @@
 import { useRef } from 'react';
 
-import { useCustomCursor } from '../model/use-custom-cursor';
+import { useCustomCursor } from './use-custom-cursor';
 
 export function CustomCursor() {
   const auraRef = useRef<HTMLDivElement>(null);

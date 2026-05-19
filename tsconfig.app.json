@@ -23,8 +23,7 @@
       "@/routes/*": ["routes/*"],
       "@/pages/*": ["pages/*"],
       "@/entities/*": ["entities/*"],
-      "@/styles/*": ["styles/*"],
-      "@/types/*": ["types/*"]
+      "@/styles/*": ["styles/*"]
     }
   },
   "include": ["src"]

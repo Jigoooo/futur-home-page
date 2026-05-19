@@ -1,6 +1,6 @@
 import { type ComponentPropsWithoutRef, useRef, useState } from 'react';
 
-import { setPointerSpotlight } from '../model/use-pointer-spotlight';
+import { setPointerSpotlight } from '../lib/pointer-spotlight';
 
 type ButtonVariant = 'primary' | 'blue' | 'ghost';
 

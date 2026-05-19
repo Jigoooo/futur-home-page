@@ -15,13 +15,6 @@ export interface BriefStage {
   description: string;
 }
 
-export interface BriefNeed {
-  value: string;
-  label: string;
-  description: string;
-  defaultChecked?: boolean;
-}
-
 export type IconName =
   | 'api'
   | 'app'
@@ -37,13 +30,6 @@ export type IconName =
   | 'phone'
   | 'shield'
   | 'system';
-
-export interface ConcernItem {
-  index: string;
-  title: string;
-  description: string;
-  cursorText: string;
-}
 
 export interface ServiceItem {
   title: string;

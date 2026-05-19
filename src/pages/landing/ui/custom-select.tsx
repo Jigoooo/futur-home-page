@@ -1,6 +1,6 @@
 import { useEffect, useId, useRef, useState, type KeyboardEvent } from 'react';
 
-import type { SelectOption } from '@/types/landing';
+import type { SelectOption } from '../model/types';
 
 interface CustomSelectProps {
   label: string;
@@ -10,15 +10,34 @@ interface CustomSelectProps {
   onChange: (value: string) => void;
 }
 
+function updateSelectPlacement(
+  trigger: HTMLButtonElement | null,
+  menu: HTMLUListElement | null,
+  setPlacement: (placement: 'down' | 'up') => void,
+) {
+  if (!trigger || !menu) return;
+
+  const triggerRect = trigger.getBoundingClientRect();
+  const menuHeight = menu.getBoundingClientRect().height;
+  const gap = 12;
+  const spaceBelow = window.innerHeight - triggerRect.bottom;
+  const spaceAbove = triggerRect.top;
+
+  setPlacement(spaceBelow < menuHeight + gap && spaceAbove > spaceBelow ? 'up' : 'down');
+}
+
 export function CustomSelect({ label, name, value, options, onChange }: CustomSelectProps) {
   const id = useId();
   const rootRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLUListElement>(null);
   const selectedIndex = Math.max(
     0,
     options.findIndex((option) => option.value === value),
   );
   const [isOpen, setIsOpen] = useState(false);
   const [focusedIndex, setFocusedIndex] = useState(selectedIndex);
+  const [placement, setPlacement] = useState<'down' | 'up'>('down');
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -36,8 +55,30 @@ export function CustomSelect({ label, name, value, options, onChange }: CustomSe
 
   const openSelect = () => {
     setFocusedIndex(selectedIndex);
+    updateSelectPlacement(triggerRef.current, menuRef.current, setPlacement);
     setIsOpen(true);
   };
+
+  useEffect(() => {
+    if (!isOpen) return undefined;
+
+    let frame = 0;
+    const schedulePlacement = () => {
+      window.cancelAnimationFrame(frame);
+      frame = window.requestAnimationFrame(() => {
+        updateSelectPlacement(triggerRef.current, menuRef.current, setPlacement);
+      });
+    };
+
+    window.addEventListener('resize', schedulePlacement);
+    window.addEventListener('scroll', schedulePlacement, true);
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.removeEventListener('resize', schedulePlacement);
+      window.removeEventListener('scroll', schedulePlacement, true);
+    };
+  }, [isOpen]);
 
   const handleKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
     if (!['ArrowDown', 'ArrowUp', 'Enter', ' ', 'Escape', 'Home', 'End'].includes(event.key)) {
@@ -83,20 +124,28 @@ export function CustomSelect({ label, name, value, options, onChange }: CustomSe
   const selected = options[selectedIndex] || options[0];
   if (!selected) return null;
   const listboxId = `${id}-listbox`;
+  const selectStateProps =
+    isOpen === true
+      ? ({ 'aria-expanded': 'true' } as const)
+      : ({ 'aria-expanded': 'false' } as const);
 
   return (
     <div className='form-control'>
       <span className='form-label'>{label}</span>
-      <div ref={rootRef} className={`custom-select ${isOpen ? 'is-open' : ''}`}>
+      <div
+        ref={rootRef}
+        className={`custom-select ${isOpen ? 'is-open' : ''} ${placement === 'up' ? 'is-up' : ''}`}
+      >
         <input type='hidden' name={name} value={value} />
         <button
+          ref={triggerRef}
           type='button'
           className='select-trigger'
           role='combobox'
-          aria-expanded={isOpen}
           aria-haspopup='listbox'
           aria-controls={listboxId}
           aria-activedescendant={`${id}-option-${focusedIndex}`}
+          {...selectStateProps}
           onClick={() => {
             if (isOpen) {
               setIsOpen(false);
@@ -120,21 +169,28 @@ export function CustomSelect({ label, name, value, options, onChange }: CustomSe
             </svg>
           </span>
         </button>
-        <ul id={listboxId} className='select-menu' role='listbox'>
-          {options.map((option, optionIndex) => (
-            <li
-              key={option.value}
-              id={`${id}-option-${optionIndex}`}
-              className={`select-option ${focusedIndex === optionIndex ? 'is-focused' : ''}`}
-              role='option'
-              aria-selected={option.value === value}
-              tabIndex={-1}
-              onClick={() => selectOption(option)}
-              onPointerEnter={() => setFocusedIndex(optionIndex)}
-            >
-              {option.label}
-            </li>
-          ))}
+        <ul ref={menuRef} id={listboxId} className='select-menu' role='listbox'>
+          {options.map((option, optionIndex) => {
+            const optionStateProps =
+              option.value === value
+                ? ({ 'aria-selected': 'true' } as const)
+                : ({ 'aria-selected': 'false' } as const);
+
+            return (
+              <li
+                key={option.value}
+                id={`${id}-option-${optionIndex}`}
+                className={`select-option ${focusedIndex === optionIndex ? 'is-focused' : ''}`}
+                role='option'
+                tabIndex={-1}
+                onClick={() => selectOption(option)}
+                onPointerEnter={() => setFocusedIndex(optionIndex)}
+                {...optionStateProps}
+              >
+                {option.label}
+              </li>
+            );
+          })}
         </ul>
       </div>
     </div>

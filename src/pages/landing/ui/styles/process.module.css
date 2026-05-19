@@ -1,0 +1,86 @@
+.moduleAnchor {
+  --landing-style-module: "process";
+}
+
+:global(.process-section) {
+  padding-block: clamp(225px, 14vw, 300px) clamp(220px, 14vw, 290px);
+}
+
+:global(.process-layout) {
+  grid-template-columns: 320px 1fr;
+  gap: clamp(90px, 8vw, 128px);
+}
+
+:global(.timeline) {
+  position: relative;
+  display: grid;
+  gap: 22px;
+  padding-left: 42px;
+}
+
+:global(.timeline::before) {
+  content: "";
+  position: absolute;
+  left: 17px;
+  top: 24px;
+  bottom: 24px;
+  width: 2px;
+  background: linear-gradient(180deg, #b9ccff, #e8eefb);
+  transform-origin: top;
+}
+
+:global(.step) {
+  position: relative;
+  display: grid;
+  grid-template-columns: 70px 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+:global(.step-no) {
+  position: relative;
+  z-index: 2;
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  margin-left: -60px;
+  border: 1px solid #d8e5f8;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #316cff;
+  font-size: 12px;
+  font-weight: 1000;
+  box-shadow: 0 12px 26px rgba(41, 63, 111, 0.08);
+}
+
+:global(.step-card) {
+  padding: 27px 30px;
+  border: 1px solid #e2e9f4;
+  border-radius: 30px;
+  background: #ffffff;
+  box-shadow: 0 12px 34px rgba(41, 63, 111, 0.045);
+  transition:
+    transform 0.32s var(--spring),
+    box-shadow 0.32s ease,
+    border-color 0.32s ease;
+}
+
+:global(.step:hover .step-card) {
+  transform: translateX(10px);
+  border-color: #cfdff8;
+  box-shadow: 0 20px 50px rgba(41, 63, 111, 0.085);
+}
+
+:global(.step-card h3) {
+  margin: 0 0 10px;
+  font-size: 22px;
+  font-weight: 950;
+}
+
+:global(.step-card p) {
+  margin: 0;
+  color: #6f7b96;
+  font-size: 15px;
+  line-height: 1.75;
+}

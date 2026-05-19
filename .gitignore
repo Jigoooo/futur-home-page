@@ -32,9 +32,12 @@ dev-dist/
 
 # Local agent/tooling state
 .claude/
-.serena/
-.mcp.json
+.codex/
+AGENTS.md
 CLAUDE.md
+.serena/
+graphify-out/
+.mcp.json
 
 # Database leftovers from the source app are intentionally out of scope.
 *.db

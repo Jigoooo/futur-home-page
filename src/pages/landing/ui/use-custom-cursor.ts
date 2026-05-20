@@ -131,8 +131,6 @@ export function useCustomCursor({ auraRef, dotRef, labelRef }: UseCustomCursorPa
     window.addEventListener('focus', recoverCursor);
     window.addEventListener('pageshow', recoverCursor);
     window.addEventListener('blur', handleBlur);
-    document.addEventListener('pointermove', recoverCursor, { passive: true });
-    document.addEventListener('mousemove', recoverCursor, { passive: true });
     document.addEventListener('pointerup', handlePointerUp, { passive: true });
     document.addEventListener('visibilitychange', handleVisibilityChange);
 
@@ -166,8 +164,6 @@ export function useCustomCursor({ auraRef, dotRef, labelRef }: UseCustomCursorPa
       window.removeEventListener('focus', recoverCursor);
       window.removeEventListener('pageshow', recoverCursor);
       window.removeEventListener('blur', handleBlur);
-      document.removeEventListener('pointermove', recoverCursor);
-      document.removeEventListener('mousemove', recoverCursor);
       document.removeEventListener('pointerup', handlePointerUp);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };

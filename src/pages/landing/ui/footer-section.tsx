@@ -1,5 +1,4 @@
 import { Icon } from './icons';
-import { footerColumns } from '../config';
 import styles from './styles/footer.module.css';
 import sharedStyles from './styles/shared.module.css';
 import { mailHref, phoneHref } from '../lib/company-links';
@@ -32,51 +31,7 @@ export function FooterSection() {
               FUTUR<span>.</span>
             </h3>
             <p>아이디어를 현실의 서비스로 만드는 SI·외주 개발 파트너.</p>
-            <div className={styles.socials}>
-              <a
-                className={styles.social}
-                href='#top'
-                aria-label='GitHub'
-                data-landing-interactive='round'
-                data-cursor-text='GitHub'
-              >
-                <Icon name='github' />
-              </a>
-              <a
-                className={styles.social}
-                href='#top'
-                aria-label='LinkedIn'
-                data-landing-interactive='round'
-                data-cursor-text='LinkedIn'
-              >
-                <Icon name='linkedin' />
-              </a>
-              <a
-                className={styles.social}
-                href={mailHref}
-                aria-label='Email'
-                data-landing-interactive='round'
-                data-cursor-text='Email'
-              >
-                <Icon name='mail' />
-              </a>
-            </div>
           </div>
-
-          {footerColumns.map((column) => (
-            <div key={column.title}>
-              <strong>{column.title}</strong>
-              {column.links.map((link) => (
-                <a
-                  key={`${column.title}-${link.label}`}
-                  className={styles.footerLink}
-                  href={link.href}
-                >
-                  {link.label}
-                </a>
-              ))}
-            </div>
-          ))}
 
           <div>
             <strong>문의</strong>

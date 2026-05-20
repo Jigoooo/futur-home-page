@@ -7,6 +7,13 @@ import tokensUrl from '../styles/tokens.css?url';
 import { COMPANY_INFOS } from '@/entities/company';
 import { RootComponent, RootDocument, RootNotFound } from '@/pages/root';
 
+const cssPreloadLinks = import.meta.env.PROD
+  ? [
+      { rel: 'preload', href: tokensUrl, as: 'style' },
+      { rel: 'preload', href: globalsUrl, as: 'style' },
+    ]
+  : [];
+
 export const Route = createRootRoute({
   head: () => ({
     links: [
@@ -23,6 +30,7 @@ export const Route = createRootRoute({
         type: 'font/woff2',
         crossOrigin: 'anonymous',
       },
+      ...cssPreloadLinks,
       { rel: 'stylesheet', href: tokensUrl },
       { rel: 'stylesheet', href: globalsUrl },
     ],

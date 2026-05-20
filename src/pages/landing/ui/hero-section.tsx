@@ -100,10 +100,6 @@ export function HeroSection() {
               src='/landing/hero-product-preview.png'
               alt='업무 대시보드, 현장 모바일 앱, API 연동 흐름을 함께 보여주는 FUTUR 서비스 화면 예시'
             />
-            <div className={styles.heroPreviewCaption} aria-hidden='true'>
-              <span>Product Preview</span>
-              <strong>업무 흐름을 한 화면으로 연결</strong>
-            </div>
           </div>
         </div>
       </div>

@@ -7,7 +7,6 @@ export {
   replyTypeOptions,
   timelineOptions,
 } from './contact';
-export { footerColumns } from './footer';
 export { heroPoints } from './hero';
 export { navigationItems } from './navigation';
 export { processSteps } from './process';

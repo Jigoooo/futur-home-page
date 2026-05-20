@@ -10,7 +10,6 @@ export const teamRoles: TeamRole[] = [
     strength: '요구사항 정리, 범위 조율',
     projectExperience: 'B2B 업무 시스템 / 외주 프로젝트',
     tags: ['기획', '문서화', '커뮤니케이션'],
-    cursorText: 'PM',
   },
   {
     badge: 'FE',
@@ -21,7 +20,6 @@ export const teamRoles: TeamRole[] = [
     strength: '사용성 높은 화면 구조',
     projectExperience: '관리자, 대시보드, 현장 업무 UI',
     tags: ['React', 'TypeScript', 'TanStack'],
-    cursorText: 'FE',
   },
   {
     badge: 'BE',
@@ -32,7 +30,6 @@ export const teamRoles: TeamRole[] = [
     strength: '안정적인 서비스 로직',
     projectExperience: 'ERP, 주문, 재고, 인증 시스템',
     tags: ['Node.js', 'Spring', 'SQL'],
-    cursorText: 'BE',
   },
   {
     badge: 'APP',
@@ -43,7 +40,6 @@ export const teamRoles: TeamRole[] = [
     strength: '실사용 환경에 맞는 앱 흐름',
     projectExperience: '배송, 검수, 설치, 점검 앱',
     tags: ['Expo', 'Kotlin', 'iOS'],
-    cursorText: 'APP',
   },
   {
     badge: 'OPS',
@@ -54,7 +50,6 @@ export const teamRoles: TeamRole[] = [
     strength: '운영 가능한 배포 환경',
     projectExperience: 'Nginx, PM2, SSL, 서버 운영',
     tags: ['Docker', 'Nginx', 'CI/CD'],
-    cursorText: 'OPS',
   },
   {
     badge: 'UX',
@@ -65,6 +60,5 @@ export const teamRoles: TeamRole[] = [
     strength: '복잡한 기능의 쉬운 흐름화',
     projectExperience: '랜딩, 관리자, 디자인 시스템',
     tags: ['Figma', 'Prototype', 'Design System'],
-    cursorText: 'UX',
   },
 ];

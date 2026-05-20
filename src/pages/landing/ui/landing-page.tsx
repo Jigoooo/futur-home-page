@@ -6,6 +6,7 @@ import { CustomCursor } from './custom-cursor';
 import { FooterSection } from './footer-section';
 import { HeaderSection } from './header-section';
 import { HeroSection } from './hero-section';
+import { LandingScrollbar } from './landing-scrollbar';
 import { ProcessSection } from './process-section';
 import { ReviewsSection } from './reviews-section';
 import { ServicesSection } from './services-section';
@@ -35,6 +36,7 @@ export function LandingPage() {
         <ReviewsSection />
         <ContactSection />
         <FooterSection />
+        <LandingScrollbar />
         <button
           type='button'
           className={scrollTopStyles.scrollTop}

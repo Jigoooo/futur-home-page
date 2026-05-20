@@ -31,11 +31,7 @@ export function TeamSection() {
           data-landing-reveal='right'
         >
           {teamRoles.map((role) => (
-            <article
-              key={role.badge}
-              className={styles.roleCard}
-              data-cursor-text={role.cursorText}
-            >
+            <article key={role.badge} className={styles.roleCard}>
               <div className={styles.roleTop}>
                 <div className={styles.roleBadge}>{role.badge}</div>
                 <div className={styles.roleMeta}>

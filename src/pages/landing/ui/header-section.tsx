@@ -1,12 +1,10 @@
 import { navigationItems } from '../config';
 import { Button } from './button';
-import { cx } from './lib/cx';
 import styles from './styles/header.module.css';
-import sharedStyles from './styles/shared.module.css';
 
 export function HeaderSection() {
   return (
-    <header id='top' className={cx(styles.nav, sharedStyles.container)} data-landing-nav>
+    <header id='top' className={styles.nav} data-landing-nav>
       <a href='#top' className={styles.logo} aria-label='FUTUR home'>
         FUTUR<span>.</span>
       </a>

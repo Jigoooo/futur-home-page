@@ -2,16 +2,18 @@ import { HeadContent, Scripts } from '@tanstack/react-router';
 import type { ReactNode } from 'react';
 
 const styleGateCss = `
-html[data-style-gate='pending'] body {
+html:not([data-style-gate='ready']) body {
   overflow: hidden;
 }
 
 .style-gate-app {
   opacity: 0;
+  pointer-events: none;
 }
 
 html[data-style-gate='ready'] .style-gate-app {
   opacity: 1;
+  pointer-events: auto;
   transition: opacity 160ms ease;
 }
 
@@ -186,6 +188,8 @@ const styleGateScript = `
 (() => {
   const root = document.documentElement;
   let isReady = false;
+  let isDomReady = false;
+  const watchedStylesheets = new WeakSet();
 
   root.dataset.styleGate = 'pending';
 
@@ -196,10 +200,16 @@ const styleGateScript = `
     getStylesheets().every((stylesheet) => stylesheet.sheet);
 
   const areLandingStylesApplied = () => {
+    const app = document.querySelector('.style-gate-app');
+
+    if (!app) {
+      return false;
+    }
+
     const page = document.querySelector('[data-landing-page]');
 
     if (!page) {
-      return true;
+      return isDomReady;
     }
 
     const hero = document.querySelector('[data-landing-hero]');
@@ -236,26 +246,54 @@ const styleGateScript = `
 
   const watchStylesheets = () => {
     getStylesheets().forEach((stylesheet) => {
+      if (watchedStylesheets.has(stylesheet)) {
+        return;
+      }
+
+      watchedStylesheets.add(stylesheet);
       stylesheet.addEventListener('load', checkAfterPaint, { once: true });
       stylesheet.addEventListener('error', checkAfterPaint, { once: true });
     });
   };
 
+  const keepCheckingUntilReady = () => {
+    if (isReady) {
+      return;
+    }
+
+    watchStylesheets();
+    checkAfterPaint();
+    window.setTimeout(keepCheckingUntilReady, 120);
+  };
+
+  const observeStylesheetLinks = () => {
+    const observer = new MutationObserver(() => {
+      if (isReady) {
+        observer.disconnect();
+        return;
+      }
+
+      watchStylesheets();
+      checkAfterPaint();
+    });
+
+    observer.observe(document.head, { childList: true, subtree: true });
+
+    return observer;
+  };
+
   document.addEventListener(
     'DOMContentLoaded',
     () => {
+      isDomReady = true;
       watchStylesheets();
       checkAfterPaint();
     },
     { once: true },
   );
   window.addEventListener('load', checkAfterPaint, { once: true });
-
-  window.setTimeout(() => {
-    if (!isReady) {
-      root.dataset.styleGate = 'ready';
-    }
-  }, 2500);
+  observeStylesheetLinks();
+  keepCheckingUntilReady();
 })();
 `;
 
@@ -263,15 +301,15 @@ export function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
   return (
     <html lang='ko' data-style-gate='pending' suppressHydrationWarning>
       <head>
+        <HeadContent />
         <style dangerouslySetInnerHTML={{ __html: styleGateCss }} />
         <script dangerouslySetInnerHTML={{ __html: styleGateScript }} />
         <noscript
           dangerouslySetInnerHTML={{
             __html:
-              "<style>html[data-style-gate='pending'] body{overflow:auto}.style-gate-loader{display:none!important}.style-gate-app{opacity:1!important}</style>",
+              "<style>html[data-style-gate='pending'] body{overflow:auto}.style-gate-loader{display:none!important}.style-gate-app{opacity:1!important;pointer-events:auto!important}</style>",
           }}
         />
-        <HeadContent />
       </head>
       <body suppressHydrationWarning>
         <div className='style-gate-loader' aria-hidden='true'>

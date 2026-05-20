@@ -62,7 +62,6 @@ export interface TeamRole {
   strength: string;
   projectExperience: string;
   tags: string[];
-  cursorText: string;
 }
 
 export interface ProcessStep {
@@ -87,9 +86,4 @@ export interface ContactCheckItem {
 export interface ContactChip {
   label: string;
   icon: IconName;
-}
-
-export interface FooterColumn {
-  title: string;
-  links: NavItem[];
 }

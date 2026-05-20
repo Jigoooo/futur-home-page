@@ -153,12 +153,27 @@
 
 :global(.contact-form .stage-grid) {
   grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  padding: 12px;
 }
 
 :global(.contact-form .stage-card) {
-  min-height: 132px;
-  align-content: start;
-  align-items: start;
+  min-height: 136px;
+  align-content: center;
+  align-items: center;
+  padding-right: 30px;
+}
+
+:global(.contact-form .stage-index) {
+  align-self: center;
+}
+
+:global(.contact-form .stage-card strong) {
+  align-self: end;
+}
+
+:global(.contact-form .stage-card em) {
+  align-self: start;
 }
 
 :global(.full) {

@@ -136,7 +136,7 @@
 }
 
 :global(.stage-choice input:checked + .stage-card .stage-index) {
-  transform: translateY(-1px) scale(1.04);
+  transform: scale(1.04);
   background: #2f6bff;
   color: #ffffff;
 }

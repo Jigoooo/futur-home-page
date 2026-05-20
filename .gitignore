@@ -18,6 +18,8 @@ dist-ssr
 .output/
 .tanstack/
 dev-dist/
+playwright-report/
+test-results/
 
 # Editor directories and files
 .vscode/*

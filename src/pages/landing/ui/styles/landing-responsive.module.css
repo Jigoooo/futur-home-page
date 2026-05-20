@@ -9,7 +9,7 @@
 
   :global(.hero) {
     min-height: auto;
-    padding-top: 82px;
+    padding: 82px 0 170px;
   }
 
   :global(.hero-grid),
@@ -26,9 +26,7 @@
   }
 
   :global(.hero-visual) {
-    width: 100%;
-    max-width: 720px;
-    margin: 0 auto;
+    display: none;
   }
 
   :global(.service-layout),
@@ -90,7 +88,7 @@
   }
 
   :global(.hero) {
-    padding: 58px 0 150px;
+    padding: 58px 0 128px;
   }
 
   :global(.hero-grid) {
@@ -125,34 +123,6 @@
   :global(.form-grid),
   :global(.service-checks) {
     grid-template-columns: 1fr;
-  }
-
-  :global(.hero-visual) {
-    height: 420px;
-  }
-
-  :global(.hero-panel) {
-    left: 50%;
-    top: 48px;
-    width: min(420px, calc(100% - 24px));
-    height: 310px;
-    padding: 28px;
-    translate: -50% 0;
-    transform: translateX(-50%);
-  }
-
-  :global(.float-card) {
-    display: none;
-  }
-
-  :global(.visual-orbit) {
-    left: 26px;
-    right: 26px;
-  }
-
-  :global(.b4) {
-    left: auto;
-    right: 28px;
   }
 
   :global(.section),
@@ -353,6 +323,7 @@
 
   :global(.hero) {
     padding-top: 46px;
+    padding-bottom: 96px;
   }
 
   :global(.hero-actions) {
@@ -363,39 +334,6 @@
   :global(.btn) {
     width: 100%;
     min-height: 52px;
-  }
-
-  :global(.hero-visual) {
-    height: 360px;
-  }
-
-  :global(.hero-panel) {
-    height: auto;
-    min-height: 270px;
-    padding: 28px;
-    border-radius: 34px;
-  }
-
-  :global(.panel-title) {
-    margin-bottom: 18px;
-    font-size: clamp(25px, 7vw, 31px);
-  }
-
-  :global(.mini-chart) {
-    position: relative;
-    right: auto;
-    bottom: auto;
-    width: 100%;
-    max-width: 176px;
-    height: 72px;
-    margin: 18px 0 0 auto;
-  }
-
-  :global(.mini-chart svg) {
-    left: 12px;
-    top: 14px;
-    width: calc(100% - 24px);
-    height: 44px;
   }
 
   :global(.case-panel-inner) {
@@ -516,14 +454,10 @@
     color: #4d5c78;
   }
 
-  :global(.btn:hover::before),
-  :global(.btn:hover::after),
   :global(.service-card:hover::after) {
     opacity: 0;
   }
 
-  :global(.btn:hover .btn-label),
-  :global(.btn:hover .btn-arrow),
   :global(.service-card:hover .service-icon),
   :global(.service-card:hover .card-link),
   :global(.service-card:hover .card-link i),

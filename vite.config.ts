@@ -8,12 +8,30 @@ const ReactCompilerConfig = {};
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), 'VITE_');
+  const isPlaywrightE2E = process.env.PLAYWRIGHT_E2E === '1';
 
   return {
     server: {
       host: '0.0.0.0',
       port: Number.parseInt(env.VITE_PORT || '', 10) || 3000,
-      open: true,
+      open: !isPlaywrightE2E,
+      watch: isPlaywrightE2E
+        ? {
+            ignored: [
+              '**/.git/**',
+              '**/.output/**',
+              '**/.tanstack/**',
+              '**/dist/**',
+              '**/dist-ssr/**',
+              '**/graphify-out/**',
+              '**/node_modules/**',
+              '**/playwright-report/**',
+              '**/test-results/**',
+            ],
+            interval: 500,
+            usePolling: true,
+          }
+        : undefined,
     },
     plugins: [
       tanstackStart(),

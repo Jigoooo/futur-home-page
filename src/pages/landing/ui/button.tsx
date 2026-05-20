@@ -1,6 +1,4 @@
-import { type ComponentPropsWithoutRef, useRef, useState } from 'react';
-
-import { setPointerSpotlight } from '../lib/pointer-spotlight';
+import { type ComponentPropsWithoutRef } from 'react';
 
 type ButtonVariant = 'primary' | 'blue' | 'ghost';
 
@@ -16,25 +14,10 @@ export function Button({
   children,
   ...props
 }: ButtonProps) {
-  const timerRef = useRef<number | null>(null);
-  const [isHovering, setIsHovering] = useState(false);
-
-  const handlePointerEnter = () => {
-    if (timerRef.current) window.clearTimeout(timerRef.current);
-    setIsHovering(true);
-  };
-
-  const handlePointerLeave = () => {
-    timerRef.current = window.setTimeout(() => setIsHovering(false), 80);
-  };
-
   return (
     <a
-      className={`btn btn-${variant} ${isHovering ? 'is-hovering' : ''} ${className}`.trim()}
+      className={`btn btn-${variant} ${className}`.trim()}
       data-cursor-text={cursorText}
-      onPointerEnter={handlePointerEnter}
-      onPointerLeave={handlePointerLeave}
-      onPointerMove={setPointerSpotlight}
       {...props}
     >
       {children}

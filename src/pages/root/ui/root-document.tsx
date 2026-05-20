@@ -60,6 +60,7 @@ html[data-style-gate='ready'] .style-gate-loader {
   border-radius: 34px;
   background: rgba(255, 255, 255, 0.86);
   box-shadow: 0 34px 88px rgba(56, 78, 130, 0.14);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
   backdrop-filter: blur(18px) saturate(160%);
 }
 

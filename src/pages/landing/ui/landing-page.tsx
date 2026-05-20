@@ -1,3 +1,5 @@
+import { useRef } from 'react';
+
 import { CaseStoriesSection } from './case-stories-section';
 import { ContactSection } from './contact-section';
 import { CustomCursor } from './custom-cursor';
@@ -10,15 +12,19 @@ import { ServicesSection } from './services-section';
 import { landingStyleAnchors } from './styles';
 import { TeamSection } from './team-section';
 import { useInViewReveal } from './use-in-view-reveal';
+import { useLandingGsapInteractions } from './use-landing-gsap-interactions';
 import { scrollToPageTop } from '../lib/scroll-to-page-top';
 
 export function LandingPage() {
+  const pageRef = useRef<HTMLElement | null>(null);
+
   useInViewReveal();
+  useLandingGsapInteractions(pageRef);
 
   return (
     <>
       <CustomCursor />
-      <main className={`page ${landingStyleAnchors}`}>
+      <main ref={pageRef} className={`page ${landingStyleAnchors}`}>
         <HeaderSection />
         <HeroSection />
         <ServicesSection />

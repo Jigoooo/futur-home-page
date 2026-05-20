@@ -1,6 +1,5 @@
 import { services } from '../config';
 import { Icon } from './icons';
-import { setCardSpotlight } from '../lib/pointer-spotlight';
 
 export function ServicesSection() {
   return (
@@ -26,7 +25,6 @@ export function ServicesSection() {
               className='service-card'
               data-card
               data-cursor-text={service.cursorText}
-              onPointerMove={setCardSpotlight}
             >
               <div className='service-icon'>
                 <Icon name={service.icon} />

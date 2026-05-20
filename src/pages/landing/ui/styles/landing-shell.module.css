@@ -189,6 +189,7 @@
   border: 1px solid rgba(220, 230, 244, 0.82);
   border-radius: 28px;
   background: rgba(255, 255, 255, 0.82);
+  -webkit-backdrop-filter: blur(20px) saturate(165%);
   backdrop-filter: blur(20px) saturate(165%);
   box-shadow: 0 16px 46px rgba(28, 48, 92, 0.07);
 }
@@ -252,6 +253,9 @@
   --btn-border: #dce5f3;
   --spot-x: 50%;
   --spot-y: 50%;
+  --btn-spot-opacity: 0;
+  --btn-sheen-opacity: 0;
+  --btn-sheen-x: 0%;
   position: relative;
   isolation: isolate;
   overflow: hidden;
@@ -287,8 +291,7 @@
     rgba(255, 255, 255, 0.33),
     transparent 44%
   );
-  opacity: 0;
-  transition: opacity 0.24s ease;
+  opacity: var(--btn-spot-opacity);
 }
 
 :global(.btn::after) {
@@ -308,11 +311,8 @@
     rgba(255, 255, 255, 0) 78%,
     transparent 100%
   );
-  transform: skewX(-14deg) translateX(0);
-  opacity: 0;
-  transition:
-    transform 0.64s var(--ease),
-    opacity 0.2s ease;
+  transform: skewX(-14deg) translateX(var(--btn-sheen-x));
+  opacity: var(--btn-sheen-opacity);
 }
 
 :global(.btn .btn-label),
@@ -320,7 +320,6 @@
   position: relative;
   display: inline-flex;
   align-items: center;
-  transition: transform 0.28s var(--spring);
 }
 
 :global(.btn .btn-arrow) {
@@ -329,33 +328,6 @@
   justify-content: center;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.14);
-}
-
-:global(.btn:hover),
-:global(.btn.is-hovering) {
-  box-shadow: 0 20px 46px rgba(23, 44, 88, 0.14);
-}
-
-:global(.btn:hover::before),
-:global(.btn.is-hovering::before),
-:global(.btn:hover::after),
-:global(.btn.is-hovering::after) {
-  opacity: 1;
-}
-
-:global(.btn:hover::after),
-:global(.btn.is-hovering::after) {
-  transform: skewX(-14deg) translateX(310%);
-}
-
-:global(.btn:hover .btn-label),
-:global(.btn.is-hovering .btn-label) {
-  transform: translateX(-2px);
-}
-
-:global(.btn:hover .btn-arrow),
-:global(.btn.is-hovering .btn-arrow) {
-  transform: translateX(5px);
 }
 
 :global(.btn:focus-visible) {
@@ -368,12 +340,6 @@
   --btn-color: #ffffff;
   --btn-border: var(--navy);
   box-shadow: 0 16px 34px rgba(8, 25, 67, 0.22);
-}
-
-:global(.btn-primary:hover),
-:global(.btn-primary.is-hovering) {
-  --btn-bg: #0b245c;
-  --btn-border: #0b245c;
 }
 
 :global(.btn-blue) {

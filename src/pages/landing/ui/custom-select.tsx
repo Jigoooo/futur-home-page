@@ -123,6 +123,8 @@ export function CustomSelect({ label, name, value, options, onChange }: CustomSe
 
   const selected = options[selectedIndex] || options[0];
   if (!selected) return null;
+  const labelId = `${id}-label`;
+  const valueId = `${id}-value`;
   const listboxId = `${id}-listbox`;
   const selectStateProps =
     isOpen === true
@@ -131,7 +133,9 @@ export function CustomSelect({ label, name, value, options, onChange }: CustomSe
 
   return (
     <div className='form-control'>
-      <span className='form-label'>{label}</span>
+      <span id={labelId} className='form-label'>
+        {label}
+      </span>
       <div
         ref={rootRef}
         className={`custom-select ${isOpen ? 'is-open' : ''} ${placement === 'up' ? 'is-up' : ''}`}
@@ -144,7 +148,8 @@ export function CustomSelect({ label, name, value, options, onChange }: CustomSe
           role='combobox'
           aria-haspopup='listbox'
           aria-controls={listboxId}
-          aria-activedescendant={`${id}-option-${focusedIndex}`}
+          aria-labelledby={`${labelId} ${valueId}`}
+          aria-activedescendant={isOpen ? `${id}-option-${focusedIndex}` : undefined}
           {...selectStateProps}
           onClick={() => {
             if (isOpen) {
@@ -156,7 +161,9 @@ export function CustomSelect({ label, name, value, options, onChange }: CustomSe
           }}
           onKeyDown={handleKeyDown}
         >
-          <span className='select-value'>{selected.label}</span>
+          <span id={valueId} className='select-value'>
+            {selected.label}
+          </span>
           <span className='select-arrow' aria-hidden='true'>
             <svg viewBox='0 0 20 20' fill='none'>
               <path
@@ -169,7 +176,13 @@ export function CustomSelect({ label, name, value, options, onChange }: CustomSe
             </svg>
           </span>
         </button>
-        <ul ref={menuRef} id={listboxId} className='select-menu' role='listbox'>
+        <ul
+          ref={menuRef}
+          id={listboxId}
+          className='select-menu'
+          role='listbox'
+          aria-labelledby={labelId}
+        >
           {options.map((option, optionIndex) => {
             const optionStateProps =
               option.value === value

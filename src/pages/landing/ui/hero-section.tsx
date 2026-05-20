@@ -13,7 +13,7 @@ function FloatingCard({
   description: string;
 }) {
   return (
-    <div className={`float-card ${className}`}>
+    <div className={`float-card ${className}`} aria-hidden='true'>
       <div className='ico'>{badge}</div>
       <div>
         <strong>{title}</strong>
@@ -60,36 +60,26 @@ export function HeroSection() {
           </div>
         </div>
 
-        <div className='hero-visual' aria-hidden='true'>
-          <div className='visual-orbit' />
-          <div className='visual-orbit two' />
-          <div className='bubble b1' />
-          <div className='bubble b2' />
-          <div className='bubble b3' />
-          <div className='bubble b4' />
+        <div className='hero-visual'>
+          <div className='visual-orbit' aria-hidden='true' />
+          <div className='visual-orbit two' aria-hidden='true' />
+          <div className='bubble b1' aria-hidden='true' />
+          <div className='bubble b2' aria-hidden='true' />
+          <div className='bubble b3' aria-hidden='true' />
+          <div className='bubble b4' aria-hidden='true' />
           <FloatingCard className='f1' badge='UX' title='흐름 정리' description='화면·업무 구조' />
           <FloatingCard className='f2' badge='API' title='연동 설계' description='인증·데이터' />
           <FloatingCard className='f3' badge='APP' title='현장 앱' description='모바일 업무' />
           <FloatingCard className='f4' badge='OPS' title='운영 지원' description='배포·개선' />
           <div className='hero-panel'>
-            <div className='panel-dots'>
-              <i />
-              <i />
-              <i />
-            </div>
-            <div className='panel-label'>Project Brief</div>
-            <div className='panel-title'>
-              복잡한 요구사항을
-              <br />
-              작동하는 서비스로.
-            </div>
-            <div className='skeleton s1' />
-            <div className='skeleton s2' />
-            <div className='skeleton s3' />
-            <div className='mini-chart'>
-              <svg viewBox='0 0 140 56'>
-                <path d='M4 42 C22 25, 33 31, 47 19 S77 30, 91 17 S115 13, 136 8' />
-              </svg>
+            <img
+              className='hero-product-image'
+              src='/landing/hero-product-preview.png'
+              alt='업무 대시보드, 현장 모바일 앱, API 연동 흐름을 함께 보여주는 FUTUR 서비스 화면 예시'
+            />
+            <div className='hero-preview-caption' aria-hidden='true'>
+              <span>Product Preview</span>
+              <strong>업무 흐름을 한 화면으로 연결</strong>
             </div>
           </div>
         </div>

@@ -5,7 +5,7 @@ import { createRootRoute } from '@tanstack/react-router';
 import globalsUrl from '../styles/globals.css?url';
 import tokensUrl from '../styles/tokens.css?url';
 import { COMPANY_INFOS } from '@/entities/company';
-import { RootComponent } from '@/pages/root';
+import { RootComponent, RootDocument, RootNotFound } from '@/pages/root';
 
 export const Route = createRootRoute({
   head: () => ({
@@ -105,5 +105,7 @@ export const Route = createRootRoute({
       },
     ],
   }),
+  shellComponent: RootDocument,
   component: RootComponent,
+  notFoundComponent: RootNotFound,
 });

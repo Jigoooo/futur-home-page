@@ -1,38 +1,53 @@
 import { services } from '../config';
 import { Icon } from './icons';
+import { cx } from './lib/cx';
+import styles from './styles/services.module.css';
+import sharedStyles from './styles/shared.module.css';
 
 export function ServicesSection() {
   return (
-    <section className='section container' id='services'>
-      <div className='service-layout'>
-        <div className='motion-left'>
-          <span className='kicker'>Our Services</span>
-          <h2 className='section-title'>
-            <span className='nowrap'>비즈니스에 필요한</span>
+    <section className={cx(sharedStyles.section, sharedStyles.container)} id='services'>
+      <div className={cx(styles.serviceLayout, sharedStyles.gridLayout)}>
+        <div
+          className={cx(sharedStyles.reveal, sharedStyles.revealLeft)}
+          data-landing-reveal='left'
+        >
+          <span className={sharedStyles.kicker}>Our Services</span>
+          <h2 className={sharedStyles.sectionTitle}>
+            <span className={sharedStyles.nowrap}>비즈니스에 필요한</span>
             <br />
             개발 과정을
-            <br className='desktop-break' /> 한 흐름으로.
+            <br className={sharedStyles.desktopBreak} /> 한 흐름으로.
           </h2>
-          <p className='section-desc'>
+          <p className={sharedStyles.sectionDesc}>
             화면만 만드는 것이 아니라, 사용 방식·데이터·운영까지 연결해 실제로 굴러가는 서비스를
             만듭니다.
           </p>
         </div>
-        <div className='service-list motion-right'>
+        <div
+          className={cx(
+            styles.serviceList,
+            sharedStyles.twoColumnList,
+            sharedStyles.reveal,
+            sharedStyles.revealRight,
+          )}
+          data-landing-reveal='right'
+        >
           {services.map((service) => (
             <article
               key={service.title}
-              className='service-card'
-              data-card
+              className={styles.serviceCard}
+              data-landing-card
+              data-landing-spotlight='card'
               data-cursor-text={service.cursorText}
             >
-              <div className='service-icon'>
+              <div className={styles.serviceIcon} data-landing-service-icon>
                 <Icon name={service.icon} />
               </div>
               <h3>{service.title}</h3>
               <p>{service.description}</p>
-              <a className='card-link' href='#contact'>
-                자세히 보기 <i>→</i>
+              <a className={styles.cardLink} href='#contact' data-landing-interactive='card-link'>
+                자세히 보기 <i data-landing-arrow>→</i>
               </a>
             </article>
           ))}

@@ -1,34 +1,52 @@
 import { teamRoles } from '../config';
+import { cx } from './lib/cx';
+import sharedStyles from './styles/shared.module.css';
+import styles from './styles/team.module.css';
 
 export function TeamSection() {
   return (
-    <section className='section container' id='team'>
-      <div className='team-layout'>
-        <div className='team-lead motion-left'>
-          <span className='kicker'>Our Team</span>
-          <h2 className='section-title'>
+    <section className={cx(sharedStyles.section, sharedStyles.container)} id='team'>
+      <div className={cx(styles.teamLayout, sharedStyles.gridLayout)}>
+        <div
+          className={cx(sharedStyles.stickyLead, sharedStyles.reveal, sharedStyles.revealLeft)}
+          data-landing-reveal='left'
+        >
+          <span className={sharedStyles.kicker}>Our Team</span>
+          <h2 className={sharedStyles.sectionTitle}>
             프로젝트를 움직이는
             <br />
             역할들.
           </h2>
-          <p className='section-desc'>
+          <p className={sharedStyles.sectionDesc}>
             각자의 전문 영역을 나누되, 프로젝트 목표와 사용자의 업무 흐름은 함께 이해합니다.
           </p>
         </div>
-        <div className='role-grid motion-right'>
+        <div
+          className={cx(
+            styles.roleGrid,
+            sharedStyles.twoColumnList,
+            sharedStyles.reveal,
+            sharedStyles.revealRight,
+          )}
+          data-landing-reveal='right'
+        >
           {teamRoles.map((role) => (
-            <article key={role.badge} className='role-card' data-cursor-text={role.cursorText}>
-              <div className='role-top'>
-                <div className='role-badge'>{role.badge}</div>
-                <div className='role-meta'>
+            <article
+              key={role.badge}
+              className={styles.roleCard}
+              data-cursor-text={role.cursorText}
+            >
+              <div className={styles.roleTop}>
+                <div className={styles.roleBadge}>{role.badge}</div>
+                <div className={styles.roleMeta}>
                   {role.location}
                   <br />
                   {role.experience}
                 </div>
               </div>
               <h3>{role.title}</h3>
-              <div className='role-job'>{role.job}</div>
-              <div className='role-info'>
+              <div className={styles.roleJob}>{role.job}</div>
+              <div className={styles.roleInfo}>
                 <div>
                   <strong>강점</strong>
                   {role.strength}
@@ -38,9 +56,9 @@ export function TeamSection() {
                   {role.projectExperience}
                 </div>
               </div>
-              <div className='tags'>
+              <div className={styles.tags}>
                 {role.tags.map((tag) => (
-                  <span key={tag} className='tag'>
+                  <span key={tag} className={styles.tag}>
                     {tag}
                   </span>
                 ))}

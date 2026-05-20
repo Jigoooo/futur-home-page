@@ -1,6 +1,8 @@
 import { useEffect, useId, useRef, useState, type KeyboardEvent } from 'react';
 
 import type { SelectOption } from '../model/types';
+import { cx } from './lib/cx';
+import styles from './styles/form-controls.module.css';
 
 interface CustomSelectProps {
   label: string;
@@ -132,19 +134,25 @@ export function CustomSelect({ label, name, value, options, onChange }: CustomSe
       : ({ 'aria-expanded': 'false' } as const);
 
   return (
-    <div className='form-control'>
-      <span id={labelId} className='form-label'>
+    <div className={styles.formControl}>
+      <span id={labelId} className={styles.formLabel}>
         {label}
       </span>
       <div
         ref={rootRef}
-        className={`custom-select ${isOpen ? 'is-open' : ''} ${placement === 'up' ? 'is-up' : ''}`}
+        className={cx(
+          styles.customSelect,
+          isOpen && styles.isOpen,
+          placement === 'up' && styles.isUp,
+        )}
+        data-landing-cursor-soft
       >
         <input type='hidden' name={name} value={value} />
         <button
           ref={triggerRef}
           type='button'
-          className='select-trigger'
+          className={styles.selectTrigger}
+          data-landing-interactive='control'
           role='combobox'
           aria-haspopup='listbox'
           aria-controls={listboxId}
@@ -161,10 +169,10 @@ export function CustomSelect({ label, name, value, options, onChange }: CustomSe
           }}
           onKeyDown={handleKeyDown}
         >
-          <span id={valueId} className='select-value'>
+          <span id={valueId} className={styles.selectValue}>
             {selected.label}
           </span>
-          <span className='select-arrow' aria-hidden='true'>
+          <span className={styles.selectArrow} aria-hidden='true'>
             <svg viewBox='0 0 20 20' fill='none'>
               <path
                 d='M5.5 7.5L10 12l4.5-4.5'
@@ -179,7 +187,7 @@ export function CustomSelect({ label, name, value, options, onChange }: CustomSe
         <ul
           ref={menuRef}
           id={listboxId}
-          className='select-menu'
+          className={styles.selectMenu}
           role='listbox'
           aria-labelledby={labelId}
         >
@@ -193,7 +201,12 @@ export function CustomSelect({ label, name, value, options, onChange }: CustomSe
               <li
                 key={option.value}
                 id={`${id}-option-${optionIndex}`}
-                className={`select-option ${focusedIndex === optionIndex ? 'is-focused' : ''}`}
+                className={cx(
+                  styles.selectOption,
+                  focusedIndex === optionIndex && styles.isFocused,
+                )}
+                data-landing-interactive='control'
+                data-landing-select-option
                 role='option'
                 tabIndex={-1}
                 onClick={() => selectOption(option)}

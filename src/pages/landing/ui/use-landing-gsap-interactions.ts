@@ -4,20 +4,12 @@ import { type RefObject } from 'react';
 
 gsap.registerPlugin(useGSAP);
 
-const INTERACTIVE_SELECTOR = [
-  '.btn',
-  '.scroll-top',
-  '.tab',
-  '.card-link',
-  '.footer-pill',
-  '.social',
-  '.select-trigger',
-  '.select-option',
-  '.stage-choice',
-  '.check-tile',
-].join(',');
-
-const SPOTLIGHT_SELECTOR = '.btn,.service-card';
+const INTERACTIVE_SELECTOR = '[data-landing-interactive]';
+const SPOTLIGHT_SELECTOR = '[data-landing-spotlight]';
+const SURFACE_SELECTOR = '[data-landing-surface]';
+const LABEL_SELECTOR = '[data-landing-label]';
+const ARROW_SELECTOR = '[data-landing-arrow]';
+const SERVICE_ICON_SELECTOR = '[data-landing-service-icon]';
 
 type PageRef = RefObject<HTMLElement | null>;
 
@@ -37,29 +29,27 @@ function getSpotlightTarget(target: EventTarget | null) {
 }
 
 function getSurface(control: HTMLElement) {
-  if (control.classList.contains('stage-choice')) {
-    return control.querySelector<HTMLElement>('.stage-card') ?? control;
+  if (control.dataset.landingInteractive === 'stage-choice') {
+    return control.querySelector<HTMLElement>(SURFACE_SELECTOR) ?? control;
   }
 
-  if (control.classList.contains('check-tile')) {
-    return control.querySelector<HTMLElement>('.check-ui') ?? control;
+  if (control.dataset.landingInteractive === 'check-tile') {
+    return control.querySelector<HTMLElement>(SURFACE_SELECTOR) ?? control;
   }
 
-  if (control.classList.contains('card-link')) {
-    return control.closest<HTMLElement>('.service-card') ?? control;
+  if (control.dataset.landingInteractive === 'card-link') {
+    return control.closest<HTMLElement>('[data-landing-card]') ?? control;
   }
 
   return control;
 }
 
 function getArrow(control: HTMLElement) {
-  return (
-    control.querySelector<HTMLElement>('.btn-arrow') ?? control.querySelector<HTMLElement>('i')
-  );
+  return control.querySelector<HTMLElement>(ARROW_SELECTOR);
 }
 
 function getLabel(control: HTMLElement) {
-  return control.querySelector<HTMLElement>('.btn-label');
+  return control.querySelector<HTMLElement>(LABEL_SELECTOR);
 }
 
 function isNode(target: EventTarget | null): target is Node {
@@ -94,7 +84,7 @@ function updateSpotlight(event: PointerEvent) {
   const x = event.clientX - rect.left;
   const y = event.clientY - rect.top;
 
-  if (target.classList.contains('btn')) {
+  if (target.dataset.landingSpotlight === 'button') {
     setCssPixel(target, '--spot-x', x);
     setCssPixel(target, '--spot-y', y);
     return;
@@ -131,12 +121,10 @@ function animateButtonDetails(control: HTMLElement, active: boolean) {
 
 function animateFineEnter(control: HTMLElement) {
   const surface = getSurface(control);
-  const isButton = control.classList.contains('btn');
-  const isCardLink = control.classList.contains('card-link');
-  const isRoundControl =
-    control.classList.contains('scroll-top') ||
-    control.classList.contains('footer-pill') ||
-    control.classList.contains('social');
+  const type = control.dataset.landingInteractive;
+  const isButton = type === 'button';
+  const isCardLink = type === 'card-link';
+  const isRoundControl = type === 'round';
 
   gsap.killTweensOf(surface);
 
@@ -163,7 +151,7 @@ function animateFineEnter(control: HTMLElement) {
   }
 
   if (isCardLink) {
-    const icon = surface.querySelector<HTMLElement>('.service-icon');
+    const icon = surface.querySelector<HTMLElement>(SERVICE_ICON_SELECTOR);
     const arrow = getArrow(control);
 
     gsap.to(control, { x: 2, duration: 0.22, ease: 'power3.out', overwrite: true });
@@ -178,8 +166,9 @@ function animateFineEnter(control: HTMLElement) {
 
 function animateFineLeave(control: HTMLElement) {
   const surface = getSurface(control);
-  const isButton = control.classList.contains('btn');
-  const isCardLink = control.classList.contains('card-link');
+  const type = control.dataset.landingInteractive;
+  const isButton = type === 'button';
+  const isCardLink = type === 'card-link';
 
   gsap.killTweensOf(surface);
 
@@ -204,7 +193,7 @@ function animateFineLeave(control: HTMLElement) {
   }
 
   if (isCardLink) {
-    const icon = surface.querySelector<HTMLElement>('.service-icon');
+    const icon = surface.querySelector<HTMLElement>(SERVICE_ICON_SELECTOR);
     const arrow = getArrow(control);
 
     gsap.to(control, {
@@ -241,7 +230,7 @@ function animateFineLeave(control: HTMLElement) {
 
 function animatePressStart(control: HTMLElement) {
   const surface = getSurface(control);
-  const isCardLink = control.classList.contains('card-link');
+  const isCardLink = control.dataset.landingInteractive === 'card-link';
   const arrow = getArrow(control);
 
   gsap.killTweensOf(surface);
@@ -391,7 +380,11 @@ export function useLandingGsapInteractions(pageRef: PageRef) {
             cleanups.forEach((cleanup) => cleanup());
             gsap.killTweensOf(Array.from(page.querySelectorAll(INTERACTIVE_SELECTOR)));
             gsap.killTweensOf(
-              Array.from(page.querySelectorAll('.btn-label,.btn-arrow,.service-icon,.card-link i')),
+              Array.from(
+                page.querySelectorAll(
+                  `${LABEL_SELECTOR},${ARROW_SELECTOR},${SERVICE_ICON_SELECTOR}`,
+                ),
+              ),
             );
           };
         },

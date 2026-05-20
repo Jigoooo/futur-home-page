@@ -7,6 +7,9 @@ import {
 } from '../config';
 import { CustomSelect } from './custom-select';
 import { Icon } from './icons';
+import { cx } from './lib/cx';
+import formStyles from './styles/form-controls.module.css';
+import sharedStyles from './styles/shared.module.css';
 
 interface ContactBriefFieldsProps {
   stage: string;
@@ -30,19 +33,23 @@ export function ContactBriefFields({
   onReplyTypeChange,
 }: ContactBriefFieldsProps) {
   return (
-    <fieldset className='form-section'>
-      <div className='form-section-head'>
-        <span className='kicker'>Project Brief</span>
+    <fieldset className={formStyles.formSection}>
+      <div className={formStyles.formSectionHead}>
+        <span className={sharedStyles.kicker}>Project Brief</span>
         <h3>상담 전에 필요한 내용을 가볍게 정리합니다.</h3>
       </div>
 
-      <div className='brief-group stage-group'>
-        <div className='group-label'>
+      <div className={formStyles.briefGroup}>
+        <div className={formStyles.groupLabel}>
           현재 단계 <small>하나 선택</small>
         </div>
-        <div className='stage-grid' role='radiogroup' aria-label='현재 프로젝트 단계'>
+        <div className={formStyles.stageGrid} role='radiogroup' aria-label='현재 프로젝트 단계'>
           {briefStages.map((item) => (
-            <label key={item.value} className='stage-choice'>
+            <label
+              key={item.value}
+              className={formStyles.stageChoice}
+              data-landing-interactive='stage-choice'
+            >
               <input
                 type='radio'
                 name='stage'
@@ -50,8 +57,8 @@ export function ContactBriefFields({
                 checked={stage === item.value}
                 onChange={() => onStageChange(item.value)}
               />
-              <span className='stage-card'>
-                <span className='stage-index'>{item.index}</span>
+              <span className={formStyles.stageCard} data-landing-surface>
+                <span className={formStyles.stageIndex}>{item.index}</span>
                 <strong>{item.label}</strong>
                 <em>{item.description}</em>
               </span>
@@ -60,24 +67,28 @@ export function ContactBriefFields({
         </div>
       </div>
 
-      <div className='brief-group'>
-        <div className='group-label'>
+      <div className={formStyles.briefGroup}>
+        <div className={formStyles.groupLabel}>
           필요한 서비스 <small>복수 선택</small>
         </div>
-        <div className='service-checks'>
+        <div className={formStyles.serviceChecks}>
           {contactServices.map((service) => (
-            <label key={service.value} className='check-tile service-tile'>
+            <label
+              key={service.value}
+              className={cx(formStyles.checkTile, formStyles.serviceTile)}
+              data-landing-interactive='check-tile'
+            >
               <input
                 type='checkbox'
                 name='services'
                 value={service.value}
                 defaultChecked={service.defaultChecked}
               />
-              <span className='check-ui'>
-                <span className='check-box'>
+              <span className={formStyles.checkUi} data-landing-surface>
+                <span className={formStyles.checkBox}>
                   <Icon name='check' />
                 </span>
-                <span className='service-check-copy'>
+                <span className={formStyles.serviceCheckCopy}>
                   <strong>{service.title}</strong>
                   <em>{service.description}</em>
                 </span>
@@ -87,7 +98,7 @@ export function ContactBriefFields({
         </div>
       </div>
 
-      <div className='form-grid'>
+      <div className={formStyles.formGrid}>
         <CustomSelect
           label='예상 일정'
           name='timeline'

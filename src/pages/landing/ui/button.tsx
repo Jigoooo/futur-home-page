@@ -1,5 +1,8 @@
 import { type ComponentPropsWithoutRef } from 'react';
 
+import { cx } from './lib/cx';
+import styles from './styles/button.module.css';
+
 type ButtonVariant = 'primary' | 'blue' | 'ghost';
 
 type ButtonProps = ComponentPropsWithoutRef<'a'> & {
@@ -16,7 +19,9 @@ export function Button({
 }: ButtonProps) {
   return (
     <a
-      className={`btn btn-${variant} ${className}`.trim()}
+      className={cx(styles.button, styles[variant], className)}
+      data-landing-interactive='button'
+      data-landing-spotlight='button'
       data-cursor-text={cursorText}
       {...props}
     >

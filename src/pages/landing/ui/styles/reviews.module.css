@@ -1,13 +1,9 @@
-.moduleAnchor {
-  --landing-style-module: "reviews";
-}
-
-:global(.review-section) {
+.reviewSection {
   padding-top: 70px;
   padding-bottom: clamp(235px, 15vw, 310px);
 }
 
-:global(.review-head) {
+.reviewHead {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
@@ -15,14 +11,14 @@
   margin-bottom: 66px;
 }
 
-:global(.review-grid) {
+.reviewGrid {
   display: grid;
   grid-template-columns: 1.2fr 0.8fr;
   gap: 34px;
 }
 
-:global(.quote-big),
-:global(.quote-small) {
+.quoteBig,
+.quoteSmall {
   position: relative;
   min-height: 320px;
   padding: 38px;
@@ -35,27 +31,27 @@
     box-shadow 0.34s ease;
 }
 
-:global(.quote-big:hover),
-:global(.quote-small:hover) {
+.quoteBig:hover,
+.quoteSmall:hover {
   transform: translateY(-8px);
   box-shadow: var(--shadow-hover);
 }
 
-:global(.quote-mark) {
+.quoteMark {
   color: #d9e3f5;
   font-size: 64px;
   line-height: 0.8;
   font-weight: 1000;
 }
 
-:global(.stars) {
+.stars {
   margin-bottom: 18px;
   color: #ffb83f;
   font-size: 18px;
   letter-spacing: 0.08em;
 }
 
-:global(.quote-text) {
+.quoteText {
   margin: 0;
   color: #26375f;
   font-size: 21px;
@@ -63,26 +59,58 @@
   font-weight: 800;
 }
 
-:global(.quote-small .quote-text) {
+.quoteSmall .quoteText {
   color: #4e5f7d;
   font-size: 16px;
 }
 
-:global(.quote-person) {
+.quotePerson {
   margin-top: 26px;
   color: #74819c;
   font-size: 13px;
   font-weight: 850;
 }
 
-:global(.quote-person strong) {
+.quotePerson strong {
   display: block;
   margin-bottom: 4px;
   color: #10204a;
   font-size: 15px;
 }
 
-:global(.quote-stack) {
+.quoteStack {
   display: grid;
   gap: 26px;
+}
+
+@media (max-width: 900px) {
+  .reviewSection {
+    padding-top: 130px;
+    padding-bottom: 150px;
+  }
+
+  .reviewGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .quoteBig,
+  .quoteSmall {
+    min-height: auto;
+    padding: 30px;
+  }
+}
+
+@media (max-width: 560px) {
+  .reviewSection {
+    padding-top: 96px;
+    padding-bottom: 112px;
+  }
+}
+
+@media (hover: none), (pointer: coarse) {
+  .quoteBig:hover,
+  .quoteSmall:hover {
+    transform: none;
+    box-shadow: inherit;
+  }
 }

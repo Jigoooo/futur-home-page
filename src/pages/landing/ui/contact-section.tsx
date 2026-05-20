@@ -11,6 +11,11 @@ import {
   replyTypeOptions,
   timelineOptions,
 } from '../config';
+import { cx } from './lib/cx';
+import buttonStyles from './styles/button.module.css';
+import styles from './styles/contact.module.css';
+import formStyles from './styles/form-controls.module.css';
+import sharedStyles from './styles/shared.module.css';
 import { mailHref, phoneHref } from '../lib/company-links';
 
 export function ContactSection() {
@@ -21,8 +26,11 @@ export function ContactSection() {
   const [result, setResult] = useState('');
 
   return (
-    <section className='contact-section container' id='contact'>
-      <div className='cta-wrap motion-up'>
+    <section className={cx(styles.contactSection, sharedStyles.container)} id='contact'>
+      <div
+        className={cx(styles.ctaWrap, sharedStyles.reveal, sharedStyles.revealUp)}
+        data-landing-reveal='up'
+      >
         <div>
           <h2>
             새로운 프로젝트를
@@ -34,24 +42,32 @@ export function ContactSection() {
             정리하겠습니다.
           </p>
         </div>
-        <div className='cta-actions'>
+        <div className={styles.ctaActions}>
           <Button href={mailHref} cursorText='MAIL'>
-            <span className='btn-label'>메일로 문의</span>
-            <span className='btn-arrow'>→</span>
+            <span data-landing-label>메일로 문의</span>
+            <span data-landing-arrow>→</span>
           </Button>
           <Button href={phoneHref} variant='ghost' cursorText='CALL'>
-            <span className='btn-label'>전화 상담</span>
-            <span className='btn-arrow'>↗</span>
+            <span data-landing-label>전화 상담</span>
+            <span data-landing-arrow>↗</span>
           </Button>
         </div>
       </div>
 
-      <div className='contact-layout'>
-        <aside className='contact-card motion-left'>
+      <div className={cx(styles.contactLayout, sharedStyles.gridLayout)}>
+        <aside
+          className={cx(
+            styles.contactCard,
+            sharedStyles.stickyLead,
+            sharedStyles.reveal,
+            sharedStyles.revealLeft,
+          )}
+          data-landing-reveal='left'
+        >
           <h3>상담 전 확인사항</h3>
           <p>정확한 견적보다 먼저, 프로젝트의 목적과 우선순위를 맞추는 것부터 시작합니다.</p>
           {contactChips.map((chip) => (
-            <div key={chip.label} className='contact-chip'>
+            <div key={chip.label} className={styles.contactChip}>
               <Icon name={chip.icon} />
               {chip.label}
             </div>
@@ -59,7 +75,9 @@ export function ContactSection() {
         </aside>
 
         <form
-          className='contact-form motion-right'
+          className={cx(styles.contactForm, sharedStyles.reveal, sharedStyles.revealRight)}
+          data-landing-contact-form
+          data-landing-reveal='right'
           aria-label='프로젝트 상담 양식'
           onSubmit={(event) => {
             event.preventDefault();
@@ -79,38 +97,47 @@ export function ContactSection() {
 
           <ContactIdentityFields />
 
-          <label className='form-control full'>
-            <span className='form-label'>
-              문의 내용 <span className='required'>*</span>
+          <label className={cx(formStyles.formControl, formStyles.full)}>
+            <span className={formStyles.formLabel}>
+              문의 내용 <span className={formStyles.required}>*</span>
             </span>
             <textarea
-              className='textarea-input'
+              className={formStyles.textareaInput}
               name='message'
               required
               placeholder='현재 상황, 필요한 기능, 참고 서비스, 일정, 예산 범위, 걱정되는 부분 등을 자유롭게 적어주세요.'
             />
-            <span className='help'>
+            <span className={formStyles.help}>
               정확하지 않아도 괜찮습니다. 확인 후 필요한 내용을 다시 질문드릴게요.
             </span>
           </label>
 
-          <label className='consent check-tile'>
+          <label
+            className={cx(formStyles.consent, formStyles.checkTile)}
+            data-landing-interactive='check-tile'
+          >
             <input type='checkbox' name='agree' required />
-            <span className='check-ui'>
-              <span className='check-box'>
+            <span className={formStyles.checkUi} data-landing-surface>
+              <span className={formStyles.checkBox}>
                 <Icon name='check' />
               </span>
               개인정보 수집 및 이용에 동의합니다.
             </span>
           </label>
 
-          <div className='form-actions'>
-            <div className='result' aria-live='polite'>
+          <div className={styles.formActions}>
+            <div className={styles.result} aria-live='polite'>
               {result}
             </div>
-            <button type='submit' className='btn btn-blue submit-btn' data-cursor-text='SEND'>
-              <span className='btn-label'>상담 신청하기</span>
-              <span className='btn-arrow'>→</span>
+            <button
+              type='submit'
+              className={cx(buttonStyles.button, buttonStyles.blue, styles.submitButton)}
+              data-landing-interactive='button'
+              data-landing-spotlight='button'
+              data-cursor-text='SEND'
+            >
+              <span data-landing-label>상담 신청하기</span>
+              <span data-landing-arrow>→</span>
             </button>
           </div>
         </form>

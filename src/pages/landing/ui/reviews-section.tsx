@@ -1,42 +1,51 @@
 import { reviews } from '../config';
 import { Button } from './button';
+import { cx } from './lib/cx';
+import styles from './styles/reviews.module.css';
+import sharedStyles from './styles/shared.module.css';
 
 export function ReviewsSection() {
   const featured = reviews[0]!;
   const rest = reviews.slice(1);
 
   return (
-    <section className='review-section container'>
-      <div className='review-head motion-up'>
+    <section className={cx(styles.reviewSection, sharedStyles.container)}>
+      <div
+        className={cx(styles.reviewHead, sharedStyles.reveal, sharedStyles.revealUp)}
+        data-landing-reveal='up'
+      >
         <div>
-          <span className='kicker'>Review</span>
-          <h2 className='section-title'>
+          <span className={sharedStyles.kicker}>Review</span>
+          <h2 className={sharedStyles.sectionTitle}>
             함께 일한 고객의
             <br />
             이야기.
           </h2>
         </div>
         <Button href='#contact' variant='ghost' cursorText='문의'>
-          <span className='btn-label'>상담 문의</span>
-          <span className='btn-arrow'>→</span>
+          <span data-landing-label>상담 문의</span>
+          <span data-landing-arrow>→</span>
         </Button>
       </div>
-      <div className='review-grid motion-up'>
-        <article className='quote-big'>
-          <div className='quote-mark'>“</div>
-          <div className='stars'>★★★★★</div>
-          <p className='quote-text'>{featured.quote}</p>
-          <div className='quote-person'>
+      <div
+        className={cx(styles.reviewGrid, sharedStyles.reveal, sharedStyles.revealUp)}
+        data-landing-reveal='up'
+      >
+        <article className={styles.quoteBig}>
+          <div className={styles.quoteMark}>“</div>
+          <div className={styles.stars}>★★★★★</div>
+          <p className={styles.quoteText}>{featured.quote}</p>
+          <div className={styles.quotePerson}>
             <strong>{featured.person}</strong>
             {featured.context}
           </div>
         </article>
-        <div className='quote-stack'>
+        <div className={styles.quoteStack}>
           {rest.map((review) => (
-            <article key={review.person} className='quote-small'>
-              <div className='stars'>★★★★★</div>
-              <p className='quote-text'>{review.quote}</p>
-              <div className='quote-person'>
+            <article key={review.person} className={styles.quoteSmall}>
+              <div className={styles.stars}>★★★★★</div>
+              <p className={styles.quoteText}>{review.quote}</p>
+              <div className={styles.quotePerson}>
                 <strong>{review.person}</strong>
                 {review.context}
               </div>

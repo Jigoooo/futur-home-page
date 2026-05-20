@@ -1,13 +1,9 @@
-.moduleAnchor {
-  --landing-style-module: "contact";
-}
-
-:global(.contact-section) {
+.contactSection {
   padding-top: 95px;
   padding-bottom: clamp(245px, 16vw, 330px);
 }
 
-:global(.cta-wrap) {
+.ctaWrap {
   position: relative;
   display: grid;
   grid-template-columns: 1fr 370px;
@@ -22,7 +18,7 @@
   box-shadow: var(--shadow);
 }
 
-:global(.cta-wrap::before) {
+.ctaWrap::before {
   content: "";
   position: absolute;
   right: -120px;
@@ -33,13 +29,13 @@
   background: radial-gradient(circle, rgba(47, 107, 255, 0.17), transparent 68%);
 }
 
-:global(.cta-wrap h2),
-:global(.cta-wrap p),
-:global(.cta-actions) {
+.ctaWrap h2,
+.ctaWrap p,
+.ctaActions {
   position: relative;
 }
 
-:global(.cta-wrap h2) {
+.ctaWrap h2 {
   margin: 0;
   color: #101d43;
   font-size: 40px;
@@ -47,25 +43,25 @@
   font-weight: 950;
 }
 
-:global(.cta-wrap p) {
+.ctaWrap p {
   margin: 18px 0 0;
   color: #6f7b96;
   font-size: 17px;
   line-height: 1.75;
 }
 
-:global(.cta-actions) {
+.ctaActions {
   display: flex;
   justify-content: flex-end;
   gap: 12px;
 }
 
-:global(.contact-layout) {
+.contactLayout {
   grid-template-columns: 420px 1fr;
   gap: 80px;
 }
 
-:global(.contact-card) {
+.contactCard {
   padding: 36px;
   border: 1px solid #e2e9f4;
   border-radius: 38px;
@@ -73,21 +69,21 @@
   box-shadow: var(--shadow-soft);
 }
 
-:global(.contact-card h3) {
+.contactCard h3 {
   margin: 0 0 18px;
   color: #101d43;
   font-size: 30px;
   font-weight: 950;
 }
 
-:global(.contact-card p) {
+.contactCard p {
   margin: 0 0 28px;
   color: #6f7b96;
   font-size: 15px;
   line-height: 1.78;
 }
 
-:global(.contact-chip) {
+.contactChip {
   display: flex;
   align-items: center;
   gap: 12px;
@@ -101,14 +97,18 @@
   font-weight: 850;
 }
 
-:global(.contact-chip svg) {
+.contactChip svg {
   width: 18px;
   height: 18px;
   flex: 0 0 auto;
   color: #316cff;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
-:global(.contact-form) {
+.contactForm {
   position: relative;
   display: grid;
   gap: 22px;
@@ -119,91 +119,7 @@
   box-shadow: var(--shadow-soft);
 }
 
-:global(.contact-form fieldset) {
-  margin: 0;
-  padding: 0;
-  border: 0;
-}
-
-:global(.form-section) {
-  display: grid;
-  gap: 24px;
-}
-
-:global(.form-section + .form-section) {
-  padding-top: 8px;
-}
-
-:global(.form-section-head) {
-  display: grid;
-  gap: 12px;
-}
-
-:global(.form-section-head .kicker) {
-  margin: 0;
-}
-
-:global(.form-section-head h3) {
-  margin: 0;
-  color: #101d43;
-  font-size: 28px;
-  line-height: 1.26;
-  font-weight: 950;
-}
-
-:global(.contact-form .stage-grid) {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
-  padding: 12px;
-}
-
-:global(.contact-form .stage-card) {
-  min-height: 136px;
-  align-content: center;
-  align-items: center;
-  padding-right: 30px;
-}
-
-:global(.contact-form .stage-index) {
-  align-self: center;
-}
-
-:global(.contact-form .stage-card strong) {
-  align-self: end;
-}
-
-:global(.contact-form .stage-card em) {
-  align-self: start;
-}
-
-:global(.full) {
-  grid-column: 1 / -1;
-}
-
-:global(.service-checks) {
-  gap: 16px;
-}
-
-:global(.service-checks .check-ui) {
-  min-height: 86px;
-}
-
-:global(.help) {
-  margin-top: 7px;
-  color: #8b96ad;
-  font-size: 12px;
-  font-weight: 750;
-}
-
-:global(.consent.check-tile .check-ui) {
-  min-height: 58px;
-  grid-template-columns: 24px minmax(0, 1fr);
-  align-items: center;
-  padding: 14px 16px;
-  line-height: 1.55;
-}
-
-:global(.form-actions) {
+.formActions {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -211,17 +127,59 @@
   margin-top: 10px;
 }
 
-:global(.result) {
+.result {
   min-height: 24px;
   color: #316cff;
   font-size: 13px;
   font-weight: 900;
 }
 
-:global(.submit-btn) {
+.submitButton {
   border: 0;
 }
 
-:global(.required) {
-  color: #316cff;
+@media (max-width: 1180px) {
+  .contactLayout {
+    grid-template-columns: 1fr;
+    gap: 72px;
+  }
+}
+
+@media (max-width: 900px) {
+  .contactSection {
+    padding-top: 130px;
+    padding-bottom: 150px;
+  }
+
+  .ctaWrap {
+    grid-template-columns: 1fr;
+    padding: 36px 28px;
+    border-radius: 34px;
+  }
+
+  .ctaActions {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .contactForm {
+    padding: 28px;
+    border-radius: 34px;
+  }
+
+  .formActions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .submitButton {
+    width: 100%;
+  }
+}
+
+@media (max-width: 560px) {
+  .contactSection {
+    padding-top: 96px;
+    padding-bottom: 112px;
+  }
 }

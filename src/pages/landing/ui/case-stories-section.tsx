@@ -3,6 +3,9 @@ import { useRef, useState, type KeyboardEvent } from 'react';
 import { caseStories } from '../config';
 import { Lines } from '../lib/line-breaks';
 import type { CaseStoryKey } from '../model/types';
+import { cx } from './lib/cx';
+import styles from './styles/case-stories.module.css';
+import sharedStyles from './styles/shared.module.css';
 
 export function CaseStoriesSection() {
   const [activeKey, setActiveKey] = useState<CaseStoryKey>('system');
@@ -34,22 +37,25 @@ export function CaseStoriesSection() {
   };
 
   return (
-    <section className='case-section' id='cases'>
-      <div className='container'>
-        <div className='case-head motion-up'>
+    <section className={styles.caseSection} id='cases'>
+      <div className={sharedStyles.container}>
+        <div
+          className={cx(styles.caseHead, sharedStyles.reveal, sharedStyles.revealUp)}
+          data-landing-reveal='up'
+        >
           <div>
-            <span className='kicker'>Case Stories</span>
-            <h2 className='section-title'>
+            <span className={sharedStyles.kicker}>Case Stories</span>
+            <h2 className={sharedStyles.sectionTitle}>
               결과가 보이는
               <br />
               프로젝트 이야기.
             </h2>
-            <p className='section-desc'>
+            <p className={sharedStyles.sectionDesc}>
               업종보다 중요한 것은 업무의 흐름입니다. FUTUR는 화면, 데이터, 운영 과정을 함께
               설계합니다.
             </p>
           </div>
-          <div className='tabs' role='tablist' aria-label='프로젝트 사례'>
+          <div className={styles.tabs} role='tablist' aria-label='프로젝트 사례'>
             {caseStories.map((story, index) => {
               const tabStateProps =
                 story.key === activeKey
@@ -63,7 +69,8 @@ export function CaseStoriesSection() {
                     tabRefs.current[index] = element;
                   }}
                   type='button'
-                  className='tab'
+                  className={styles.tab}
+                  data-landing-interactive='control'
                   role='tab'
                   id={`tab-${story.key}`}
                   aria-controls='panel-case'
@@ -78,49 +85,50 @@ export function CaseStoriesSection() {
           </div>
         </div>
         <article
-          className='case-panel motion-up'
+          className={cx(styles.casePanel, sharedStyles.reveal, sharedStyles.revealUp)}
+          data-landing-reveal='up'
           id='panel-case'
           role='tabpanel'
           aria-labelledby={`tab-${activeStory.key}`}
         >
-          <div className='case-panel-inner'>
-            <div className='case-copy'>
-              <span className='case-label'>{activeStory.label}</span>
-              <h3 className='case-title'>
+          <div className={styles.casePanelInner}>
+            <div className={styles.caseCopy}>
+              <span className={styles.caseLabel}>{activeStory.label}</span>
+              <h3 className={styles.caseTitle}>
                 <Lines text={activeStory.title} />
               </h3>
-              <p className='case-desc'>{activeStory.description}</p>
-              <div className='case-metrics'>
+              <p className={styles.caseDesc}>{activeStory.description}</p>
+              <div className={styles.caseMetrics}>
                 {activeStory.metrics.map((metric) => (
-                  <div key={metric.label} className='metric'>
+                  <div key={metric.label} className={styles.metric}>
                     <strong>{metric.value}</strong>
                     <span>{metric.label}</span>
                   </div>
                 ))}
               </div>
-              <ul className='case-list'>
+              <ul className={styles.caseList}>
                 {activeStory.items.map((item) => (
                   <li key={item}>{item}</li>
                 ))}
               </ul>
             </div>
-            <div className='case-visual' aria-hidden='true'>
-              <div className='device-card'>
-                <div className='device-top'>
+            <div className={styles.caseVisual} aria-hidden='true'>
+              <div className={styles.deviceCard}>
+                <div className={styles.deviceTop}>
                   <i />
                   <i />
                   <i />
                 </div>
-                <div className='device-row r1' />
-                <div className='device-row r2' />
-                <div className='device-chart'>
+                <div className={cx(styles.deviceRow, styles.r1)} />
+                <div className={cx(styles.deviceRow, styles.r2)} />
+                <div className={styles.deviceChart}>
                   <svg viewBox='0 0 330 92' preserveAspectRatio='none'>
                     <path d='M10 66 C50 30,75 50,104 28 S158 38,188 22 S250 18,320 32' />
                   </svg>
                 </div>
               </div>
-              <div className='side-note'>
-                <div className='note-icon'>{activeStory.icon}</div>
+              <div className={styles.sideNote}>
+                <div className={styles.noteIcon}>{activeStory.icon}</div>
                 <div>
                   <strong>{activeStory.noteTitle}</strong>
                   <span>{activeStory.noteDescription}</span>

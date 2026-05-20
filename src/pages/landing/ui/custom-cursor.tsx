@@ -1,5 +1,6 @@
 import { useRef } from 'react';
 
+import styles from './styles/custom-cursor.module.css';
 import { useCustomCursor } from './use-custom-cursor';
 
 export function CustomCursor() {
@@ -11,10 +12,10 @@ export function CustomCursor() {
 
   return (
     <>
-      <div ref={auraRef} className='cursor-aura' aria-hidden='true'>
+      <div ref={auraRef} className={styles.cursorAura} aria-hidden='true'>
         <span ref={labelRef} />
       </div>
-      <div ref={dotRef} className='cursor-dot' aria-hidden='true' />
+      <div ref={dotRef} className={styles.cursorDot} aria-hidden='true' />
     </>
   );
 }

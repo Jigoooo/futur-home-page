@@ -1,13 +1,34 @@
-.moduleAnchor {
-  --landing-style-module: "form-controls";
+.formSection {
+  display: grid;
+  gap: 24px;
+  margin: 0;
+  padding: 0;
+  border: 0;
 }
 
-:global(.brief-group) {
+.formSection + .formSection {
+  padding-top: 8px;
+}
+
+.formSectionHead {
+  display: grid;
+  gap: 12px;
+}
+
+.formSectionHead h3 {
+  margin: 0;
+  color: #101d43;
+  font-size: 28px;
+  line-height: 1.26;
+  font-weight: 950;
+}
+
+.briefGroup {
   display: grid;
   gap: 16px;
 }
 
-:global(.group-label) {
+.groupLabel {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -16,13 +37,13 @@
   font-weight: 950;
 }
 
-:global(.group-label small) {
+.groupLabel small {
   color: #8a94a9;
   font-size: 12px;
   font-weight: 800;
 }
 
-:global(.stage-grid) {
+.stageGrid {
   display: grid;
   grid-template-columns: 1fr;
   gap: 10px;
@@ -33,21 +54,21 @@
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.92);
 }
 
-:global(.stage-choice),
-:global(.check-tile) {
+.stageChoice,
+.checkTile {
   position: relative;
   display: block;
   min-width: 0;
 }
 
-:global(.stage-choice input),
-:global(.check-tile input) {
+.stageChoice input,
+.checkTile input {
   position: absolute;
   inset: 0;
   opacity: 0;
 }
 
-:global(.stage-card) {
+.stageCard {
   position: relative;
   min-height: 86px;
   display: grid;
@@ -71,7 +92,7 @@
     background 0.28s ease;
 }
 
-:global(.stage-card::after) {
+.stageCard::after {
   content: "";
   position: absolute;
   right: 16px;
@@ -85,7 +106,7 @@
   transition: transform 0.28s var(--ease);
 }
 
-:global(.stage-index) {
+.stageIndex {
   grid-row: 1 / 3;
   width: 44px;
   height: 44px;
@@ -102,14 +123,14 @@
     color 0.28s ease;
 }
 
-:global(.stage-card strong) {
+.stageCard strong {
   color: #111f49;
   font-size: 16px;
   line-height: 1.25;
   font-weight: 1000;
 }
 
-:global(.stage-card em) {
+.stageCard em {
   color: #7d899f;
   font-size: 12px;
   font-style: normal;
@@ -117,13 +138,13 @@
   line-height: 1.55;
 }
 
-:global(.stage-choice:hover .stage-card) {
+.stageChoice:hover .stageCard {
   transform: translateX(4px);
   border-color: #cfdff8;
   box-shadow: 0 16px 38px rgba(31, 54, 105, 0.065);
 }
 
-:global(.stage-choice input:checked + .stage-card) {
+.stageChoice input:checked + .stageCard {
   border-color: #8fb5ff;
   background: linear-gradient(180deg, #f2f7ff 0%, #ffffff 100%);
   box-shadow:
@@ -131,23 +152,23 @@
     0 20px 46px rgba(47, 107, 255, 0.12);
 }
 
-:global(.stage-choice input:checked + .stage-card::after) {
+.stageChoice input:checked + .stageCard::after {
   transform: translateY(-50%) scaleY(1);
 }
 
-:global(.stage-choice input:checked + .stage-card .stage-index) {
+.stageChoice input:checked + .stageCard .stageIndex {
   transform: scale(1.04);
   background: #2f6bff;
   color: #ffffff;
 }
 
-:global(.stage-choice input:focus-visible + .stage-card),
-:global(.check-tile input:focus-visible + .check-ui) {
+.stageChoice input:focus-visible + .stageCard,
+.checkTile input:focus-visible + .checkUi {
   outline: 3px solid rgba(47, 107, 255, 0.22);
   outline-offset: 3px;
 }
 
-:global(.check-ui) {
+.checkUi {
   min-height: 64px;
   display: grid !important;
   grid-template-columns: 24px minmax(0, 1fr);
@@ -172,7 +193,7 @@
     box-shadow 0.24s ease;
 }
 
-:global(.check-box) {
+.checkBox {
   width: 24px;
   height: 24px;
   display: grid;
@@ -186,7 +207,7 @@
     box-shadow 0.2s ease;
 }
 
-:global(.check-box svg) {
+.checkBox svg {
   width: 14px;
   height: 14px;
   color: #ffffff;
@@ -197,30 +218,30 @@
   transition: stroke-dashoffset 0.22s var(--ease);
 }
 
-:global(.check-tile:hover .check-ui) {
+.checkTile:hover .checkUi {
   transform: translateY(-3px);
   border-color: #d5e2f5;
   background: #ffffff;
   box-shadow: 0 12px 28px rgba(41, 63, 111, 0.065);
 }
 
-:global(.check-tile input:checked + .check-ui) {
+.checkTile input:checked + .checkUi {
   border-color: #9dbdff;
   background: linear-gradient(180deg, #eef5ff, #f8fbff);
   color: #245cdb;
 }
 
-:global(.check-tile input:checked + .check-ui .check-box) {
+.checkTile input:checked + .checkUi .checkBox {
   border-color: #316cff;
   background: #316cff;
   box-shadow: 0 0 0 5px rgba(47, 107, 255, 0.11);
 }
 
-:global(.check-tile input:checked + .check-ui .check-box svg) {
+.checkTile input:checked + .checkUi .checkBox svg {
   stroke-dashoffset: 0;
 }
 
-:global(.service-tile .check-ui) {
+.serviceTile .checkUi {
   grid-template-columns: 28px minmax(0, 1fr);
   gap: 15px;
   min-height: 84px;
@@ -228,7 +249,7 @@
   border-radius: 24px;
 }
 
-:global(.service-check-copy) {
+.serviceCheckCopy {
   display: flex;
   min-width: 0;
   flex-direction: column;
@@ -236,14 +257,14 @@
   text-align: left;
 }
 
-:global(.service-check-copy strong) {
+.serviceCheckCopy strong {
   color: #13234e;
   font-size: 15px;
   font-weight: 1000;
   line-height: 1.35;
 }
 
-:global(.service-check-copy em) {
+.serviceCheckCopy em {
   color: #8290a6;
   font-size: 12px;
   font-style: normal;
@@ -251,26 +272,26 @@
   line-height: 1.5;
 }
 
-:global(.form-grid),
-:global(.service-checks) {
+.formGrid,
+.serviceChecks {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 18px;
 }
 
-:global(.form-control) {
+.formControl {
   display: grid;
   gap: 8px;
 }
 
-:global(.form-label) {
+.formLabel {
   color: #3b496a;
   font-size: 13px;
   font-weight: 900;
 }
 
-:global(.input),
-:global(.textarea-input) {
+.input,
+.textareaInput {
   width: 100%;
   border: 1px solid #dfe8f5;
   border-radius: 18px;
@@ -283,52 +304,52 @@
     background 0.2s ease;
 }
 
-:global(.input) {
+.input {
   height: 54px;
   padding: 0 16px;
 }
 
-:global(.textarea-input) {
+.textareaInput {
   min-height: 118px;
   padding: 15px 16px;
   resize: vertical;
   line-height: 1.65;
 }
 
-:global(.input::placeholder),
-:global(.textarea-input::placeholder) {
+.input::placeholder,
+.textareaInput::placeholder {
   color: #9aa5b6;
 }
 
-:global(.input:hover),
-:global(.textarea-input:hover) {
+.input:hover,
+.textareaInput:hover {
   border-color: #cfdef4;
 }
 
-:global(.input:focus),
-:global(.textarea-input:focus) {
+.input:focus,
+.textareaInput:focus {
   outline: none;
 }
 
-:global(.input:focus-visible),
-:global(.textarea-input:focus-visible) {
+.input:focus-visible,
+.textareaInput:focus-visible {
   border-color: #8cb2ff;
   background: #ffffff;
   box-shadow: 0 0 0 4px rgba(47, 107, 255, 0.13);
 }
 
-:global(.custom-select) {
+.customSelect {
   --select-menu-gap: 12px;
   --select-menu-max-height: min(280px, calc(100vh - 32px));
   position: relative;
   z-index: 10;
 }
 
-:global(.custom-select.is-open) {
+.customSelect.isOpen {
   z-index: 60;
 }
 
-:global(.select-trigger) {
+.selectTrigger {
   width: 100%;
   min-height: 66px;
   display: grid;
@@ -351,7 +372,7 @@
     background 0.2s ease;
 }
 
-:global(.select-trigger:hover) {
+.selectTrigger:hover {
   border-color: #c6d7ee;
   background: #ffffff;
   box-shadow:
@@ -359,19 +380,19 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.92);
 }
 
-:global(.select-trigger:focus-visible) {
+.selectTrigger:focus-visible {
   outline: 3px solid rgba(47, 107, 255, 0.22);
   outline-offset: 2px;
 }
 
-:global(.custom-select.is-open .select-trigger) {
+.customSelect.isOpen .selectTrigger {
   border-color: #8fb5ff;
   box-shadow:
     0 0 0 4px rgba(47, 107, 255, 0.12),
     0 16px 36px rgba(31, 54, 105, 0.085);
 }
 
-:global(.select-value) {
+.selectValue {
   min-height: 42px;
   display: flex;
   align-items: center;
@@ -380,7 +401,7 @@
   white-space: nowrap;
 }
 
-:global(.select-arrow) {
+.selectArrow {
   width: 40px;
   height: 40px;
   display: grid;
@@ -394,18 +415,18 @@
     color 0.2s ease;
 }
 
-:global(.select-arrow svg) {
+.selectArrow svg {
   width: 18px;
   height: 18px;
 }
 
-:global(.custom-select.is-open .select-arrow) {
+.customSelect.isOpen .selectArrow {
   transform: rotate(180deg);
   background: #ddeaff;
   color: #235be7;
 }
 
-:global(.select-menu) {
+.selectMenu {
   position: absolute;
   left: 0;
   right: 0;
@@ -431,20 +452,20 @@
     transform 0.22s var(--ease);
 }
 
-:global(.custom-select.is-up .select-menu) {
+.customSelect.isUp .selectMenu {
   top: auto;
   bottom: calc(100% + var(--select-menu-gap));
   transform: translateY(6px) scale(0.98);
   transform-origin: bottom;
 }
 
-:global(.custom-select.is-open .select-menu) {
+.customSelect.isOpen .selectMenu {
   opacity: 1;
   visibility: visible;
   transform: translateY(0) scale(1);
 }
 
-:global(.select-option) {
+.selectOption {
   position: relative;
   min-height: 54px;
   display: flex;
@@ -464,24 +485,24 @@
     border-color 0.16s ease;
 }
 
-:global(.select-option + .select-option) {
+.selectOption + .selectOption {
   margin-top: 6px;
 }
 
-:global(.select-option:hover),
-:global(.select-option.is-focused) {
+.selectOption:hover,
+.selectOption.isFocused {
   border-color: #e1eafe;
   background: #f4f8ff;
   color: #245cdb;
 }
 
-:global(.select-option[aria-selected="true"]) {
+.selectOption[aria-selected="true"] {
   border-color: #cfe0ff;
   background: linear-gradient(180deg, #eef5ff, #f7fbff);
   color: #245cdb;
 }
 
-:global(.select-option[aria-selected="true"]::after) {
+.selectOption[aria-selected="true"]::after {
   content: "";
   position: absolute;
   right: 17px;
@@ -494,7 +515,7 @@
   transform: translateY(-50%);
 }
 
-:global(.select-option[aria-selected="true"]::before) {
+.selectOption[aria-selected="true"]::before {
   content: "";
   position: absolute;
   right: 23px;
@@ -505,4 +526,111 @@
   border-left: 2px solid #ffffff;
   border-bottom: 2px solid #ffffff;
   transform: translateY(-58%) rotate(-45deg);
+}
+
+.full {
+  grid-column: 1 / -1;
+}
+
+.help {
+  margin-top: 7px;
+  color: #8b96ad;
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.consent .checkUi {
+  min-height: 58px;
+  grid-template-columns: 24px minmax(0, 1fr);
+  align-items: center;
+  padding: 14px 16px;
+  line-height: 1.55;
+}
+
+.required {
+  color: #316cff;
+}
+
+[data-landing-contact-form] .stageGrid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  padding: 12px;
+}
+
+[data-landing-contact-form] .stageCard {
+  min-height: 136px;
+  align-content: center;
+  align-items: center;
+  padding-right: 30px;
+}
+
+[data-landing-contact-form] .stageIndex {
+  align-self: center;
+}
+
+[data-landing-contact-form] .stageCard strong {
+  align-self: end;
+}
+
+[data-landing-contact-form] .stageCard em {
+  align-self: start;
+}
+
+[data-landing-contact-form] .serviceChecks {
+  gap: 16px;
+}
+
+[data-landing-contact-form] .serviceChecks .checkUi {
+  min-height: 86px;
+}
+
+@media (max-width: 900px) {
+  .stageGrid,
+  [data-landing-contact-form] .stageGrid,
+  .formGrid,
+  .serviceChecks {
+    grid-template-columns: 1fr;
+  }
+
+  .stageCard,
+  [data-landing-contact-form] .stageCard {
+    min-height: 88px;
+  }
+}
+
+@media (max-width: 560px) {
+  .stageCard {
+    grid-template-columns: 40px minmax(0, 1fr);
+    padding: 15px;
+  }
+
+  .formSectionHead h3 {
+    font-size: 23px;
+  }
+
+  .stageIndex {
+    width: 40px;
+    height: 40px;
+  }
+
+  .serviceTile .checkUi {
+    grid-template-columns: 26px minmax(0, 1fr);
+    min-height: 82px;
+    padding: 15px;
+  }
+}
+
+@media (hover: none), (pointer: coarse) {
+  .selectTrigger:hover,
+  .input:hover,
+  .textareaInput:hover {
+    border-color: #dfe8f5;
+    background: #ffffff;
+  }
+
+  .selectOption:hover {
+    border-color: transparent;
+    background: #ffffff;
+    color: #4d5c78;
+  }
 }

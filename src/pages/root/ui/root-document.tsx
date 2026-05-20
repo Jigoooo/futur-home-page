@@ -196,14 +196,14 @@ const styleGateScript = `
     getStylesheets().every((stylesheet) => stylesheet.sheet);
 
   const areLandingStylesApplied = () => {
-    const page = document.querySelector('.page');
+    const page = document.querySelector('[data-landing-page]');
 
     if (!page) {
       return true;
     }
 
-    const hero = document.querySelector('.hero');
-    const nav = document.querySelector('.nav');
+    const hero = document.querySelector('[data-landing-hero]');
+    const nav = document.querySelector('[data-landing-nav]');
 
     if (!hero || !nav) {
       return false;

@@ -1,8 +1,4 @@
-.moduleAnchor {
-  --landing-style-module: "scroll-top";
-}
-
-:global(.scroll-top) {
+.scrollTop {
   position: fixed;
   right: 30px;
   bottom: 30px;
@@ -24,8 +20,21 @@
     color 0.28s ease;
 }
 
-:global(.scroll-top:hover) {
+.scrollTop:hover {
   transform: translateY(-5px);
   background: var(--navy);
   color: #ffffff;
+}
+
+@media (max-width: 900px) {
+  .scrollTop {
+    right: 18px;
+    bottom: 18px;
+  }
+}
+
+@media (hover: none), (pointer: coarse) {
+  .scrollTop:hover {
+    transform: none;
+  }
 }

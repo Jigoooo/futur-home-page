@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 
-const REVEAL_SELECTOR = '.motion-up,.motion-left,.motion-right,.timeline';
+const REVEAL_SELECTOR = '[data-landing-reveal]';
 
 export function useInViewReveal() {
   useEffect(() => {
@@ -8,18 +8,22 @@ export function useInViewReveal() {
 
     if (!targets.length) return undefined;
 
-    document.body.classList.add('is-ready');
+    document.body.dataset.landingReady = 'true';
 
     if (!('IntersectionObserver' in window)) {
-      targets.forEach((target) => target.classList.add('is-visible'));
-      return undefined;
+      targets.forEach((target) => {
+        target.dataset.landingVisible = 'true';
+      });
+      return () => {
+        delete document.body.dataset.landingReady;
+      };
     }
 
     const observer = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {
           if (!entry.isIntersecting) continue;
-          entry.target.classList.add('is-visible');
+          (entry.target as HTMLElement).dataset.landingVisible = 'true';
           observer.unobserve(entry.target);
         }
       },
@@ -28,6 +32,9 @@ export function useInViewReveal() {
 
     targets.forEach((target) => observer.observe(target));
 
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+      delete document.body.dataset.landingReady;
+    };
   }, []);
 }

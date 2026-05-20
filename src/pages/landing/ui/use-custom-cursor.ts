@@ -17,7 +17,7 @@ export function useCustomCursor({ auraRef, dotRef, labelRef }: UseCustomCursorPa
 
     if (!aura || !dot || !label || reduceMotion || !finePointer) return undefined;
 
-    document.documentElement.classList.add('custom-cursor-enabled');
+    document.documentElement.dataset.landingCursorEnabled = 'true';
 
     let mouseX = window.innerWidth / 2;
     let mouseY = window.innerHeight / 2;
@@ -39,40 +39,49 @@ export function useCustomCursor({ auraRef, dotRef, labelRef }: UseCustomCursorPa
     };
 
     const recoverCursor = () => {
-      document.body.classList.remove('cursor-muted', 'cursor-hot', 'cursor-soft');
+      delete document.body.dataset.landingCursorMuted;
+      delete document.body.dataset.landingCursorHot;
+      delete document.body.dataset.landingCursorSoft;
       label.textContent = '';
-      document.body.classList.add('cursor-ready');
+      document.body.dataset.landingCursorReady = 'true';
     };
 
     const handleMove = (event: PointerEvent | MouseEvent) => {
       mouseX = event.clientX;
       mouseY = event.clientY;
-      document.body.classList.remove('cursor-muted');
-      document.body.classList.add('cursor-ready');
+      delete document.body.dataset.landingCursorMuted;
+      document.body.dataset.landingCursorReady = 'true';
     };
 
     const handlePointerEnter = (event: Event) => {
       const target = event.currentTarget as HTMLElement;
       label.textContent = target.dataset.cursorText || '';
-      document.body.classList.add('cursor-hot');
+      document.body.dataset.landingCursorHot = 'true';
     };
 
     const handlePointerLeave = () => {
       label.textContent = '';
-      document.body.classList.remove('cursor-hot');
+      delete document.body.dataset.landingCursorHot;
     };
 
-    const handleSoftEnter = () => document.body.classList.add('cursor-soft');
-    const handleSoftLeave = () => document.body.classList.remove('cursor-soft');
+    const handleSoftEnter = () => {
+      document.body.dataset.landingCursorSoft = 'true';
+    };
+    const handleSoftLeave = () => {
+      delete document.body.dataset.landingCursorSoft;
+    };
 
     const resetCursorState = ({ mute = false, duration = 0 } = {}) => {
-      document.body.classList.remove('cursor-hot', 'cursor-soft');
+      delete document.body.dataset.landingCursorHot;
+      delete document.body.dataset.landingCursorSoft;
       label.textContent = '';
 
       if (!mute) return;
 
-      document.body.classList.add('cursor-muted');
-      window.setTimeout(() => document.body.classList.remove('cursor-muted'), duration || 260);
+      document.body.dataset.landingCursorMuted = 'true';
+      window.setTimeout(() => {
+        delete document.body.dataset.landingCursorMuted;
+      }, duration || 260);
     };
     const handleBlur = () => resetCursorState({ mute: true, duration: 520 });
     const handleVisibilityChange = () => {
@@ -89,13 +98,13 @@ export function useCustomCursor({ auraRef, dotRef, labelRef }: UseCustomCursorPa
 
     const hotTargets = Array.from(document.querySelectorAll<HTMLElement>('[data-cursor-text]'));
     const softTargets = Array.from(
-      document.querySelectorAll<HTMLElement>('input,textarea,.custom-select'),
+      document.querySelectorAll<HTMLElement>('input,textarea,[data-landing-cursor-soft]'),
     );
     const protocolLinks = Array.from(
       document.querySelectorAll<HTMLAnchorElement>('a[href^="mailto:"], a[href^="tel:"]'),
     );
     const clickableTargets = Array.from(
-      document.querySelectorAll<HTMLElement>('a,button,.select-option,label'),
+      document.querySelectorAll<HTMLElement>('a,button,label,[data-landing-interactive]'),
     );
 
     hotTargets.forEach((target) => {
@@ -131,8 +140,11 @@ export function useCustomCursor({ auraRef, dotRef, labelRef }: UseCustomCursorPa
 
     return () => {
       window.cancelAnimationFrame(frame);
-      document.documentElement.classList.remove('custom-cursor-enabled');
-      document.body.classList.remove('cursor-ready', 'cursor-hot', 'cursor-soft', 'cursor-muted');
+      delete document.documentElement.dataset.landingCursorEnabled;
+      delete document.body.dataset.landingCursorReady;
+      delete document.body.dataset.landingCursorHot;
+      delete document.body.dataset.landingCursorSoft;
+      delete document.body.dataset.landingCursorMuted;
 
       hotTargets.forEach((target) => {
         target.removeEventListener('pointerenter', handlePointerEnter);

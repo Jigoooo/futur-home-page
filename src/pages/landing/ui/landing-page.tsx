@@ -9,7 +9,8 @@ import { HeroSection } from './hero-section';
 import { ProcessSection } from './process-section';
 import { ReviewsSection } from './reviews-section';
 import { ServicesSection } from './services-section';
-import { landingStyleAnchors } from './styles';
+import scrollTopStyles from './styles/scroll-top.module.css';
+import sharedStyles from './styles/shared.module.css';
 import { TeamSection } from './team-section';
 import { useInViewReveal } from './use-in-view-reveal';
 import { useLandingGsapInteractions } from './use-landing-gsap-interactions';
@@ -24,7 +25,7 @@ export function LandingPage() {
   return (
     <>
       <CustomCursor />
-      <main ref={pageRef} className={`page ${landingStyleAnchors}`}>
+      <main ref={pageRef} className={sharedStyles.page} data-landing-page>
         <HeaderSection />
         <HeroSection />
         <ServicesSection />
@@ -36,7 +37,8 @@ export function LandingPage() {
         <FooterSection />
         <button
           type='button'
-          className='scroll-top'
+          className={scrollTopStyles.scrollTop}
+          data-landing-interactive='round'
           aria-label='상단으로 이동'
           onClick={scrollToPageTop}
         >

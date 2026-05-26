@@ -1,3 +1,5 @@
+import { ArrowDown, ArrowRight } from 'lucide-react';
+
 import { heroPoints } from '../config';
 import { Button } from './button';
 import { cx } from './lib/cx';
@@ -46,11 +48,15 @@ export function HeroSection() {
           <div className={styles.heroActions}>
             <Button href='#contact' cursorText='START'>
               <span data-landing-label>프로젝트 문의하기</span>
-              <span data-landing-arrow>→</span>
+              <span data-landing-arrow>
+                <ArrowRight size={14} strokeWidth={2.2} />
+              </span>
             </Button>
             <Button href='#cases' variant='ghost' cursorText='VIEW'>
               <span data-landing-label>사례 둘러보기</span>
-              <span data-landing-arrow>↓</span>
+              <span data-landing-arrow>
+                <ArrowDown size={14} strokeWidth={2.2} />
+              </span>
             </Button>
           </div>
           <div className={styles.heroPoints}>

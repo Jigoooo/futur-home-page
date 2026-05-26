@@ -1,3 +1,5 @@
+import { ArrowRight } from 'lucide-react';
+
 import { services } from '../config';
 import { Icon } from './icons';
 import { cx } from './lib/cx';
@@ -47,7 +49,10 @@ export function ServicesSection() {
               <h3>{service.title}</h3>
               <p>{service.description}</p>
               <a className={styles.cardLink} href='#contact' data-landing-interactive='card-link'>
-                자세히 보기 <i data-landing-arrow>→</i>
+                자세히 보기{' '}
+                <i data-landing-arrow>
+                  <ArrowRight size={14} strokeWidth={2.2} />
+                </i>
               </a>
             </article>
           ))}

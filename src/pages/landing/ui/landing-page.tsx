@@ -1,3 +1,4 @@
+import { ChevronUp } from 'lucide-react';
 import { useRef } from 'react';
 
 import { CaseStoriesSection } from './case-stories-section';
@@ -52,7 +53,7 @@ export function LandingPage() {
           aria-label='상단으로 이동'
           onClick={scrollToPageTop}
         >
-          ↑
+          <ChevronUp size={22} strokeWidth={2.2} />
         </button>
       </main>
     </>

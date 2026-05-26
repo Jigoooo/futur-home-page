@@ -1,3 +1,5 @@
+import { ArrowRight } from 'lucide-react';
+
 import { navigationItems } from '../config';
 import { Button } from './button';
 import styles from './styles/header.module.css';
@@ -17,7 +19,9 @@ export function HeaderSection() {
       </nav>
       <Button href='#contact' className={styles.ctaButton} cursorText='문의'>
         <span data-landing-label>문의하기</span>
-        <span data-landing-arrow>→</span>
+        <span data-landing-arrow>
+          <ArrowRight size={14} strokeWidth={2.2} />
+        </span>
       </Button>
     </header>
   );

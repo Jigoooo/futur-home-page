@@ -1,3 +1,5 @@
+import { ArrowRight } from 'lucide-react';
+
 import { reviews } from '../config';
 import { Button } from './button';
 import { cx } from './lib/cx';
@@ -24,7 +26,9 @@ export function ReviewsSection() {
         </div>
         <Button href='#contact' variant='ghost' cursorText='문의'>
           <span data-landing-label>상담 문의</span>
-          <span data-landing-arrow>→</span>
+          <span data-landing-arrow>
+            <ArrowRight size={14} strokeWidth={2.2} />
+          </span>
         </Button>
       </div>
       <div

@@ -2,6 +2,7 @@ import pluginJs from '@eslint/js';
 import pluginRouter from '@tanstack/eslint-plugin-router';
 import eslintConfigPrettier from 'eslint-config-prettier';
 import importPlugin from 'eslint-plugin-import';
+import jsxA11y from 'eslint-plugin-jsx-a11y';
 import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended';
 import pluginReact from 'eslint-plugin-react';
 import reactCompiler from 'eslint-plugin-react-compiler';
@@ -19,6 +20,7 @@ export default [
   reactHooks.configs.flat.recommended,
   ...tseslint.configs.recommended,
   pluginReact.configs.flat.recommended,
+  jsxA11y.flatConfigs.recommended,
   eslintConfigPrettier,
   eslintPluginPrettierRecommended,
   {
@@ -63,6 +65,7 @@ export default [
       'react/no-unescaped-entities': 'off',
       'react/prop-types': 'off',
       'react/react-in-jsx-scope': 'off',
+      'jsx-a11y/label-has-associated-control': ['error', { depth: 3 }],
     },
   },
 ];

@@ -1,3 +1,4 @@
+import { ChevronDown } from 'lucide-react';
 import { useState } from 'react';
 
 import { faqItems } from '../config';
@@ -49,14 +50,7 @@ export function FaqSection() {
               >
                 <span className={styles.question}>{item.question}</span>
                 <span className={styles.toggle} aria-hidden='true'>
-                  <svg viewBox='0 0 14 14' width='14' height='14' fill='none' stroke='currentColor'>
-                    <path
-                      d='M3 6l4 4 4-4'
-                      strokeWidth='1.8'
-                      strokeLinecap='round'
-                      strokeLinejoin='round'
-                    />
-                  </svg>
+                  <ChevronDown size={16} strokeWidth={1.8} />
                 </span>
               </button>
               <div

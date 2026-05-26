@@ -1,3 +1,4 @@
+import { ArrowRight } from 'lucide-react';
 import { useState, type FormEvent } from 'react';
 
 import { Button } from './button';
@@ -111,7 +112,9 @@ export function ContactSection() {
         <div className={styles.ctaActions}>
           <Button href={mailHref} cursorText='MAIL'>
             <span data-landing-label>메일로 문의</span>
-            <span data-landing-arrow>→</span>
+            <span data-landing-arrow>
+              <ArrowRight size={14} strokeWidth={2.2} />
+            </span>
           </Button>
         </div>
       </div>
@@ -226,7 +229,9 @@ export function ContactSection() {
               data-cursor-text='SEND'
             >
               <span data-landing-label>상담 신청하기</span>
-              <span data-landing-arrow>→</span>
+              <span data-landing-arrow>
+                <ArrowRight size={14} strokeWidth={2.2} />
+              </span>
             </button>
           </div>
         </form>

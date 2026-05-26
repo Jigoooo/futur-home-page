@@ -1,3 +1,4 @@
+import { ChevronDown } from 'lucide-react';
 import { useEffect, useId, useRef, useState, type KeyboardEvent } from 'react';
 
 import type { SelectOption } from '../model/types';
@@ -128,10 +129,6 @@ export function CustomSelect({ label, name, value, options, onChange }: CustomSe
   const labelId = `${id}-label`;
   const valueId = `${id}-value`;
   const listboxId = `${id}-listbox`;
-  const selectStateProps =
-    isOpen === true
-      ? ({ 'aria-expanded': 'true' } as const)
-      : ({ 'aria-expanded': 'false' } as const);
 
   return (
     <div className={styles.formControl}>
@@ -155,10 +152,10 @@ export function CustomSelect({ label, name, value, options, onChange }: CustomSe
           data-landing-interactive='control'
           role='combobox'
           aria-haspopup='listbox'
+          aria-expanded={isOpen}
           aria-controls={listboxId}
           aria-labelledby={`${labelId} ${valueId}`}
           aria-activedescendant={isOpen ? `${id}-option-${focusedIndex}` : undefined}
-          {...selectStateProps}
           onClick={() => {
             if (isOpen) {
               setIsOpen(false);
@@ -173,15 +170,7 @@ export function CustomSelect({ label, name, value, options, onChange }: CustomSe
             {selected.label}
           </span>
           <span className={styles.selectArrow} aria-hidden='true'>
-            <svg viewBox='0 0 20 20' fill='none'>
-              <path
-                d='M5.5 7.5L10 12l4.5-4.5'
-                stroke='currentColor'
-                strokeWidth='2.2'
-                strokeLinecap='round'
-                strokeLinejoin='round'
-              />
-            </svg>
+            <ChevronDown strokeWidth={2.2} />
           </span>
         </button>
         <ul
@@ -191,32 +180,26 @@ export function CustomSelect({ label, name, value, options, onChange }: CustomSe
           role='listbox'
           aria-labelledby={labelId}
         >
-          {options.map((option, optionIndex) => {
-            const optionStateProps =
-              option.value === value
-                ? ({ 'aria-selected': 'true' } as const)
-                : ({ 'aria-selected': 'false' } as const);
-
-            return (
-              <li
-                key={option.value}
-                id={`${id}-option-${optionIndex}`}
-                className={cx(
-                  styles.selectOption,
-                  focusedIndex === optionIndex && styles.isFocused,
-                )}
-                data-landing-interactive='control'
-                data-landing-select-option
-                role='option'
-                tabIndex={-1}
-                onClick={() => selectOption(option)}
-                onPointerEnter={() => setFocusedIndex(optionIndex)}
-                {...optionStateProps}
-              >
-                {option.label}
-              </li>
-            );
-          })}
+          {options.map((option, optionIndex) => (
+            <li
+              key={option.value}
+              id={`${id}-option-${optionIndex}`}
+              className={cx(
+                styles.selectOption,
+                focusedIndex === optionIndex && styles.isFocused,
+              )}
+              data-landing-interactive='control'
+              data-landing-select-option
+              role='option'
+              aria-selected={option.value === value}
+              tabIndex={-1}
+              // eslint-disable-next-line jsx-a11y/click-events-have-key-events -- combobox 패턴: 키보드 처리는 trigger 버튼의 handleKeyDown이 담당, 옵션은 tabIndex=-1로 포커스 받지 않음
+              onClick={() => selectOption(option)}
+              onPointerEnter={() => setFocusedIndex(optionIndex)}
+            >
+              {option.label}
+            </li>
+          ))}
         </ul>
       </div>
     </div>

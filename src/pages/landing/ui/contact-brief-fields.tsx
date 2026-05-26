@@ -72,7 +72,10 @@ export function ContactBriefFields({
 
       <div className={formStyles.briefGroup}>
         <div className={formStyles.groupLabel}>
-          필요한 서비스 <span className={formStyles.required}>*</span> <small>하나 이상 선택</small>
+          <span>
+            필요한 서비스 <span className={formStyles.required}>*</span>
+          </span>
+          <small>하나 이상 선택</small>
         </div>
         <div className={formStyles.serviceChecks} onChange={onServicesChange}>
           {contactServices.map((service) => (

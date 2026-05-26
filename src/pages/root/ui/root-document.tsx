@@ -53,17 +53,26 @@ html[data-style-gate='ready'] .style-gate-loader {
 
 .style-gate-card {
   position: relative;
-  display: grid;
-  width: min(360px, 100%);
-  min-height: 230px;
-  place-items: center;
-  padding: 42px 38px 36px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  width: min(380px, 100%);
+  padding: 44px 40px 38px;
   border: 1px solid rgba(220, 230, 244, 0.88);
   border-radius: 34px;
   background: rgba(255, 255, 255, 0.86);
   box-shadow: 0 34px 88px rgba(56, 78, 130, 0.14);
   -webkit-backdrop-filter: blur(18px) saturate(160%);
   backdrop-filter: blur(18px) saturate(160%);
+  transition:
+    opacity 320ms ease,
+    transform 320ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+html[data-style-gate='ready'] .style-gate-card {
+  opacity: 0;
+  transform: translate3d(0, -8px, 0);
 }
 
 .style-gate-card::before,
@@ -90,39 +99,6 @@ html[data-style-gate='ready'] .style-gate-loader {
   background: rgba(185, 234, 219, 0.34);
 }
 
-.style-gate-orbit {
-  position: relative;
-  width: 92px;
-  height: 92px;
-  margin-bottom: 24px;
-  border: 1.4px dashed rgba(73, 117, 220, 0.24);
-  border-radius: 999px;
-  transform: rotate(-9deg);
-}
-
-.style-gate-orbit::before,
-.style-gate-orbit::after {
-  content: "";
-  position: absolute;
-  border-radius: 999px;
-}
-
-.style-gate-orbit::before {
-  inset: 17px;
-  border: 1px solid rgba(138, 114, 255, 0.18);
-}
-
-.style-gate-orbit::after {
-  width: 12px;
-  height: 12px;
-  left: 7px;
-  top: 12px;
-  background: #2f6bff;
-  box-shadow: 0 0 0 7px rgba(47, 107, 255, 0.12);
-  transform-origin: 39px 34px;
-  animation: styleGateOrbit 1.45s linear infinite;
-}
-
 .style-gate-mark {
   position: relative;
   z-index: 1;
@@ -130,56 +106,107 @@ html[data-style-gate='ready'] .style-gate-loader {
   font-size: 30px;
   font-weight: 950;
   line-height: 1;
+  opacity: 0;
+  transform: translate3d(0, 10px, 0);
+  animation: styleGateCopyIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0s forwards;
 }
 
 .style-gate-mark span {
   color: #2f6bff;
 }
 
-.style-gate-line {
+.style-gate-copy {
   position: relative;
   z-index: 1;
-  width: 132px;
-  height: 3px;
-  margin-top: 26px;
-  overflow: hidden;
+  margin: 22px 0 0;
+  color: #13234e;
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.45;
+  letter-spacing: -0.01em;
+  opacity: 0;
+  transform: translate3d(0, 10px, 0);
+  animation: styleGateCopyIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.18s forwards;
+}
+
+.style-gate-sub {
+  position: relative;
+  z-index: 1;
+  margin: 8px 0 0;
+  color: #66738d;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.5;
+  opacity: 0;
+  transform: translate3d(0, 10px, 0);
+  animation: styleGateCopyIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.32s forwards;
+}
+
+.style-gate-dots {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  gap: 7px;
+  margin-top: 24px;
+  opacity: 0;
+  animation: styleGateCopyIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.45s forwards;
+}
+
+.style-gate-dots i {
+  width: 6px;
+  height: 6px;
   border-radius: 999px;
-  background: #e7eefb;
+  background: #2f6bff;
+  opacity: 0.35;
+  animation: styleGateDotPulse 1.4s ease-in-out infinite;
 }
 
-.style-gate-line i {
-  position: absolute;
-  inset: 0;
-  width: 44%;
-  border-radius: inherit;
-  background: linear-gradient(90deg, rgba(47, 107, 255, 0), #2f6bff, rgba(47, 107, 255, 0));
-  animation: styleGateLine 1.05s ease-in-out infinite;
+.style-gate-dots i:nth-child(2) {
+  animation-delay: 0.18s;
 }
 
-@keyframes styleGateOrbit {
+.style-gate-dots i:nth-child(3) {
+  animation-delay: 0.36s;
+}
+
+@keyframes styleGateCopyIn {
   to {
-    transform: rotate(360deg);
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
   }
 }
 
-@keyframes styleGateLine {
-  from {
-    transform: translateX(-105%);
+@keyframes styleGateDotPulse {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scale(1);
   }
-  to {
-    transform: translateX(240%);
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   html[data-style-gate='ready'] .style-gate-app,
-  html[data-style-gate='ready'] .style-gate-loader {
+  html[data-style-gate='ready'] .style-gate-loader,
+  html[data-style-gate='ready'] .style-gate-card {
     transition: none;
   }
 
-  .style-gate-orbit::after,
-  .style-gate-line i {
+  .style-gate-mark,
+  .style-gate-copy,
+  .style-gate-sub,
+  .style-gate-dots {
+    opacity: 1;
+    transform: none;
     animation: none;
+  }
+
+  .style-gate-dots i {
+    animation: none;
+    opacity: 0.6;
   }
 }
 `;
@@ -314,11 +341,14 @@ export function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
       <body suppressHydrationWarning>
         <div className='style-gate-loader' aria-hidden='true'>
           <div className='style-gate-card'>
-            <div className='style-gate-orbit' />
             <strong className='style-gate-mark'>
               FUTUR<span>.</span>
             </strong>
-            <div className='style-gate-line'>
+            <p className='style-gate-copy'>아이디어를 현실의 서비스로.</p>
+            <p className='style-gate-sub'>FUTUR가 함께 만듭니다.</p>
+            <div className='style-gate-dots'>
+              <i />
+              <i />
               <i />
             </div>
           </div>

@@ -1,0 +1,131 @@
+.faqSection {
+  padding-block: clamp(110px, 9vw, 160px);
+}
+
+.head {
+  max-width: 760px;
+  margin-bottom: 44px;
+}
+
+.title {
+  font-size: clamp(34px, 4.4vw, 46px);
+  line-height: 1.18;
+}
+
+.list {
+  display: grid;
+  gap: 12px;
+}
+
+.item {
+  padding: 4px 28px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: linear-gradient(180deg, #ffffff, #fbfdff);
+  box-shadow: var(--shadow-soft);
+  transition:
+    border-color 0.24s ease,
+    box-shadow 0.24s ease;
+}
+
+.item[open] {
+  border-color: #d6e2f6;
+  box-shadow: 0 22px 50px rgba(41, 63, 111, 0.07);
+}
+
+.summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 22px 0;
+  list-style: none;
+  cursor: pointer;
+  color: var(--navy);
+  font-size: 17px;
+  font-weight: 800;
+  line-height: 1.5;
+  letter-spacing: -0.01em;
+}
+
+.summary::-webkit-details-marker {
+  display: none;
+}
+
+.summary:focus-visible {
+  outline: 2px solid #8cb2ff;
+  outline-offset: 4px;
+  border-radius: 12px;
+}
+
+.question {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.question::before {
+  content: 'Q';
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #eef5ff, #f8fbff);
+  border: 1px solid #dee9fb;
+  color: var(--blue);
+  font-size: 13px;
+  font-weight: 900;
+  flex-shrink: 0;
+}
+
+.toggle {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: #ffffff;
+  color: var(--navy);
+  transition: transform 0.32s var(--spring);
+  flex-shrink: 0;
+}
+
+.item[open] .toggle {
+  transform: rotate(-180deg);
+  background: linear-gradient(180deg, #eef5ff, #f8fbff);
+  border-color: #d6e2f6;
+  color: var(--blue);
+}
+
+.answer {
+  margin: 0;
+  padding: 0 0 24px;
+  padding-left: 40px;
+  color: var(--muted);
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.8;
+}
+
+@media (max-width: 560px) {
+  .item {
+    padding: 4px 20px;
+  }
+
+  .summary {
+    font-size: 15px;
+    padding: 20px 0;
+  }
+
+  .answer {
+    padding-left: 0;
+    font-size: 14px;
+  }
+
+  .question {
+    align-items: flex-start;
+  }
+}

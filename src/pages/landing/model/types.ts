@@ -87,3 +87,25 @@ export interface ContactChip {
   label: string;
   icon: IconName;
 }
+
+export interface TrustStat {
+  value: string;
+  label: string;
+  caption?: string;
+}
+
+export interface StackItem {
+  name: string;
+  group: 'Frontend' | 'Mobile' | 'Backend' | 'Data · Infra' | 'Design';
+}
+
+export interface OperationsPolicy {
+  icon: IconName;
+  title: string;
+  description: string;
+}
+
+export interface FaqItem {
+  question: string;
+  answer: string;
+}

@@ -9,12 +9,12 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border: 1px solid rgba(220, 230, 244, 0.82);
+  border: 1px solid rgba(220, 230, 244, 0.9);
   border-radius: 28px;
-  background: rgba(255, 255, 255, 0.82);
-  -webkit-backdrop-filter: blur(20px) saturate(165%);
-  backdrop-filter: blur(20px) saturate(165%);
-  box-shadow: 0 16px 46px rgba(28, 48, 92, 0.07);
+  background: rgba(255, 255, 255, 0.94);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  backdrop-filter: blur(24px) saturate(180%);
+  box-shadow: 0 16px 46px rgba(28, 48, 92, 0.08);
 }
 
 .logo {

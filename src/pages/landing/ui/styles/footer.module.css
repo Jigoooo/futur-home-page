@@ -36,9 +36,23 @@
 
 .footerContact {
   display: flex;
-  justify-content: flex-end;
+  flex-direction: column;
+  align-items: flex-end;
   gap: 10px;
-  flex-wrap: wrap;
+}
+
+.footerContactLabel {
+  color: #8492ad;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.footerContactNote {
+  color: #74819c;
+  font-size: 12.5px;
+  font-weight: 800;
 }
 
 .footerPill {

@@ -186,7 +186,12 @@
   }
 
   .sectionTitle br {
-    display: none;
+    display: inline;
+  }
+
+  .sectionTitle br::after {
+    content: " ";
+    white-space: pre;
   }
 }
 

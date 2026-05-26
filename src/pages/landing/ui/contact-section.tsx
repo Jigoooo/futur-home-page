@@ -12,6 +12,7 @@ import styles from './styles/contact.module.css';
 import formStyles from './styles/form-controls.module.css';
 import sharedStyles from './styles/shared.module.css';
 import { mailHref } from '../lib/company-links';
+import { COMPANY_INFOS } from '@/entities/company';
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -137,6 +138,23 @@ export function ContactSection() {
               {chip.label}
             </div>
           ))}
+          <div className={styles.contactCardDivider} aria-hidden='true' />
+          <dl className={styles.contactCardInfo}>
+            <div>
+              <dt>이메일</dt>
+              <dd>
+                <a href={mailHref}>{COMPANY_INFOS.EMAIL}</a>
+              </dd>
+            </div>
+            <div>
+              <dt>평균 회신</dt>
+              <dd>영업일 기준 24시간 이내</dd>
+            </div>
+            <div>
+              <dt>사무실</dt>
+              <dd>{COMPANY_INFOS.ADDRESS}</dd>
+            </div>
+          </dl>
         </aside>
 
         <form

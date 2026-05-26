@@ -5,15 +5,14 @@
 }
 
 .caseHead {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 30px;
-  margin-bottom: 78px;
+  display: grid;
+  gap: 36px;
+  margin-bottom: 64px;
 }
 
 .tabs {
-  display: flex;
+  display: inline-flex;
+  align-self: start;
   gap: 8px;
   padding: 7px;
   border: 1px solid #e1e8f4;
@@ -427,7 +426,12 @@
   }
 
   .caseTitle br {
-    display: none;
+    display: inline;
+  }
+
+  .caseTitle br::after {
+    content: " ";
+    white-space: pre;
   }
 }
 

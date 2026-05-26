@@ -15,13 +15,14 @@
 
 .groups {
   display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 22px;
 }
 
 .group {
   display: grid;
-  grid-template-columns: 168px minmax(0, 1fr);
-  gap: 24px;
+  grid-template-columns: 130px minmax(0, 1fr);
+  gap: 20px;
   align-items: center;
   padding: 22px 26px;
   border: 1px solid var(--line);
@@ -76,6 +77,12 @@
   border-radius: 999px;
   background: var(--blue);
   box-shadow: 0 0 0 4px rgba(47, 107, 255, 0.12);
+}
+
+@media (max-width: 1180px) {
+  .groups {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 900px) {

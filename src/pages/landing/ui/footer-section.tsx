@@ -14,10 +14,12 @@ export function FooterSection() {
             <p>기술을 어렵게 보이지 않게, 필요한 결과를 명확하게 만들겠습니다.</p>
           </div>
           <div className={styles.footerContact}>
+            <span className={styles.footerContactLabel}>새 프로젝트 문의</span>
             <a className={styles.footerPill} href={mailHref} data-landing-interactive='round'>
               <Icon name='mail' />
               {COMPANY_INFOS.EMAIL}
             </a>
+            <span className={styles.footerContactNote}>평균 회신 영업일 24시간 이내</span>
           </div>
         </div>
 

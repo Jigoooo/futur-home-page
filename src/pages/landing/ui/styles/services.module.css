@@ -13,9 +13,11 @@
   --my: 42%;
   position: relative;
   isolation: isolate;
-  min-height: 312px;
+  display: flex;
+  flex-direction: column;
+  min-height: 280px;
   overflow: hidden;
-  padding: 42px;
+  padding: 34px 36px 32px;
   border: 1px solid var(--line);
   border-radius: 40px;
   background: linear-gradient(180deg, #ffffff, #fbfdff);
@@ -92,12 +94,12 @@
 }
 
 .serviceIcon {
-  width: 58px;
-  height: 58px;
+  width: 54px;
+  height: 54px;
   display: grid;
   place-items: center;
-  margin-bottom: 29px;
-  border-radius: 20px;
+  margin-bottom: 20px;
+  border-radius: 18px;
   background: #eef5ff;
   color: var(--accent);
   transition:
@@ -137,9 +139,11 @@
 .cardLink {
   position: relative;
   display: inline-flex;
+  align-self: flex-start;
   align-items: center;
   gap: 9px;
-  margin-top: 36px;
+  margin-top: auto;
+  padding-top: 28px;
   color: #101d43;
   font-size: 14px;
   font-weight: 950;

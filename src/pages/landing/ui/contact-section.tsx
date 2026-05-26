@@ -1,4 +1,4 @@
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, ChevronRight } from 'lucide-react';
 import { useState, type FormEvent } from 'react';
 
 import { Button } from './button';
@@ -240,6 +240,7 @@ export function ContactSection() {
                   aria-label='개인정보 처리방침 자세히 보기'
                 >
                   자세히 보기
+                  <ChevronRight size={14} strokeWidth={2.4} aria-hidden='true' />
                 </button>
               </div>
               <ul className={styles.consentNotice} aria-label='개인정보 수집·이용 고지'>

@@ -155,34 +155,31 @@
   flex-wrap: wrap;
 }
 
-.legalPrimary {
-  color: #1d3a8f;
-  font-size: 13.5px;
-  font-weight: 900;
+.legalPrimary,
+.legalSecondary {
+  color: #4f5b76;
+  font-size: 13px;
   letter-spacing: -0.005em;
   text-decoration: none;
   transition: color 160ms ease;
 }
 
-.legalPrimary:hover {
-  color: #2f6bff;
+.legalPrimary {
+  font-weight: 900;
+}
+
+.legalSecondary {
+  font-weight: 700;
+}
+
+.legalPrimary:hover,
+.legalSecondary:hover {
+  color: #07183f;
 }
 
 .legalDivider {
   color: #c4cee0;
-  font-size: 13.5px;
-}
-
-.legalSecondary {
-  color: #6f7b96;
   font-size: 13px;
-  font-weight: 700;
-  text-decoration: none;
-  transition: color 160ms ease;
-}
-
-.legalSecondary:hover {
-  color: #07183f;
 }
 
 .copyright {

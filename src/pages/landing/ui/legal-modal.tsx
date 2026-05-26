@@ -76,6 +76,24 @@ export function LegalModal({ open, title, onClose, children }: LegalModalProps) 
     };
   }, [open]);
 
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    const html = document.documentElement;
+    const wasCursorEnabled = html.dataset.landingCursorEnabled === 'true';
+    if (wasCursorEnabled) {
+      delete html.dataset.landingCursorEnabled;
+    }
+
+    return () => {
+      if (wasCursorEnabled) {
+        html.dataset.landingCursorEnabled = 'true';
+      }
+    };
+  }, [open]);
+
   if (!open) {
     return null;
   }

@@ -226,6 +226,20 @@ const styleGateScript = `
   const areStylesheetsLoaded = () =>
     getStylesheets().every((stylesheet) => stylesheet.sheet);
 
+  const isHeroImageReady = () => {
+    const heroImage = document.querySelector('[data-landing-hero-image]');
+
+    if (!heroImage) {
+      return true;
+    }
+
+    if (!(heroImage instanceof HTMLImageElement)) {
+      return true;
+    }
+
+    return heroImage.complete && heroImage.naturalWidth > 0;
+  };
+
   const areLandingStylesApplied = () => {
     const app = document.querySelector('.style-gate-app');
 
@@ -249,7 +263,11 @@ const styleGateScript = `
     const heroStyle = window.getComputedStyle(hero);
     const navStyle = window.getComputedStyle(nav);
 
-    return heroStyle.paddingTop !== '0px' && navStyle.position === 'sticky';
+    if (heroStyle.paddingTop === '0px' || navStyle.position !== 'sticky') {
+      return false;
+    }
+
+    return isHeroImageReady();
   };
 
   const revealWhenReady = () => {
@@ -283,12 +301,36 @@ const styleGateScript = `
     });
   };
 
+  let heroImageWatched = false;
+  const watchHeroImage = () => {
+    if (heroImageWatched) {
+      return;
+    }
+
+    const heroImage = document.querySelector('[data-landing-hero-image]');
+
+    if (!(heroImage instanceof HTMLImageElement)) {
+      return;
+    }
+
+    heroImageWatched = true;
+
+    if (heroImage.complete && heroImage.naturalWidth > 0) {
+      checkAfterPaint();
+      return;
+    }
+
+    heroImage.addEventListener('load', checkAfterPaint, { once: true });
+    heroImage.addEventListener('error', checkAfterPaint, { once: true });
+  };
+
   const keepCheckingUntilReady = () => {
     if (isReady) {
       return;
     }
 
     watchStylesheets();
+    watchHeroImage();
     checkAfterPaint();
     window.setTimeout(keepCheckingUntilReady, 120);
   };
@@ -301,6 +343,7 @@ const styleGateScript = `
       }
 
       watchStylesheets();
+      watchHeroImage();
       checkAfterPaint();
     });
 
@@ -314,6 +357,7 @@ const styleGateScript = `
     () => {
       isDomReady = true;
       watchStylesheets();
+      watchHeroImage();
       checkAfterPaint();
     },
     { once: true },

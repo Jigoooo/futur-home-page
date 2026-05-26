@@ -103,8 +103,13 @@ export function HeroSection() {
           <div className={styles.heroPanel}>
             <img
               className={styles.heroProductImage}
-              src='/landing/hero-product-preview.png'
+              src='/landing/hero-product-preview.webp'
               alt='업무 대시보드, 현장 모바일 앱, API 연동 흐름을 함께 보여주는 FUTUR 서비스 화면 예시'
+              width={1200}
+              height={750}
+              fetchPriority='high'
+              decoding='async'
+              data-landing-hero-image
             />
           </div>
         </div>

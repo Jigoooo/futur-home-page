@@ -41,6 +41,9 @@ CLAUDE.md
 graphify-out/
 .mcp.json
 .playwright-mcp/
+.omc/
+.omx/
+.review-screens/
 
 # Database leftovers from the source app are intentionally out of scope.
 *.db

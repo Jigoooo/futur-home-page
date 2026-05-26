@@ -1,4 +1,5 @@
 {
+  "extends": "./tsconfig.base.json",
   "compilerOptions": {
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
     "target": "ES2022",
@@ -16,14 +17,7 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
-    "noUncheckedSideEffectImports": true,
-    "paths": {
-      "@/*": ["./src/*"],
-      "@/routes/*": ["./src/routes/*"],
-      "@/pages/*": ["./src/pages/*"],
-      "@/entities/*": ["./src/entities/*"],
-      "@/styles/*": ["./src/styles/*"]
-    }
+    "noUncheckedSideEffectImports": true
   },
   "include": ["src"]
 }

@@ -3,7 +3,6 @@ import { tanstackStart } from '@tanstack/react-start/plugin/vite';
 import react, { reactCompilerPreset } from '@vitejs/plugin-react';
 import { nitro } from 'nitro/vite';
 import { defineConfig, loadEnv } from 'vite';
-import tsconfigPaths from 'vite-tsconfig-paths';
 
 const config = defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), 'VITE_');
@@ -40,8 +39,10 @@ const config = defineConfig(({ mode }) => {
         include: /\.[jt]sx?$/,
         presets: [reactCompilerPreset()],
       }),
-      tsconfigPaths(),
     ],
+    resolve: {
+      tsconfigPaths: true,
+    },
     assetsInclude: ['**/*.ttf', '**/*.woff', '**/*.woff2', '**/*.eot', '**/*.otf'],
     build: {
       sourcemap: true,

@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "paths": {
+      "@/*": ["./src/*"],
+      "@/routes/*": ["./src/routes/*"],
+      "@/pages/*": ["./src/pages/*"],
+      "@/entities/*": ["./src/entities/*"],
+      "@/styles/*": ["./src/styles/*"]
+    }
+  }
+}

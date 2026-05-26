@@ -7,7 +7,7 @@ import styles from './styles/faq.module.css';
 import sharedStyles from './styles/shared.module.css';
 
 export function FaqSection() {
-  const [openSet, setOpenSet] = useState<Set<number>>(new Set());
+  const [openSet, setOpenSet] = useState<Set<number>>(() => new Set([0]));
 
   const toggle = (index: number) => {
     setOpenSet((prev) => {

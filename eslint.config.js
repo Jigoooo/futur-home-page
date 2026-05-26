@@ -20,7 +20,7 @@ export default [
   reactHooks.configs.flat.recommended,
   ...tseslint.configs.recommended,
   pluginReact.configs.flat.recommended,
-  jsxA11y.flatConfigs.recommended,
+  jsxA11y.flatConfigs.strict,
   eslintConfigPrettier,
   eslintPluginPrettierRecommended,
   {
@@ -66,6 +66,16 @@ export default [
       'react/prop-types': 'off',
       'react/react-in-jsx-scope': 'off',
       'jsx-a11y/label-has-associated-control': ['error', { depth: 3 }],
+      'jsx-a11y/no-noninteractive-element-to-interactive-role': [
+        'error',
+        {
+          ul: ['listbox', 'menu', 'menubar', 'radiogroup', 'tablist', 'tree', 'treegrid'],
+          ol: ['listbox', 'menu', 'menubar', 'radiogroup', 'tablist', 'tree', 'treegrid'],
+          li: ['option', 'menuitem', 'menuitemcheckbox', 'menuitemradio', 'tab', 'treeitem'],
+          table: ['grid'],
+          td: ['gridcell'],
+        },
+      ],
     },
   },
 ];

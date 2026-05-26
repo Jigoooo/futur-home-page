@@ -26,7 +26,7 @@ export function ContactIdentityFields({ errors, onFieldChange }: ContactIdentity
             className={cx(formStyles.input, errors.name && formStyles.invalid)}
             name='name'
             placeholder='성함'
-            aria-invalid={Boolean(errors.name)}
+            aria-invalid={errors.name ? 'true' : 'false'}
             aria-describedby={errors.name ? 'contact-error-name' : undefined}
             onChange={() => onFieldChange('name')}
           />
@@ -45,7 +45,7 @@ export function ContactIdentityFields({ errors, onFieldChange }: ContactIdentity
             name='email'
             type='email'
             placeholder='contact@example.com'
-            aria-invalid={Boolean(errors.email)}
+            aria-invalid={errors.email ? 'true' : 'false'}
             aria-describedby={errors.email ? 'contact-error-email' : undefined}
             onChange={() => onFieldChange('email')}
           />

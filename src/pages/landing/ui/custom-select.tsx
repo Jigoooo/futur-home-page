@@ -189,7 +189,7 @@ export function CustomSelect({ label, name, value, options, onChange }: CustomSe
               data-landing-interactive='control'
               data-landing-select-option
               role='option'
-              aria-selected={option.value === value}
+              aria-selected={option.value === value ? 'true' : 'false'}
               tabIndex={-1}
               onClick={() => selectOption(option)}
               onPointerEnter={() => setFocusedIndex(optionIndex)}

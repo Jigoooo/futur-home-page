@@ -194,7 +194,7 @@ export function ContactSection() {
                 className={cx(formStyles.textareaInput, errors.message && formStyles.invalid)}
                 name='message'
                 placeholder='현재 상황, 필요한 기능, 참고 서비스, 일정, 예산 범위, 걱정되는 부분 등을 자유롭게 적어주세요.'
-                aria-invalid={Boolean(errors.message)}
+                aria-invalid={errors.message ? 'true' : 'false'}
                 aria-describedby={errors.message ? 'contact-error-message' : undefined}
                 onChange={() => clearFieldError('message')}
               />
@@ -222,7 +222,7 @@ export function ContactSection() {
                   <input
                     type='checkbox'
                     name='agree'
-                    aria-invalid={Boolean(errors.agree)}
+                    aria-invalid={errors.agree ? 'true' : 'false'}
                     aria-describedby={errors.agree ? 'contact-error-agree' : undefined}
                     onChange={() => clearFieldError('agree')}
                   />

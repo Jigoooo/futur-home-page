@@ -47,9 +47,3 @@ export const contactServices: ContactCheckItem[] = [
   { value: '연동·API', title: '연동·API', description: '인증·결제·알림·파일' },
   { value: '운영·유지보수', title: '운영·유지보수', description: '배포 이후 개선과 대응' },
 ];
-
-export const replyTypeOptions: SelectOption[] = [
-  { value: '이메일', label: '이메일' },
-  { value: '전화', label: '전화' },
-  { value: '둘 다 가능', label: '둘 다 가능' },
-];

@@ -4,13 +4,7 @@ import { Button } from './button';
 import { ContactBriefFields } from './contact-brief-fields';
 import { ContactIdentityFields, type ContactFieldErrors } from './contact-identity-fields';
 import { Icon } from './icons';
-import {
-  briefStages,
-  budgetOptions,
-  contactChips,
-  replyTypeOptions,
-  timelineOptions,
-} from '../config';
+import { briefStages, budgetOptions, contactChips, timelineOptions } from '../config';
 import { cx } from './lib/cx';
 import buttonStyles from './styles/button.module.css';
 import styles from './styles/contact.module.css';
@@ -28,7 +22,6 @@ export function ContactSection() {
   const [stage, setStage] = useState(briefStages[0].value);
   const [timeline, setTimeline] = useState(timelineOptions[0].value);
   const [budget, setBudget] = useState(budgetOptions[0].value);
-  const [replyType, setReplyType] = useState(replyTypeOptions[0].value);
   const [etcChecked, setEtcChecked] = useState(false);
   const [etcText, setEtcText] = useState('');
   const [result, setResult] = useState('');
@@ -155,14 +148,12 @@ export function ContactSection() {
             stage={stage}
             timeline={timeline}
             budget={budget}
-            replyType={replyType}
             etcChecked={etcChecked}
             etcText={etcText}
             errors={errors}
             onStageChange={setStage}
             onTimelineChange={setTimeline}
             onBudgetChange={setBudget}
-            onReplyTypeChange={setReplyType}
             onEtcCheckedChange={handleEtcCheckedChange}
             onEtcTextChange={setEtcText}
             onServicesChange={() => clearFieldError('services')}

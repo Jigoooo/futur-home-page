@@ -4,7 +4,6 @@ export {
   budgetOptions,
   contactChips,
   contactServices,
-  replyTypeOptions,
   timelineOptions,
 } from './contact';
 export { heroPoints } from './hero';

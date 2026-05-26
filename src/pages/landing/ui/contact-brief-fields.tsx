@@ -1,10 +1,4 @@
-import {
-  briefStages,
-  budgetOptions,
-  contactServices,
-  replyTypeOptions,
-  timelineOptions,
-} from '../config';
+import { briefStages, budgetOptions, contactServices, timelineOptions } from '../config';
 import type { ContactFieldErrors } from './contact-identity-fields';
 import { CustomSelect } from './custom-select';
 import { Icon } from './icons';
@@ -16,14 +10,12 @@ interface ContactBriefFieldsProps {
   stage: string;
   timeline: string;
   budget: string;
-  replyType: string;
   etcChecked: boolean;
   etcText: string;
   errors: ContactFieldErrors;
   onStageChange: (value: string) => void;
   onTimelineChange: (value: string) => void;
   onBudgetChange: (value: string) => void;
-  onReplyTypeChange: (value: string) => void;
   onEtcCheckedChange: (checked: boolean) => void;
   onEtcTextChange: (value: string) => void;
   onServicesChange: () => void;
@@ -33,14 +25,12 @@ export function ContactBriefFields({
   stage,
   timeline,
   budget,
-  replyType,
   etcChecked,
   etcText,
   errors,
   onStageChange,
   onTimelineChange,
   onBudgetChange,
-  onReplyTypeChange,
   onEtcCheckedChange,
   onEtcTextChange,
   onServicesChange,
@@ -164,13 +154,6 @@ export function ContactBriefFields({
           value={budget}
           options={budgetOptions}
           onChange={onBudgetChange}
-        />
-        <CustomSelect
-          label='희망 답변 방식'
-          name='replyType'
-          value={replyType}
-          options={replyTypeOptions}
-          onChange={onReplyTypeChange}
         />
       </div>
     </fieldset>

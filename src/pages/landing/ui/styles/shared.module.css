@@ -29,12 +29,26 @@
   padding-block: clamp(205px, 13.5vw, 280px);
 }
 
+.sectionBlock {
+  position: relative;
+  isolation: isolate;
+}
+
+.bgSoft {
+  background: var(--soft);
+}
+
+.bgDark {
+  background: var(--navy);
+  color: #e7eefb;
+}
+
 .kicker {
   display: inline-flex;
   align-items: center;
   gap: 8px;
   margin-bottom: 18px;
-  color: #416fe8;
+  color: var(--section-accent, #416fe8);
   font-size: 12px;
   font-weight: 1000;
   letter-spacing: 0.12em;
@@ -47,7 +61,7 @@
   height: 7px;
   border-radius: 999px;
   background: currentColor;
-  box-shadow: 0 0 0 6px rgba(65, 111, 232, 0.11);
+  box-shadow: 0 0 0 6px color-mix(in srgb, currentColor 18%, transparent);
 }
 
 .sectionTitle {

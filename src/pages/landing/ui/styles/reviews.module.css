@@ -1,4 +1,5 @@
 .reviewSection {
+  --section-accent: var(--amber);
   padding-top: 70px;
   padding-bottom: clamp(235px, 15vw, 310px);
 }

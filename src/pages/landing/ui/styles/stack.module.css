@@ -1,4 +1,5 @@
 .stackSection {
+  --section-accent: var(--sky);
   padding-block: clamp(110px, 9vw, 160px);
 }
 

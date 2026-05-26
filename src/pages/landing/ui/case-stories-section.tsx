@@ -37,7 +37,10 @@ export function CaseStoriesSection() {
   };
 
   return (
-    <section className={styles.caseSection} id='cases'>
+    <section
+      className={cx(sharedStyles.sectionBlock, sharedStyles.bgSoft, styles.caseSection)}
+      id='cases'
+    >
       <div className={sharedStyles.container}>
         <div
           className={cx(styles.caseHead, sharedStyles.reveal, sharedStyles.revealUp)}

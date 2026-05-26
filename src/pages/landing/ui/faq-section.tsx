@@ -19,54 +19,56 @@ export function FaqSection() {
   };
 
   return (
-    <section className={cx(styles.faqSection, sharedStyles.container)} id='faq'>
-      <div
-        className={cx(styles.head, sharedStyles.reveal, sharedStyles.revealUp)}
-        data-landing-reveal='up'
-      >
-        <span className={sharedStyles.kicker}>FAQ</span>
-        <h2 className={cx(sharedStyles.sectionTitle, styles.title)}>자주 묻는 질문.</h2>
-        <p className={sharedStyles.sectionDesc}>
-          문의 전에 가장 많이 물어보시는 내용을 정리했습니다.
-        </p>
-      </div>
-      <div
-        className={cx(styles.list, sharedStyles.reveal, sharedStyles.revealUp)}
-        data-landing-reveal='up'
-      >
-        {faqItems.map((item, index) => {
-          const isOpen = openSet.has(index);
-          const buttonId = `faq-button-${index}`;
-          const panelId = `faq-panel-${index}`;
-          return (
-            <div key={item.question} className={cx(styles.item, isOpen && styles.itemOpen)}>
-              <button
-                type='button'
-                id={buttonId}
-                className={styles.summary}
-                aria-expanded={isOpen ? 'true' : 'false'}
-                aria-controls={panelId}
-                onClick={() => toggle(index)}
-              >
-                <span className={styles.question}>{item.question}</span>
-                <span className={styles.toggle} aria-hidden='true'>
-                  <ChevronDown size={16} strokeWidth={1.8} />
-                </span>
-              </button>
-              <div
-                id={panelId}
-                role='region'
-                aria-labelledby={buttonId}
-                className={styles.panel}
-                aria-hidden={isOpen ? 'false' : 'true'}
-              >
-                <div className={styles.panelInner}>
-                  <p className={styles.answer}>{item.answer}</p>
+    <section className={cx(sharedStyles.sectionBlock, styles.faqSection)} id='faq'>
+      <div className={sharedStyles.container}>
+        <div
+          className={cx(styles.head, sharedStyles.reveal, sharedStyles.revealUp)}
+          data-landing-reveal='up'
+        >
+          <span className={sharedStyles.kicker}>FAQ</span>
+          <h2 className={cx(sharedStyles.sectionTitle, styles.title)}>자주 묻는 질문.</h2>
+          <p className={sharedStyles.sectionDesc}>
+            문의 전에 가장 많이 물어보시는 내용을 정리했습니다.
+          </p>
+        </div>
+        <div
+          className={cx(styles.list, sharedStyles.reveal, sharedStyles.revealUp)}
+          data-landing-reveal='up'
+        >
+          {faqItems.map((item, index) => {
+            const isOpen = openSet.has(index);
+            const buttonId = `faq-button-${index}`;
+            const panelId = `faq-panel-${index}`;
+            return (
+              <div key={item.question} className={cx(styles.item, isOpen && styles.itemOpen)}>
+                <button
+                  type='button'
+                  id={buttonId}
+                  className={styles.summary}
+                  aria-expanded={isOpen}
+                  aria-controls={panelId}
+                  onClick={() => toggle(index)}
+                >
+                  <span className={styles.question}>{item.question}</span>
+                  <span className={styles.toggle} aria-hidden='true'>
+                    <ChevronDown size={16} strokeWidth={1.8} />
+                  </span>
+                </button>
+                <div
+                  id={panelId}
+                  role='region'
+                  aria-labelledby={buttonId}
+                  className={styles.panel}
+                  aria-hidden={!isOpen}
+                >
+                  <div className={styles.panelInner}>
+                    <p className={styles.answer}>{item.answer}</p>
+                  </div>
                 </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
     </section>
   );

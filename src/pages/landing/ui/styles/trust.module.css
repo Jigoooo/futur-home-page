@@ -1,4 +1,5 @@
 .trustSection {
+  --section-accent: var(--violet);
   padding-block: clamp(110px, 9vw, 160px);
 }
 

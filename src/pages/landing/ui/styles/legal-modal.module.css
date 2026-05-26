@@ -1,0 +1,131 @@
+@keyframes legalModalFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes legalModalShellIn {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 14px, 0) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483600;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(7, 24, 63, 0.42);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  animation: legalModalFadeIn 180ms ease-out both;
+}
+
+.backdropButton {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.backdropButton:focus {
+  outline: none;
+}
+
+.shell {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  width: min(720px, 100%);
+  max-height: min(88vh, 920px);
+  background: #fff;
+  border: 1px solid #e5edfa;
+  border-radius: 28px;
+  box-shadow: 0 38px 96px rgba(20, 38, 80, 0.22);
+  overflow: hidden;
+  animation: legalModalShellIn 240ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 22px;
+  border-bottom: 1px solid #eef2fb;
+  background: rgba(255, 255, 255, 0.96);
+}
+
+.title {
+  color: #07183f;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: -0.005em;
+}
+
+.closeButton {
+  display: inline-grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid #e1e8f4;
+  border-radius: 999px;
+  background: #fff;
+  color: #2b3958;
+  cursor: pointer;
+  transition:
+    border-color 160ms ease,
+    color 160ms ease,
+    transform 160ms ease;
+}
+
+.closeButton:hover {
+  border-color: #c7d4ee;
+  color: #07183f;
+  transform: translateY(-1px);
+}
+
+.closeButton:focus-visible {
+  outline: 2px solid #2f6bff;
+  outline-offset: 2px;
+}
+
+.body {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  background: #fff;
+}
+
+.body > * {
+  padding-top: 24px;
+  padding-bottom: 32px;
+}
+
+@media (max-width: 720px) {
+  .backdrop {
+    padding: 12px;
+  }
+
+  .shell {
+    max-height: 92vh;
+    border-radius: 22px;
+  }
+
+  .head {
+    padding: 14px 18px;
+  }
+}

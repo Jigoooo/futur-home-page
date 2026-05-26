@@ -1,3 +1,5 @@
+import { Link } from '@tanstack/react-router';
+
 import { Icon } from './icons';
 import styles from './styles/footer.module.css';
 import sharedStyles from './styles/shared.module.css';
@@ -44,11 +46,30 @@ export function FooterSection() {
           </div>
         </div>
 
+        <nav className={styles.legalLinks} aria-label='법적 고지'>
+          <Link to='/privacy' className={styles.legalPrimary}>
+            개인정보처리방침
+          </Link>
+          <span className={styles.legalDivider} aria-hidden='true'>
+            ·
+          </span>
+          <Link to='/terms' className={styles.legalSecondary}>
+            이용약관
+          </Link>
+        </nav>
+
         <div className={styles.copyright}>
           <span>© 2026 FUTUR. All rights reserved.</span>
           <span>
             대표 {COMPANY_INFOS.CEO} · 사업자등록번호 {COMPANY_INFOS.BUSINESS_LICENSE} · 통신판매업
             {COMPANY_INFOS.MAIL_ORDER_LICENSE}
+          </span>
+          <span>
+            개인정보 보호책임자 {COMPANY_INFOS.PRIVACY_OFFICER.NAME} (
+            <a href={`mailto:${COMPANY_INFOS.PRIVACY_OFFICER.EMAIL}`}>
+              {COMPANY_INFOS.PRIVACY_OFFICER.EMAIL}
+            </a>
+            )
           </span>
         </div>
       </div>

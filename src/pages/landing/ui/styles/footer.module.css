@@ -145,16 +145,67 @@
   stroke-linejoin: round;
 }
 
+.legalLinks {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 60px;
+  padding-top: 22px;
+  border-top: 1px solid #eef2f8;
+  flex-wrap: wrap;
+}
+
+.legalPrimary {
+  color: #1d3a8f;
+  font-size: 13.5px;
+  font-weight: 900;
+  letter-spacing: -0.005em;
+  text-decoration: none;
+  transition: color 160ms ease;
+}
+
+.legalPrimary:hover {
+  color: #2f6bff;
+}
+
+.legalDivider {
+  color: #c4cee0;
+  font-size: 13.5px;
+}
+
+.legalSecondary {
+  color: #6f7b96;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: color 160ms ease;
+}
+
+.legalSecondary:hover {
+  color: #07183f;
+}
+
 .copyright {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 18px;
-  margin-top: 70px;
-  padding-top: 24px;
+  margin-top: 24px;
+  padding-top: 22px;
   border-top: 1px solid #eef2f8;
   color: #8b96aa;
   font-size: 13px;
+  flex-wrap: wrap;
+}
+
+.copyright a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.copyright a:hover {
+  color: #2f6bff;
 }
 
 @media (max-width: 1180px) {

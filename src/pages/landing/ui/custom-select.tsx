@@ -181,19 +181,16 @@ export function CustomSelect({ label, name, value, options, onChange }: CustomSe
           aria-labelledby={labelId}
         >
           {options.map((option, optionIndex) => (
+            // eslint-disable-next-line jsx-a11y/click-events-have-key-events -- combobox 패턴: 키보드 처리는 trigger 버튼의 handleKeyDown이 담당, 옵션은 tabIndex=-1로 포커스 받지 않음
             <li
               key={option.value}
               id={`${id}-option-${optionIndex}`}
-              className={cx(
-                styles.selectOption,
-                focusedIndex === optionIndex && styles.isFocused,
-              )}
+              className={cx(styles.selectOption, focusedIndex === optionIndex && styles.isFocused)}
               data-landing-interactive='control'
               data-landing-select-option
               role='option'
               aria-selected={option.value === value}
               tabIndex={-1}
-              // eslint-disable-next-line jsx-a11y/click-events-have-key-events -- combobox 패턴: 키보드 처리는 trigger 버튼의 handleKeyDown이 담당, 옵션은 tabIndex=-1로 포커스 받지 않음
               onClick={() => selectOption(option)}
               onPointerEnter={() => setFocusedIndex(optionIndex)}
             >

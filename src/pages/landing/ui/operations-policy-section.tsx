@@ -6,7 +6,7 @@ import sharedStyles from './styles/shared.module.css';
 
 export function OperationsPolicySection() {
   return (
-    <section className={cx(sharedStyles.sectionBlock, styles.opsSection)}>
+    <section className={cx(sharedStyles.sectionBlock, sharedStyles.bgDark, styles.opsSection)}>
       <div className={sharedStyles.container}>
         <div
           className={cx(styles.head, sharedStyles.reveal, sharedStyles.revealUp)}

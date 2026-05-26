@@ -42,19 +42,10 @@ export const contactChips: ContactChip[] = [
 ];
 
 export const contactServices: ContactCheckItem[] = [
-  {
-    value: '웹·앱 개발',
-    title: '웹·앱 개발',
-    description: '랜딩·관리자·모바일 화면',
-    defaultChecked: true,
-  },
+  { value: '웹·앱 개발', title: '웹·앱 개발', description: '랜딩·관리자·모바일 화면' },
   { value: '업무 시스템', title: '업무 시스템', description: 'ERP·WMS·내부 포털' },
   { value: '연동·API', title: '연동·API', description: '인증·결제·알림·파일' },
-  {
-    value: '운영·유지보수',
-    title: '운영·유지보수',
-    description: '배포 이후 개선과 대응',
-  },
+  { value: '운영·유지보수', title: '운영·유지보수', description: '배포 이후 개선과 대응' },
 ];
 
 export const replyTypeOptions: SelectOption[] = [

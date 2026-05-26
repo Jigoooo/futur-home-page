@@ -1,7 +1,7 @@
 import { Icon } from './icons';
 import styles from './styles/footer.module.css';
 import sharedStyles from './styles/shared.module.css';
-import { mailHref, phoneHref } from '../lib/company-links';
+import { mailHref } from '../lib/company-links';
 import { COMPANY_INFOS } from '@/entities/company';
 
 export function FooterSection() {
@@ -17,10 +17,6 @@ export function FooterSection() {
             <a className={styles.footerPill} href={mailHref} data-landing-interactive='round'>
               <Icon name='mail' />
               {COMPANY_INFOS.EMAIL}
-            </a>
-            <a className={styles.footerPill} href={phoneHref} data-landing-interactive='round'>
-              <Icon name='phone' />
-              {COMPANY_INFOS.PHONE}
             </a>
           </div>
         </div>
@@ -38,10 +34,6 @@ export function FooterSection() {
             <div className={styles.contactItem}>
               <Icon name='mail' />
               {COMPANY_INFOS.EMAIL}
-            </div>
-            <div className={styles.contactItem}>
-              <Icon name='phone' />
-              {COMPANY_INFOS.PHONE}
             </div>
             <div className={styles.contactItem}>
               <Icon name='map' />

@@ -282,12 +282,24 @@
 .formControl {
   display: grid;
   gap: 8px;
+  align-content: start;
 }
 
 .formLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 18px;
   color: #3b496a;
   font-size: 13px;
   font-weight: 900;
+  line-height: 1.4;
+}
+
+.formLabel .required {
+  display: inline-flex;
+  align-items: center;
+  line-height: 1;
 }
 
 .input,
@@ -552,13 +564,12 @@
 }
 
 [data-landing-contact-form] .stageGrid {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: 1fr;
   gap: 12px;
   padding: 12px;
 }
 
 [data-landing-contact-form] .stageCard {
-  min-height: 136px;
   align-content: center;
   align-items: center;
   padding-right: 30px;
@@ -632,5 +643,68 @@
     border-color: transparent;
     background: #ffffff;
     color: #4d5c78;
+  }
+}
+
+.input.invalid,
+.textareaInput.invalid {
+  border-color: var(--error);
+  background: #fff;
+  box-shadow: 0 0 0 4px var(--error-soft);
+  animation: fieldShake 0.4s var(--spring);
+}
+
+.input.invalid:focus-visible,
+.textareaInput.invalid:focus-visible {
+  border-color: var(--error);
+  box-shadow: 0 0 0 4px var(--error-soft);
+}
+
+.checkTile.invalid .checkUi,
+.consent.invalid .checkUi {
+  border-color: var(--error);
+  box-shadow: 0 0 0 4px var(--error-soft);
+  animation: fieldShake 0.4s var(--spring);
+}
+
+.fieldError {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  color: var(--error);
+  font-size: 0.82rem;
+  line-height: 1.4;
+  font-weight: 500;
+}
+
+.fieldError::before {
+  content: '!';
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--error);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+@keyframes fieldShake {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  20% { transform: translate3d(-6px, 0, 0); }
+  40% { transform: translate3d(6px, 0, 0); }
+  60% { transform: translate3d(-3px, 0, 0); }
+  80% { transform: translate3d(3px, 0, 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .input.invalid,
+  .textareaInput.invalid,
+  .checkTile.invalid .checkUi,
+  .consent.invalid .checkUi {
+    animation: none;
   }
 }

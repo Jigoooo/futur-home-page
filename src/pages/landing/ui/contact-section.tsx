@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, type FormEvent } from 'react';
 
 import { Button } from './button';
 import { ContactBriefFields } from './contact-brief-fields';
-import { ContactIdentityFields } from './contact-identity-fields';
+import { ContactIdentityFields, type ContactFieldErrors } from './contact-identity-fields';
 import { Icon } from './icons';
 import {
   briefStages,
@@ -16,14 +16,87 @@ import buttonStyles from './styles/button.module.css';
 import styles from './styles/contact.module.css';
 import formStyles from './styles/form-controls.module.css';
 import sharedStyles from './styles/shared.module.css';
-import { mailHref, phoneHref } from '../lib/company-links';
+import { mailHref } from '../lib/company-links';
+
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+type ContactFieldName = keyof ContactFieldErrors;
+
+const FIELD_ORDER: ContactFieldName[] = ['name', 'email', 'services', 'message', 'agree'];
 
 export function ContactSection() {
   const [stage, setStage] = useState(briefStages[0].value);
   const [timeline, setTimeline] = useState(timelineOptions[0].value);
   const [budget, setBudget] = useState(budgetOptions[0].value);
   const [replyType, setReplyType] = useState(replyTypeOptions[0].value);
+  const [etcChecked, setEtcChecked] = useState(false);
+  const [etcText, setEtcText] = useState('');
   const [result, setResult] = useState('');
+  const [errors, setErrors] = useState<ContactFieldErrors>({});
+
+  const clearFieldError = (field: ContactFieldName) => {
+    setErrors((prev) => {
+      if (!prev[field]) return prev;
+      const next = { ...prev };
+      delete next[field];
+      return next;
+    });
+  };
+
+  const handleEtcCheckedChange = (checked: boolean) => {
+    setEtcChecked(checked);
+    clearFieldError('services');
+    if (!checked) setEtcText('');
+  };
+
+  const validate = (formEl: HTMLFormElement): ContactFieldErrors => {
+    const data = new FormData(formEl);
+    const next: ContactFieldErrors = {};
+    const name = String(data.get('name') ?? '').trim();
+    const email = String(data.get('email') ?? '').trim();
+    const message = String(data.get('message') ?? '').trim();
+    const agree = data.get('agree');
+    const services = data.getAll('services');
+
+    if (!name) next.name = '담당자명을 입력해 주세요.';
+    if (!email) next.email = '이메일 주소를 입력해 주세요.';
+    else if (!EMAIL_PATTERN.test(email)) next.email = '이메일 주소를 정확히 입력해 주세요.';
+    if (services.length === 0) next.services = '필요한 서비스를 한 개 이상 선택해 주세요.';
+    if (!message) next.message = '문의 내용을 알려주세요.';
+    if (!agree) next.agree = '개인정보 수집·이용 동의가 필요합니다.';
+    return next;
+  };
+
+  const focusFirstError = (formEl: HTMLFormElement, nextErrors: ContactFieldErrors) => {
+    const firstField = FIELD_ORDER.find((field) => nextErrors[field]);
+    if (!firstField) return;
+    const target = formEl.elements.namedItem(firstField);
+    const el =
+      target instanceof HTMLElement
+        ? target
+        : target instanceof RadioNodeList
+          ? (target[0] as HTMLElement | undefined)
+          : null;
+    if (!el) return;
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    if (typeof (el as HTMLInputElement).focus === 'function') {
+      (el as HTMLInputElement).focus({ preventScroll: true });
+    }
+  };
+
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const formEl = event.currentTarget;
+    const nextErrors = validate(formEl);
+    if (Object.keys(nextErrors).length > 0) {
+      setErrors(nextErrors);
+      setResult('');
+      focusFirstError(formEl, nextErrors);
+      return;
+    }
+    setErrors({});
+    setResult('입력 내용을 확인했습니다. 실제 서비스에서는 전송 API와 연결하면 됩니다.');
+  };
 
   return (
     <section className={cx(styles.contactSection, sharedStyles.container)} id='contact'>
@@ -46,10 +119,6 @@ export function ContactSection() {
           <Button href={mailHref} cursorText='MAIL'>
             <span data-landing-label>메일로 문의</span>
             <span data-landing-arrow>→</span>
-          </Button>
-          <Button href={phoneHref} variant='ghost' cursorText='CALL'>
-            <span data-landing-label>전화 상담</span>
-            <span data-landing-arrow>↗</span>
           </Button>
         </div>
       </div>
@@ -79,51 +148,80 @@ export function ContactSection() {
           data-landing-contact-form
           data-landing-reveal='right'
           aria-label='프로젝트 상담 양식'
-          onSubmit={(event) => {
-            event.preventDefault();
-            setResult('입력 내용을 확인했습니다. 실제 서비스에서는 전송 API와 연결하면 됩니다.');
-          }}
+          noValidate
+          onSubmit={handleSubmit}
         >
           <ContactBriefFields
             stage={stage}
             timeline={timeline}
             budget={budget}
             replyType={replyType}
+            etcChecked={etcChecked}
+            etcText={etcText}
+            errors={errors}
             onStageChange={setStage}
             onTimelineChange={setTimeline}
             onBudgetChange={setBudget}
             onReplyTypeChange={setReplyType}
+            onEtcCheckedChange={handleEtcCheckedChange}
+            onEtcTextChange={setEtcText}
+            onServicesChange={() => clearFieldError('services')}
           />
 
-          <ContactIdentityFields />
+          <ContactIdentityFields errors={errors} onFieldChange={clearFieldError} />
 
           <label className={cx(formStyles.formControl, formStyles.full)}>
             <span className={formStyles.formLabel}>
               문의 내용 <span className={formStyles.required}>*</span>
             </span>
             <textarea
-              className={formStyles.textareaInput}
+              className={cx(formStyles.textareaInput, errors.message && formStyles.invalid)}
               name='message'
-              required
               placeholder='현재 상황, 필요한 기능, 참고 서비스, 일정, 예산 범위, 걱정되는 부분 등을 자유롭게 적어주세요.'
+              aria-invalid={Boolean(errors.message)}
+              aria-describedby={errors.message ? 'contact-error-message' : undefined}
+              onChange={() => clearFieldError('message')}
             />
-            <span className={formStyles.help}>
-              정확하지 않아도 괜찮습니다. 확인 후 필요한 내용을 다시 질문드릴게요.
-            </span>
+            {errors.message ? (
+              <span id='contact-error-message' className={formStyles.fieldError} role='alert'>
+                {errors.message}
+              </span>
+            ) : (
+              <span className={formStyles.help}>
+                정확하지 않아도 괜찮습니다. 확인 후 필요한 내용을 다시 질문드릴게요.
+              </span>
+            )}
           </label>
 
-          <label
-            className={cx(formStyles.consent, formStyles.checkTile)}
-            data-landing-interactive='check-tile'
-          >
-            <input type='checkbox' name='agree' required />
-            <span className={formStyles.checkUi} data-landing-surface>
-              <span className={formStyles.checkBox}>
-                <Icon name='check' />
+          <div>
+            <label
+              className={cx(
+                formStyles.consent,
+                formStyles.checkTile,
+                errors.agree && formStyles.invalid,
+              )}
+              data-landing-interactive='check-tile'
+            >
+              <input
+                type='checkbox'
+                name='agree'
+                aria-invalid={Boolean(errors.agree)}
+                aria-describedby={errors.agree ? 'contact-error-agree' : undefined}
+                onChange={() => clearFieldError('agree')}
+              />
+              <span className={formStyles.checkUi} data-landing-surface>
+                <span className={formStyles.checkBox}>
+                  <Icon name='check' />
+                </span>
+                개인정보 수집 및 이용에 동의합니다.
               </span>
-              개인정보 수집 및 이용에 동의합니다.
-            </span>
-          </label>
+            </label>
+            {errors.agree ? (
+              <span id='contact-error-agree' className={formStyles.fieldError} role='alert'>
+                {errors.agree}
+              </span>
+            ) : null}
+          </div>
 
           <div className={styles.formActions}>
             <div className={styles.result} aria-live='polite'>

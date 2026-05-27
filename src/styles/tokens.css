@@ -9,8 +9,8 @@
   --violet: #8a70ff;
   --amber: #ffb95c;
   --rose: #ff7d9f;
-  --error: #ff4d4f;
-  --error-soft: rgba(255, 77, 79, 0.22);
+  --error: #c92a2a; /* WCAG AA on white: 기존 #ff4d4f = 3.76:1 → ~5.8:1 */
+  --error-soft: rgba(201, 42, 42, 0.22);
   --muted: #5a667e; /* WCAG AA 4.5:1 (기존 #66738d on #f5f8ff = 4.48:1) */
   --muted-2: #8792a8;
   --line: #e3ebf6;

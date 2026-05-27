@@ -36,7 +36,7 @@ export interface ServiceItem {
   icon: IconName;
 }
 
-export type CaseStoryKey = 'system' | 'mobile' | 'api';
+export type CaseStoryKey = 'web' | 'mobile' | 'system' | 'automation';
 
 export interface CaseStory {
   key: CaseStoryKey;
@@ -47,8 +47,13 @@ export interface CaseStory {
   icon: string;
   noteTitle: string;
   noteDescription: string;
+  image: {
+    src: string;
+    alt: string;
+  };
   metrics: Array<{ value: string; label: string }>;
   items: string[];
+  tags: string[];
 }
 
 export interface TeamRole {

@@ -8,7 +8,7 @@ import styles from './styles/case-stories.module.css';
 import sharedStyles from './styles/shared.module.css';
 
 export function CaseStoriesSection() {
-  const [activeKey, setActiveKey] = useState<CaseStoryKey>('system');
+  const [activeKey, setActiveKey] = useState<CaseStoryKey>('web');
   const tabRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const activeIndex = Math.max(
     0,
@@ -47,18 +47,17 @@ export function CaseStoriesSection() {
           data-landing-reveal='up'
         >
           <div>
-            <span className={sharedStyles.kicker}>Case Stories</span>
+            <span className={sharedStyles.kicker}>Project Records</span>
             <h2 className={sharedStyles.sectionTitle}>
-              결과가 보이는
+              실제로 진행한
               <br />
-              프로젝트 이야기.
+              프로젝트 흐름.
             </h2>
             <p className={sharedStyles.sectionDesc}>
-              업종보다 중요한 것은 업무의 흐름입니다. FUTUR는 화면, 데이터, 운영 과정을 함께
-              설계합니다.
+              고객명과 민감한 데이터는 비식별 처리하고, 문제·진행 방식·결과 중심으로 정리했습니다.
             </p>
           </div>
-          <div className={styles.tabs} role='tablist' aria-label='프로젝트 사례'>
+          <div className={styles.tabs} role='tablist' aria-label='프로젝트 진행내역'>
             {caseStories.map((story, index) => {
               const tabStateProps =
                 story.key === activeKey
@@ -114,21 +113,23 @@ export function CaseStoriesSection() {
                   <li key={item}>{item}</li>
                 ))}
               </ul>
+              <div className={styles.caseTags} aria-label='프로젝트 구성 요소'>
+                {activeStory.tags.map((tag) => (
+                  <span key={tag}>{tag}</span>
+                ))}
+              </div>
             </div>
-            <div className={styles.caseVisual} aria-hidden='true'>
-              <div className={styles.deviceCard}>
-                <div className={styles.deviceTop}>
-                  <i />
-                  <i />
-                  <i />
-                </div>
-                <div className={cx(styles.deviceRow, styles.r1)} />
-                <div className={cx(styles.deviceRow, styles.r2)} />
-                <div className={styles.deviceChart}>
-                  <svg viewBox='0 0 330 92' preserveAspectRatio='none'>
-                    <path d='M10 66 C50 30,75 50,104 28 S158 38,188 22 S250 18,320 32' />
-                  </svg>
-                </div>
+            <div className={styles.caseVisual}>
+              <div className={styles.caseImageFrame}>
+                <img
+                  className={styles.caseImage}
+                  src={activeStory.image.src}
+                  alt={activeStory.image.alt}
+                  width={1536}
+                  height={1024}
+                  loading='lazy'
+                  decoding='async'
+                />
               </div>
               <div className={styles.sideNote}>
                 <div className={styles.noteIcon}>{activeStory.icon}</div>

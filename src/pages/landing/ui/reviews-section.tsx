@@ -36,9 +36,11 @@ export function ReviewsSection() {
           className={cx(styles.reviewGrid, sharedStyles.reveal, sharedStyles.revealUp)}
           data-landing-reveal='up'
         >
-          <article className={styles.quoteBig}>
+          <article className={styles.quoteBig} aria-label='5점 만점 5점 리뷰'>
             <div className={styles.quoteMark}>“</div>
-            <div className={styles.stars}>★★★★★</div>
+            <div className={styles.stars} aria-hidden='true'>
+              ★★★★★
+            </div>
             <p className={styles.quoteText}>{featured.quote}</p>
             <div className={styles.quotePerson}>
               <strong>{featured.person}</strong>
@@ -47,8 +49,14 @@ export function ReviewsSection() {
           </article>
           <div className={styles.quoteStack}>
             {rest.map((review) => (
-              <article key={review.person} className={styles.quoteSmall}>
-                <div className={styles.stars}>★★★★★</div>
+              <article
+                key={review.person}
+                className={styles.quoteSmall}
+                aria-label='5점 만점 5점 리뷰'
+              >
+                <div className={styles.stars} aria-hidden='true'>
+                  ★★★★★
+                </div>
                 <p className={styles.quoteText}>{review.quote}</p>
                 <div className={styles.quotePerson}>
                   <strong>{review.person}</strong>

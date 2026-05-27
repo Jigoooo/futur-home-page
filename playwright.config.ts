@@ -19,18 +19,34 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   reporter: 'list',
   use: {
-    ...devices['Desktop Chrome'],
     baseURL,
     trace: 'on-first-retry',
     video: 'retain-on-failure',
-    ...(useComet
-      ? {
-          launchOptions: {
-            executablePath: cometExecutablePath,
-          },
-        }
-      : {}),
   },
+  projects: [
+    {
+      name: 'comet',
+      testMatch: /\.comet\.spec\.ts$/,
+      use: {
+        ...devices['Desktop Chrome'],
+        ...(useComet
+          ? {
+              launchOptions: {
+                executablePath: cometExecutablePath,
+              },
+            }
+          : {}),
+      },
+    },
+    {
+      name: 'a11y',
+      testMatch: /\.a11y\.spec\.ts$/,
+      use: {
+        ...devices['Desktop Chrome'],
+        // a11y 전용 — Comet 미사용 (stock Chromium 으로 axe-core 분석)
+      },
+    },
+  ],
   webServer:
     process.env.PLAYWRIGHT_SKIP_WEB_SERVER === '1'
       ? undefined

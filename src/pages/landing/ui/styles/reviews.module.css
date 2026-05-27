@@ -1,5 +1,5 @@
 .reviewSection {
-  --section-accent: var(--amber);
+  --section-accent: #8a4a00; /* WCAG AA on light bg (var(--amber) #ffb95c = 1.59:1) */
   padding-top: 70px;
   padding-bottom: clamp(235px, 15vw, 310px);
 }
@@ -74,7 +74,7 @@
 .quotePerson {
   margin-top: auto;
   padding-top: 26px;
-  color: #74819c;
+  color: #525c75;
   font-size: 13px;
   font-weight: 850;
 }

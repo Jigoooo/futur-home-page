@@ -51,7 +51,7 @@
 
 .track[data-dragging="true"] .thumb {
   width: 10px;
-  background: #2f6bff;
+  background: #1e4dc4;
   box-shadow: 0 6px 18px rgba(47, 107, 255, 0.22);
 }
 

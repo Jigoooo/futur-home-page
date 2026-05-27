@@ -231,7 +231,7 @@
   place-items: center;
   border-radius: 16px;
   background: #eef5ff;
-  color: #316cff;
+  color: #1e4dc4; /* WCAG AA 4.5:1 이상 확보 ( 기존 #316cff = 4.05:1 ) */
   font-size: 13px;
   font-weight: 1000;
 }
@@ -244,7 +244,7 @@
 }
 
 .floatCard span {
-  color: #74819c;
+  color: #525c75;
   font-size: 12px;
   font-weight: 750;
 }

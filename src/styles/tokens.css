@@ -2,7 +2,7 @@
   --ink: #0a1330;
   --navy: #07183f;
   --navy-2: #10265f;
-  --blue: #2f6bff;
+  --blue: #1e4dc4; /* WCAG AA 4.5:1 on white */
   --blue-2: #7fa8ff;
   --sky: #72d8ff;
   --mint: #31c7a4;
@@ -11,7 +11,7 @@
   --rose: #ff7d9f;
   --error: #ff4d4f;
   --error-soft: rgba(255, 77, 79, 0.22);
-  --muted: #66738d;
+  --muted: #5a667e; /* WCAG AA 4.5:1 (기존 #66738d on #f5f8ff = 4.48:1) */
   --muted-2: #8792a8;
   --line: #e3ebf6;
   --line-2: #eef3f9;

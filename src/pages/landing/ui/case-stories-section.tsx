@@ -87,7 +87,7 @@ export function CaseStoriesSection() {
             })}
           </div>
         </div>
-        <article
+        <section
           className={cx(styles.casePanel, sharedStyles.reveal, sharedStyles.revealUp)}
           data-landing-reveal='up'
           id='panel-case'
@@ -141,7 +141,7 @@ export function CaseStoriesSection() {
               </div>
             </div>
           </div>
-        </article>
+        </section>
       </div>
     </section>
   );

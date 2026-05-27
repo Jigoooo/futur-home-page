@@ -101,7 +101,7 @@
 }
 
 .closeButton:focus-visible {
-  outline: 2px solid #2f6bff;
+  outline: 2px solid #1e4dc4;
   outline-offset: 2px;
 }
 

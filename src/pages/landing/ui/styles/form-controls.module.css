@@ -38,7 +38,7 @@
 }
 
 .groupLabel small {
-  color: #8a94a9;
+  color: #525c75;
   font-size: 12px;
   font-weight: 800;
 }
@@ -100,7 +100,7 @@
   width: 5px;
   height: 44px;
   border-radius: 999px;
-  background: linear-gradient(180deg, #2f6bff, #8a70ff);
+  background: linear-gradient(180deg, #1e4dc4, #8a70ff);
   transform: translateY(-50%) scaleY(0);
   transform-origin: center;
   transition: transform 0.28s var(--ease);
@@ -114,7 +114,7 @@
   place-items: center;
   border-radius: 17px;
   background: #eef5ff;
-  color: #3269e8;
+  color: #1e4dc4;
   font-size: 12px;
   font-weight: 1000;
   transition:
@@ -131,7 +131,7 @@
 }
 
 .stageCard em {
-  color: #7d899f;
+  color: #525c75;
   font-size: 12px;
   font-style: normal;
   font-weight: 800;
@@ -158,7 +158,7 @@
 
 .stageChoice input:checked + .stageCard .stageIndex {
   transform: scale(1.04);
-  background: #2f6bff;
+  background: #1e4dc4;
   color: #ffffff;
 }
 
@@ -546,7 +546,7 @@
 
 .help {
   margin-top: 7px;
-  color: #8b96ad;
+  color: #525c75;
   font-size: 12px;
   font-weight: 750;
 }

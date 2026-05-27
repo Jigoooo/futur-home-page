@@ -29,7 +29,7 @@
 
 .footerTop p {
   margin: 12px 0 0;
-  color: #6f7b96;
+  color: #5e6b85;
   font-size: 15px;
   line-height: 1.7;
 }
@@ -42,7 +42,7 @@
 }
 
 .footerContactLabel {
-  color: #8492ad;
+  color: #525c75;
   font-size: 12px;
   font-weight: 900;
   letter-spacing: 0.05em;
@@ -50,7 +50,7 @@
 }
 
 .footerContactNote {
-  color: #74819c;
+  color: #525c75;
   font-size: 12.5px;
   font-weight: 800;
 }
@@ -130,7 +130,7 @@
   align-items: center;
   gap: 10px;
   margin-bottom: 13px;
-  color: #6f7b96;
+  color: #5e6b85;
   font-size: 14px;
 }
 
@@ -202,7 +202,7 @@
 }
 
 .copyright a:hover {
-  color: #2f6bff;
+  color: #1e4dc4;
 }
 
 @media (max-width: 1180px) {

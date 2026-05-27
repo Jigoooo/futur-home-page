@@ -125,7 +125,7 @@ export function ContactSection() {
         </div>
 
         <div className={cx(styles.contactLayout, sharedStyles.gridLayout)}>
-          <aside
+          <div
             className={cx(
               styles.contactCard,
               sharedStyles.stickyLead,
@@ -159,7 +159,7 @@ export function ContactSection() {
                 <dd>{COMPANY_INFOS.ADDRESS}</dd>
               </div>
             </dl>
-          </aside>
+          </div>
 
           <form
             className={cx(styles.contactForm, sharedStyles.reveal, sharedStyles.revealRight)}

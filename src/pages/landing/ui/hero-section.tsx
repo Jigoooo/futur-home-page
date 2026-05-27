@@ -12,7 +12,7 @@ function FloatingCard({
   title,
   description,
 }: {
-  className: string;
+  className: string | undefined;
   badge: string;
   title: string;
   description: string;

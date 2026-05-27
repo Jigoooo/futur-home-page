@@ -23,9 +23,9 @@ type ContactFieldName = keyof ContactFieldErrors;
 const FIELD_ORDER: ContactFieldName[] = ['name', 'email', 'services', 'message', 'agree'];
 
 export function ContactSection() {
-  const [stage, setStage] = useState(briefStages[0].value);
-  const [timeline, setTimeline] = useState(timelineOptions[0].value);
-  const [budget, setBudget] = useState(budgetOptions[0].value);
+  const [stage, setStage] = useState(briefStages[0]!.value);
+  const [timeline, setTimeline] = useState(timelineOptions[0]!.value);
+  const [budget, setBudget] = useState(budgetOptions[0]!.value);
   const [etcChecked, setEtcChecked] = useState(false);
   const [etcText, setEtcText] = useState('');
   const [result, setResult] = useState('');

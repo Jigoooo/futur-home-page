@@ -14,7 +14,8 @@ export function CaseStoriesSection() {
     0,
     caseStories.findIndex((story) => story.key === activeKey),
   );
-  const activeStory = caseStories[activeIndex] || caseStories[0];
+  const activeStory = caseStories[activeIndex] ?? caseStories[0];
+  if (!activeStory) return null;
 
   const activateTabAt = (index: number) => {
     const nextStory = caseStories[index];

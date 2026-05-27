@@ -42,7 +42,7 @@ export default [
           fixStyle: 'inline-type-imports',
         },
       ],
-      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/no-explicit-any': 'warn',
       '@typescript-eslint/no-unused-vars': [
         'error',
         { varsIgnorePattern: '^_', argsIgnorePattern: '^_' },
@@ -66,6 +66,8 @@ export default [
       'react/prop-types': 'off',
       'react/react-in-jsx-scope': 'off',
       'jsx-a11y/label-has-associated-control': ['error', { depth: 3 }],
+      'jsx-a11y/no-aria-hidden-on-focusable': 'error',
+      'jsx-a11y/prefer-tag-over-role': 'warn',
       'jsx-a11y/no-noninteractive-element-to-interactive-role': [
         'error',
         {

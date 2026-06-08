@@ -1,23 +1,63 @@
 import { ArrowRight } from 'lucide-react';
+import { type MouseEvent } from 'react';
 
 import { navigationItems } from '../config';
 import { Button } from './button';
+import { scrollToHashTarget } from '../lib/scroll-to-page-top';
 import styles from './styles/header.module.css';
+
+function handleHashLinkClick(event: MouseEvent<HTMLAnchorElement>) {
+  const anchor = event.currentTarget;
+
+  if (
+    event.defaultPrevented ||
+    event.button !== 0 ||
+    event.metaKey ||
+    event.altKey ||
+    event.ctrlKey ||
+    event.shiftKey ||
+    (anchor.target && anchor.target !== '_self')
+  ) {
+    return;
+  }
+
+  const url = new URL(anchor.href);
+
+  if (
+    url.origin !== window.location.origin ||
+    url.pathname !== window.location.pathname ||
+    !url.hash ||
+    !scrollToHashTarget(url.hash)
+  ) {
+    return;
+  }
+
+  event.preventDefault();
+
+  if (window.location.hash !== url.hash) {
+    window.history.pushState(null, '', url.hash);
+  }
+}
 
 export function HeaderSection() {
   return (
     <header id='top' className={styles.nav} data-landing-nav>
-      <a href='#top' className={styles.logo} aria-label='FUTUR home'>
+      <a href='#top' className={styles.logo} aria-label='FUTUR home' onClick={handleHashLinkClick}>
         FUTUR<span>.</span>
       </a>
       <nav className={styles.navMenu} aria-label='주요 메뉴'>
         {navigationItems.map((item) => (
-          <a key={item.href} href={item.href}>
+          <a key={item.href} href={item.href} onClick={handleHashLinkClick}>
             {item.label}
           </a>
         ))}
       </nav>
-      <Button href='#contact' className={styles.ctaButton} cursorText='문의'>
+      <Button
+        href='#contact'
+        className={styles.ctaButton}
+        cursorText='문의'
+        onClick={handleHashLinkClick}
+      >
         <span data-landing-label>문의하기</span>
         <span data-landing-arrow>
           <ArrowRight size={14} strokeWidth={2.2} />

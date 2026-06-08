@@ -16,7 +16,7 @@
     "prepare": "simple-git-hooks"
   },
   "simple-git-hooks": {
-    "pre-commit": "pnpm exec lint-staged"
+    "pre-commit": "PATH=\"$HOME/Library/pnpm:$HOME/.nvm/versions/node/v24.13.0/bin:$PATH\" pnpm exec lint-staged"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",

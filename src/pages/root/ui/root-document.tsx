@@ -13,10 +13,6 @@ html:not([data-style-gate='ready']) body {
 
 html[data-style-gate='ready'] .style-gate-app {
   opacity: 1;
-}
-
-html[data-style-gate='ready'] body[data-landing-ready='true'] .style-gate-app,
-html[data-style-gate='ready'] body:not(:has([data-landing-page])) .style-gate-app {
   pointer-events: auto;
 }
 

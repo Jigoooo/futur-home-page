@@ -332,22 +332,31 @@ test('normal-motion modal closes immediately from keyboard and retains pointer e
 }) => {
   await waitForLanding(page);
   const trigger = page.getByRole('button', { name: '개인정보 처리방침 자세히 보기' });
+  const reactUpdateTimeoutMs = 1_000;
 
   await trigger.click();
+  const escapeStartedAt = Date.now();
   await page.keyboard.press('Escape');
-  await expect(page.locator('dialog')).toHaveCount(0, { timeout: 100 });
+  await expect(page.locator('dialog')).toHaveCount(0, { timeout: reactUpdateTimeoutMs });
+  const escapeElapsedMs = Date.now() - escapeStartedAt;
 
   await trigger.click();
+  const enterStartedAt = Date.now();
   await page.getByRole('dialog').getByRole('button', { name: '닫기', exact: true }).press('Enter');
-  await expect(page.locator('dialog')).toHaveCount(0, { timeout: 100 });
+  await expect(page.locator('dialog')).toHaveCount(0, { timeout: reactUpdateTimeoutMs });
+  const enterElapsedMs = Date.now() - enterStartedAt;
 
   await trigger.click();
   const pointerClose = page.getByRole('dialog').getByRole('button', { name: '닫기', exact: true });
+  const pointerStartedAt = Date.now();
   await pointerClose.click();
   await expect(page.locator('dialog')).toHaveAttribute('data-state', 'closed');
   await page.waitForTimeout(100);
   await expect(page.locator('dialog')).toHaveCount(1);
-  await expect(page.locator('dialog')).toHaveCount(0);
+  await expect(page.locator('dialog')).toHaveCount(0, { timeout: reactUpdateTimeoutMs });
+  const pointerElapsedMs = Date.now() - pointerStartedAt;
+  expect(escapeElapsedMs).toBeLessThan(pointerElapsedMs / 2);
+  expect(enterElapsedMs).toBeLessThan(pointerElapsedMs / 2);
 
   await trigger.click();
   const backdrop = page.getByRole('dialog').locator('[data-legal-backdrop]');
@@ -368,6 +377,29 @@ test('non-landing routes restore pointer interaction after the root style gate',
   }
 });
 
+test('CSS-ready landing anchors remain native when hydration fails before the ready marker', async ({
+  page,
+}) => {
+  await page.route('**/*', async (route) => {
+    if (route.request().resourceType() === 'script') {
+      await route.abort();
+      return;
+    }
+
+    await route.continue();
+  });
+
+  await page.goto('/');
+  await expect(page.locator('html')).toHaveAttribute('data-style-gate', 'ready');
+  await expect(page.locator('body')).not.toHaveAttribute('data-landing-ready', 'true');
+
+  const servicesLink = page
+    .getByRole('navigation', { name: '주요 메뉴' })
+    .getByRole('link', { name: '서비스', exact: true });
+  await servicesLink.click();
+  await expect(page).toHaveURL(/#services$/);
+});
+
 test('contact link hover uses the shared token and is gated for reduced motion', async ({
   page,
 }) => {
@@ -381,6 +413,7 @@ test('contact link hover uses the shared token and is gated for reduced motion',
   expect(hoverColor).not.toBe(normalColor);
 
   await page.mouse.move(0, 0);
+  await page.waitForTimeout(180);
   await page.emulateMedia({ reducedMotion: 'reduce' });
   const reducedColor = await link.evaluate((element) => getComputedStyle(element).color);
   await link.hover({ force: true });

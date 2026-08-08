@@ -45,7 +45,6 @@ export function ServicesSection() {
                 key={service.title}
                 className={styles.serviceCard}
                 data-landing-card
-                data-landing-spotlight='card'
                 data-cursor-text={service.cursorText}
               >
                 <div className={styles.serviceIcon} data-landing-service-icon>

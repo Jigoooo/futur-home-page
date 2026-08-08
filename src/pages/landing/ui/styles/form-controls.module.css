@@ -138,12 +138,6 @@
   line-height: 1.55;
 }
 
-.stageChoice:hover .stageCard {
-  transform: translateX(2px);
-  border-color: #cfdff8;
-  box-shadow: 0 16px 38px rgba(31, 54, 105, 0.065);
-}
-
 .stageChoice input:checked + .stageCard {
   border-color: #8fb5ff;
   background: linear-gradient(180deg, #f2f7ff 0%, #ffffff 100%);
@@ -216,13 +210,6 @@
   stroke-dasharray: 22;
   stroke-dashoffset: 22;
   transition: stroke-dashoffset var(--motion-hover) var(--ease-out);
-}
-
-.checkTile:hover .checkUi {
-  transform: translateY(-2px);
-  border-color: #d5e2f5;
-  background: #ffffff;
-  box-shadow: 0 12px 28px rgba(41, 63, 111, 0.065);
 }
 
 .checkTile input:checked + .checkUi {
@@ -499,9 +486,9 @@
   line-height: 1.35;
   cursor: pointer;
   transition:
-    background 0.16s ease,
-    color 0.16s ease,
-    border-color 0.16s ease;
+    background var(--motion-hover) ease,
+    color var(--motion-hover) ease,
+    border-color var(--motion-hover) ease;
 }
 
 .selectOption + .selectOption {
@@ -638,7 +625,27 @@
   }
 }
 
-@media (hover: none), (pointer: coarse) {
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .stageChoice:hover .stageCard {
+    transform: translateX(2px);
+    border-color: #cfdff8;
+    box-shadow: 0 16px 38px rgba(31, 54, 105, 0.065);
+  }
+
+  .checkTile:hover .checkUi {
+    transform: translateY(-2px);
+    border-color: #d5e2f5;
+    background: #ffffff;
+    box-shadow: 0 12px 28px rgba(41, 63, 111, 0.065);
+  }
+}
+
+@media (hover: none), (pointer: coarse), (prefers-reduced-motion: reduce) {
+  .stageChoice:hover .stageCard,
+  .checkTile:hover .checkUi {
+    transform: none;
+  }
+
   .selectTrigger:hover,
   .input:hover,
   .textareaInput:hover {

@@ -12,7 +12,7 @@ export function CustomCursor() {
 
   return (
     <>
-      <div ref={auraRef} className={styles.cursorAura} aria-hidden='true'>
+      <div ref={auraRef} className={styles.cursorAura} data-custom-cursor-aura aria-hidden='true'>
         <span ref={labelRef} />
       </div>
       <div ref={dotRef} className={styles.cursorDot} aria-hidden='true' />

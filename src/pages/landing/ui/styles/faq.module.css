@@ -91,7 +91,7 @@
   background: #ffffff;
   color: var(--navy);
   transition:
-    transform var(--motion-disclosure-enter) var(--ease-out),
+    transform var(--motion-disclosure-exit) var(--ease-out),
     background var(--motion-hover) ease,
     border-color var(--motion-hover) ease,
     color var(--motion-hover) ease;
@@ -103,6 +103,8 @@
   background: linear-gradient(180deg, #eef5ff, #f8fbff);
   border-color: #d6e2f6;
   color: var(--blue);
+  transition-duration:
+    var(--motion-disclosure-enter), var(--motion-hover), var(--motion-hover), var(--motion-hover);
 }
 
 .panel {
@@ -135,6 +137,14 @@
 .itemOpen .answer {
   opacity: 1;
   transform: translate3d(0, 0, 0);
+  transition-duration: var(--motion-disclosure-enter), var(--motion-disclosure-enter);
+}
+
+@starting-style {
+  .itemOpen .answer {
+    opacity: 0;
+    transform: translate3d(0, -4px, 0);
+  }
 }
 
 .keyboardToggle .toggle,

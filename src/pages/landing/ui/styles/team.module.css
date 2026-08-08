@@ -27,12 +27,6 @@
     border-color var(--motion-hover) ease;
 }
 
-.roleCard:hover {
-  transform: translateY(-2px);
-  border-color: color-mix(in srgb, var(--accent) 28%, #dfe8f5);
-  box-shadow: var(--shadow-hover);
-}
-
 .roleTop,
 .roleCard h3,
 .roleJob,
@@ -63,12 +57,6 @@
   transition:
     transform var(--motion-hover) var(--ease-out),
     background var(--motion-hover) ease;
-}
-
-.roleCard:hover .roleBadge {
-  transform: translateY(-2px);
-  background: #ffffff;
-  box-shadow: 0 14px 28px color-mix(in srgb, var(--accent) 16%, transparent);
 }
 
 .roleMeta {
@@ -132,10 +120,24 @@
     color var(--motion-hover) ease;
 }
 
-.roleCard:hover .tag {
-  transform: translateY(-2px);
-  background: #ffffff;
-  color: var(--accent);
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .roleCard:hover {
+    transform: translateY(-2px);
+    border-color: color-mix(in srgb, var(--accent) 28%, #dfe8f5);
+    box-shadow: var(--shadow-hover);
+  }
+
+  .roleCard:hover .roleBadge {
+    transform: translateY(-2px);
+    background: #ffffff;
+    box-shadow: 0 14px 28px color-mix(in srgb, var(--accent) 16%, transparent);
+  }
+
+  .roleCard:hover .tag {
+    transform: translateY(-2px);
+    background: #ffffff;
+    color: var(--accent);
+  }
 }
 
 @media (max-width: 1180px) {
@@ -145,7 +147,7 @@
   }
 }
 
-@media (hover: none), (pointer: coarse) {
+@media (hover: none), (pointer: coarse), (prefers-reduced-motion: reduce) {
   .roleCard:hover {
     transform: none;
     box-shadow: inherit;

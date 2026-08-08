@@ -1,5 +1,5 @@
 import { ArrowRight, Menu, X } from 'lucide-react';
-import { useEffect, useRef, useState, type MouseEvent } from 'react';
+import { useCallback, useEffect, useRef, useState, type MouseEvent } from 'react';
 
 import { navigationItems } from '../config';
 import { Button } from './button';
@@ -41,8 +41,49 @@ function handleHashLinkClick(event: MouseEvent<HTMLAnchorElement>) {
 
 export function HeaderSection() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [menuPresent, setMenuPresent] = useState(false);
+  const [keyboardMenu, setKeyboardMenu] = useState(false);
   const menuButtonRef = useRef<HTMLButtonElement | null>(null);
   const firstMenuLinkRef = useRef<HTMLAnchorElement | null>(null);
+  const menuExitTimerRef = useRef(0);
+
+  const clearMenuTransition = useCallback(() => {
+    window.clearTimeout(menuExitTimerRef.current);
+    menuExitTimerRef.current = 0;
+  }, []);
+
+  const openMenu = useCallback(
+    (immediate: boolean) => {
+      clearMenuTransition();
+      setKeyboardMenu(immediate);
+      setMenuPresent(true);
+      if (immediate) {
+        setMenuOpen(true);
+        return;
+      }
+      setMenuOpen(true);
+    },
+    [clearMenuTransition],
+  );
+
+  const closeMenu = useCallback(
+    (immediate: boolean) => {
+      clearMenuTransition();
+      setKeyboardMenu(immediate);
+      setMenuOpen(false);
+      if (immediate) {
+        setMenuPresent(false);
+        return;
+      }
+      menuExitTimerRef.current = window.setTimeout(() => {
+        setMenuPresent(false);
+        menuExitTimerRef.current = 0;
+      }, 120);
+    },
+    [clearMenuTransition],
+  );
+
+  useEffect(() => () => clearMenuTransition(), [clearMenuTransition]);
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -51,17 +92,17 @@ export function HeaderSection() {
 
     const handleKeyDown = (event: globalThis.KeyboardEvent) => {
       if (event.key !== 'Escape') return;
-      setMenuOpen(false);
+      closeMenu(true);
       requestAnimationFrame(() => menuButtonRef.current?.focus());
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [menuOpen]);
+  }, [closeMenu, menuOpen]);
 
   const handleMenuLinkClick = (event: MouseEvent<HTMLAnchorElement>) => {
     handleHashLinkClick(event);
-    setMenuOpen(false);
+    closeMenu(event.detail === 0);
   };
 
   return (
@@ -94,12 +135,22 @@ export function HeaderSection() {
         aria-label={menuOpen ? '메뉴 닫기' : '메뉴 열기'}
         aria-expanded={menuOpen}
         aria-controls='mobile-menu'
-        onClick={() => setMenuOpen((open) => !open)}
+        onClick={(event) => {
+          const immediate = event.detail === 0;
+          if (menuOpen) closeMenu(immediate);
+          else openMenu(immediate);
+        }}
       >
         {menuOpen ? <X size={20} aria-hidden='true' /> : <Menu size={20} aria-hidden='true' />}
       </button>
-      {menuOpen ? (
-        <div className={styles.mobileMenu}>
+      {menuPresent ? (
+        <div
+          className={`${styles.mobileMenu} ${keyboardMenu ? styles.keyboardMenu : ''}`}
+          data-mobile-menu-shell
+          data-state={menuOpen ? 'open' : 'closed'}
+          aria-hidden={!menuOpen}
+          inert={!menuOpen ? true : undefined}
+        >
           <nav id='mobile-menu' aria-label='모바일 메뉴'>
             {navigationItems.map((item, index) => (
               <a

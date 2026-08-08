@@ -469,7 +469,6 @@ export function ContactSection() {
                 type='submit'
                 className={cx(buttonStyles.button, buttonStyles.blue, styles.submitButton)}
                 data-landing-interactive='button'
-                data-landing-spotlight='button'
                 data-cursor-text='SEND'
                 disabled={pending}
               >

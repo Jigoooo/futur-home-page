@@ -117,16 +117,22 @@
   color: #2b3958;
   cursor: pointer;
   transition:
-    border-color 160ms ease,
-    color 160ms ease,
-    transform 160ms ease;
+    border-color var(--motion-hover) ease,
+    color var(--motion-hover) ease,
+    transform var(--motion-hover) var(--ease-out);
 }
 
-@media (hover: hover) and (pointer: fine) {
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
   .closeButton:hover {
     border-color: #c7d4ee;
     color: #07183f;
     transform: translateY(-1px);
+  }
+}
+
+@media (hover: none), (pointer: coarse), (prefers-reduced-motion: reduce) {
+  .closeButton:hover {
+    transform: none;
   }
 }
 

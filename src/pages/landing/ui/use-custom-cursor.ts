@@ -26,6 +26,16 @@ export function useCustomCursor({ auraRef, dotRef, labelRef }: UseCustomCursorPa
     let frame = 0;
     let lastMovementAt = 0;
 
+    const clearCursorState = () => {
+      delete document.documentElement.dataset.landingCursorEnabled;
+      delete document.body.dataset.landingCursorReady;
+      delete document.body.dataset.landingCursorHot;
+      delete document.body.dataset.landingCursorSoft;
+      delete document.body.dataset.landingCursorMuted;
+      delete document.body.dataset.landingCursorRunning;
+      label.textContent = '';
+    };
+
     const stopRendering = () => {
       if (!frame) return;
       window.cancelAnimationFrame(frame);
@@ -46,13 +56,23 @@ export function useCustomCursor({ auraRef, dotRef, labelRef }: UseCustomCursorPa
 
       aura.style.transform = `translate3d(${auraX}px,${auraY}px,0) translate(-50%,-50%)`;
       dot.style.transform = `translate3d(${dotX}px,${dotY}px,0) translate(-50%,-50%)`;
-      frame = window.requestAnimationFrame(render);
+      try {
+        frame = window.requestAnimationFrame(render);
+      } catch {
+        frame = 0;
+        clearCursorState();
+      }
     };
 
     const startRendering = () => {
       if (frame || document.hidden) return;
-      document.body.dataset.landingCursorRunning = 'true';
-      frame = window.requestAnimationFrame(render);
+      try {
+        frame = window.requestAnimationFrame(render);
+        document.body.dataset.landingCursorRunning = 'true';
+      } catch {
+        frame = 0;
+        clearCursorState();
+      }
     };
 
     const recoverCursor = () => {
@@ -156,12 +176,7 @@ export function useCustomCursor({ auraRef, dotRef, labelRef }: UseCustomCursorPa
 
     return () => {
       stopRendering();
-      delete document.documentElement.dataset.landingCursorEnabled;
-      delete document.body.dataset.landingCursorReady;
-      delete document.body.dataset.landingCursorHot;
-      delete document.body.dataset.landingCursorSoft;
-      delete document.body.dataset.landingCursorMuted;
-      delete document.body.dataset.landingCursorRunning;
+      clearCursorState();
 
       hotTargets.forEach((target) => {
         target.removeEventListener('pointerenter', handlePointerEnter);

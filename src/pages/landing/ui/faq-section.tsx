@@ -8,12 +8,23 @@ import sharedStyles from './styles/shared.module.css';
 
 export function FaqSection() {
   const [openItems, setOpenItems] = useState<number[]>([0]);
+  const [presentItems, setPresentItems] = useState<number[]>([0]);
   const [keyboardToggle, setKeyboardToggle] = useState<number | null>(null);
 
-  const toggle = (index: number) => {
-    setOpenItems((current) =>
-      current.includes(index) ? current.filter((item) => item !== index) : [...current, index],
-    );
+  const toggle = (index: number, isOpen: boolean, immediate: boolean) => {
+    setKeyboardToggle(immediate ? index : null);
+
+    if (isOpen) {
+      setOpenItems((current) => current.filter((item) => item !== index));
+      if (immediate) {
+        setPresentItems((current) => current.filter((item) => item !== index));
+        return;
+      }
+      return;
+    }
+
+    setPresentItems((current) => (current.includes(index) ? current : [...current, index]));
+    setOpenItems((current) => (current.includes(index) ? current : [...current, index]));
   };
 
   return (
@@ -39,6 +50,7 @@ export function FaqSection() {
         >
           {faqItems.map((item, index) => {
             const isOpen = openItems.includes(index);
+            const isPresent = presentItems.includes(index);
             const buttonId = `faq-button-${index}`;
             const panelId = `faq-panel-${index}`;
             return (
@@ -57,8 +69,7 @@ export function FaqSection() {
                   aria-expanded={isOpen}
                   aria-controls={panelId}
                   onClick={(event) => {
-                    setKeyboardToggle(event.detail === 0 ? index : null);
-                    toggle(index);
+                    toggle(index, isOpen, event.detail === 0);
                   }}
                 >
                   <span className={styles.question}>{item.question}</span>
@@ -70,10 +81,21 @@ export function FaqSection() {
                   id={panelId}
                   aria-labelledby={buttonId}
                   className={styles.panel}
-                  hidden={!isOpen}
-                  inert={!isOpen ? true : undefined}
+                  hidden={!isPresent}
+                  inert={!isPresent ? true : undefined}
                 >
-                  <div className={styles.panelInner}>
+                  <div
+                    className={styles.panelInner}
+                    onTransitionEnd={(event) => {
+                      if (
+                        !isOpen &&
+                        event.target === event.currentTarget.firstElementChild &&
+                        event.propertyName === 'opacity'
+                      ) {
+                        setPresentItems((current) => current.filter((item) => item !== index));
+                      }
+                    }}
+                  >
                     <p className={styles.answer}>{item.answer}</p>
                   </div>
                 </section>

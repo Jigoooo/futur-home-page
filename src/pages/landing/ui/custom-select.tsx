@@ -45,14 +45,18 @@ export function CustomSelect({ label, name, value, options, onChange }: CustomSe
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (!rootRef.current?.contains(event.target as Node)) setIsOpen(false);
+      if (!rootRef.current?.contains(event.target as Node)) {
+        setKeyboardOpen(false);
+        setIsOpen(false);
+      }
     };
 
     document.addEventListener('click', handleClickOutside);
     return () => document.removeEventListener('click', handleClickOutside);
   }, []);
 
-  const selectOption = (option: SelectOption) => {
+  const selectOption = (option: SelectOption, fromKeyboard: boolean) => {
+    setKeyboardOpen(fromKeyboard);
     onChange(option.value);
     setIsOpen(false);
   };
@@ -95,6 +99,7 @@ export function CustomSelect({ label, name, value, options, onChange }: CustomSe
     }
 
     event.preventDefault();
+    setKeyboardOpen(true);
 
     if (event.key === 'Escape') {
       setIsOpen(false);
@@ -127,7 +132,7 @@ export function CustomSelect({ label, name, value, options, onChange }: CustomSe
     }
 
     const nextOption = options[focusedIndex] ?? options[0];
-    if (nextOption) selectOption(nextOption);
+    if (nextOption) selectOption(nextOption, true);
   };
 
   const selected = options[selectedIndex] || options[0];
@@ -165,6 +170,7 @@ export function CustomSelect({ label, name, value, options, onChange }: CustomSe
           aria-labelledby={`${labelId} ${valueId}`}
           aria-activedescendant={isOpen ? `${id}-option-${focusedIndex}` : undefined}
           onClick={() => {
+            setKeyboardOpen(false);
             if (isOpen) {
               setIsOpen(false);
               return;
@@ -202,7 +208,7 @@ export function CustomSelect({ label, name, value, options, onChange }: CustomSe
               role='option'
               aria-selected={option.value === value ? 'true' : 'false'}
               tabIndex={-1}
-              onClick={() => selectOption(option)}
+              onClick={() => selectOption(option, false)}
               onPointerEnter={() => setFocusedIndex(optionIndex)}
             >
               {option.label}

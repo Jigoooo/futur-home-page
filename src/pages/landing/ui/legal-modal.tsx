@@ -22,12 +22,10 @@ export function LegalModal({ open, title, onClose, children }: LegalModalProps) 
   const onCloseRef = useRef(onClose);
   const shellRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
-  const [rendered, setRendered] = useState(open);
-
-  useEffect(() => {
-    const timer = window.setTimeout(() => setRendered(open), open ? 0 : 180);
-    return () => window.clearTimeout(timer);
-  }, [open]);
+  const [exitComplete, setExitComplete] = useState(!open);
+  const reduceMotion =
+    typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const rendered = open || (!reduceMotion && !exitComplete);
 
   useEffect(() => {
     onCloseRef.current = onClose;
@@ -171,6 +169,12 @@ export function LegalModal({ open, title, onClose, children }: LegalModalProps) 
       aria-modal='true'
       aria-labelledby={titleId}
       aria-hidden={!open}
+      onAnimationStart={() => {
+        if (open) setExitComplete(false);
+      }}
+      onAnimationEnd={(event) => {
+        if (!open && event.currentTarget === event.target) setExitComplete(true);
+      }}
     >
       <button
         type='button'

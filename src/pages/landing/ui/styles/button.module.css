@@ -2,11 +2,6 @@
   --btn-bg: #ffffff;
   --btn-color: var(--ink);
   --btn-border: #dce5f3;
-  --spot-x: 50%;
-  --spot-y: 50%;
-  --btn-spot-opacity: 0;
-  --btn-sheen-opacity: 0;
-  --btn-sheen-x: 0%;
   position: relative;
   isolation: isolate;
   overflow: hidden;
@@ -29,27 +24,6 @@
     background var(--motion-hover) ease,
     border-color var(--motion-hover) ease,
     color var(--motion-hover) ease;
-}
-
-.button::after {
-  content: '';
-  position: absolute;
-  top: -28%;
-  left: -72%;
-  z-index: -1;
-  width: 72%;
-  height: 156%;
-  border-radius: 999px;
-  background: linear-gradient(
-    110deg,
-    transparent 0%,
-    rgba(255, 255, 255, 0) 22%,
-    rgba(255, 255, 255, 0.34) 50%,
-    rgba(255, 255, 255, 0) 78%,
-    transparent 100%
-  );
-  transform: skewX(-14deg) translateX(var(--btn-sheen-x));
-  opacity: var(--btn-sheen-opacity);
 }
 
 .button [data-landing-label],

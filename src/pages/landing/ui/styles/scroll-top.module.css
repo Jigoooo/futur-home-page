@@ -20,10 +20,12 @@
     color var(--motion-hover) ease;
 }
 
-.scrollTop:hover {
-  transform: translateY(-2px);
-  background: var(--navy);
-  color: #ffffff;
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .scrollTop:hover {
+    transform: translateY(-2px);
+    background: var(--navy);
+    color: #ffffff;
+  }
 }
 
 @media (max-width: 900px) {
@@ -33,7 +35,7 @@
   }
 }
 
-@media (hover: none), (pointer: coarse) {
+@media (hover: none), (pointer: coarse), (prefers-reduced-motion: reduce) {
   .scrollTop:hover {
     transform: none;
   }

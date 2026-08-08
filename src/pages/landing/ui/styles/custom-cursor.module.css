@@ -11,16 +11,22 @@
 }
 
 .cursorAura {
-  width: 42px;
-  height: 42px;
+  width: 82px;
+  height: 82px;
+  transition: opacity var(--motion-hover) var(--ease-out);
+}
+
+.cursorAura::before {
+  content: '';
+  position: absolute;
+  inset: 0;
   border: 1px solid rgba(47, 107, 255, 0.38);
   border-radius: 999px;
   background: rgba(47, 107, 255, 0.05);
+  transform: scale(0.5122);
+  opacity: 0.9;
   transition:
-    width var(--motion-hover) var(--ease-out),
-    height var(--motion-hover) var(--ease-out),
-    border-color var(--motion-hover) ease,
-    background var(--motion-hover) ease,
+    transform var(--motion-hover) var(--ease-out),
     opacity var(--motion-hover) var(--ease-out);
 }
 
@@ -55,11 +61,14 @@
 }
 
 :global(body[data-landing-cursor-hot='true']) .cursorAura {
-  width: 82px;
-  height: 82px;
+  box-shadow: 0 18px 48px rgba(7, 24, 63, 0.18);
+}
+
+:global(body[data-landing-cursor-hot='true']) .cursorAura::before {
   border-color: rgba(7, 24, 63, 0.96);
   background: rgba(7, 24, 63, 0.9);
-  box-shadow: 0 18px 48px rgba(7, 24, 63, 0.18);
+  transform: scale(1);
+  opacity: 1;
 }
 
 :global(body[data-landing-cursor-hot='true']) .cursorAura span {
@@ -73,10 +82,10 @@
   opacity: 0 !important;
 }
 
-:global(body[data-landing-cursor-soft='true']) .cursorAura {
-  width: 58px;
-  height: 58px;
+:global(body[data-landing-cursor-soft='true']) .cursorAura::before {
   background: rgba(47, 107, 255, 0.12);
+  transform: scale(0.7073);
+  opacity: 0.96;
 }
 
 @media (pointer: fine) {

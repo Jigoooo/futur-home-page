@@ -19,6 +19,7 @@ const DEFAULT_RATE_LIMIT_CAPACITY = 4_096;
 const DEFAULT_IDEMPOTENCY_CAPACITY = 8_192;
 const rateLimitEntries = new Map<string, number[]>();
 const deliveredSubmissions = new Map<string, { expiresAt: number; result: ContactInquiryResult }>();
+const inFlightSubmissions = new Map<string, Promise<ContactInquiryResult>>();
 
 const stageIds = new Set<string>(briefStages.map(({ value }) => value));
 const timelineIds = new Set<string>(timelineOptions.map(({ value }) => value));
@@ -183,45 +184,67 @@ export async function deliverContactInquiry(input: unknown): Promise<ContactInqu
   const previousSubmission = deliveredSubmissions.get(deduplicationKey);
   if (previousSubmission) return previousSubmission.result;
 
-  if (!consumeRateLimit(requester.key, requester.now)) {
-    return {
-      ok: false,
-      code: 'RATE_LIMITED',
-      message: '문의가 연속으로 접수되었습니다. 잠시 후 다시 시도해 주세요.',
-    };
-  }
+  const inFlightSubmission = inFlightSubmissions.get(deduplicationKey);
+  if (inFlightSubmission) return inFlightSubmission;
 
-  const delivery = await sendContactInquiryEmail(input);
-  if (!delivery.ok) {
-    return delivery.code === 'CONFIGURATION'
-      ? {
+  const deliveryPromise = Promise.resolve()
+    .then(async (): Promise<ContactInquiryResult> => {
+      if (!consumeRateLimit(requester.key, requester.now)) {
+        return {
           ok: false,
-          code: 'CONFIGURATION',
-          message: '문의 전송 설정을 확인할 수 없습니다.',
-          fallbackEmail: 'kjwoo@futur.co.kr',
-        }
-      : {
-          ok: false,
-          code: 'DELIVERY',
-          message: '문의 전송에 실패했습니다. 잠시 후 다시 시도해 주세요.',
+          code: 'RATE_LIMITED',
+          message: '문의가 연속으로 접수되었습니다. 잠시 후 다시 시도해 주세요.',
         };
-  }
+      }
 
-  const result = {
-    ok: true,
-    submissionId: input.submissionId,
-    message: '문의가 정상적으로 접수되었습니다.',
-  } satisfies ContactInquiryResult;
-  evictOldestEntries(
-    deliveredSubmissions,
-    getPositiveIntegerEnvironmentValue(
-      'CONTACT_IDEMPOTENCY_CAPACITY',
-      DEFAULT_IDEMPOTENCY_CAPACITY,
-    ),
-  );
-  deliveredSubmissions.set(deduplicationKey, {
-    expiresAt: requester.now + IDEMPOTENCY_WINDOW_MS,
-    result,
-  });
-  return result;
+      const delivery = await sendContactInquiryEmail(input);
+      if (!delivery.ok) {
+        return delivery.code === 'CONFIGURATION'
+          ? {
+              ok: false,
+              code: 'CONFIGURATION',
+              message: '문의 전송 설정을 확인할 수 없습니다.',
+              fallbackEmail: 'kjwoo@futur.co.kr',
+            }
+          : {
+              ok: false,
+              code: 'DELIVERY',
+              message: '문의 전송에 실패했습니다. 잠시 후 다시 시도해 주세요.',
+            };
+      }
+
+      const result = {
+        ok: true,
+        submissionId: input.submissionId,
+        message: '문의가 정상적으로 접수되었습니다.',
+      } satisfies ContactInquiryResult;
+      evictOldestEntries(
+        deliveredSubmissions,
+        getPositiveIntegerEnvironmentValue(
+          'CONTACT_IDEMPOTENCY_CAPACITY',
+          DEFAULT_IDEMPOTENCY_CAPACITY,
+        ),
+      );
+      deliveredSubmissions.set(deduplicationKey, {
+        expiresAt: requester.now + IDEMPOTENCY_WINDOW_MS,
+        result,
+      });
+      return result;
+    })
+    .catch(
+      (): ContactInquiryResult => ({
+        ok: false,
+        code: 'DELIVERY',
+        message: '문의 전송에 실패했습니다. 잠시 후 다시 시도해 주세요.',
+      }),
+    );
+
+  inFlightSubmissions.set(deduplicationKey, deliveryPromise);
+  try {
+    return await deliveryPromise;
+  } finally {
+    if (inFlightSubmissions.get(deduplicationKey) === deliveryPromise) {
+      inFlightSubmissions.delete(deduplicationKey);
+    }
+  }
 }

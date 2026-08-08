@@ -85,7 +85,7 @@ test('rejects invalid allowlists, bounds, consents, honeypot, and form age on th
     { ...base, submissionId: 'invalid-collection-consent', collectionConsent: false },
     { ...base, submissionId: 'invalid-overseas-consent', overseasTransferConsent: false },
     { ...base, submissionId: 'invalid-honeypot', website: 'https://spam.invalid' },
-    { ...base, submissionId: 'invalid-too-young', formStartedAt: Date.now() - 1_000 },
+    { ...base, submissionId: 'invalid-too-young', formStartedAt: Date.now() + 60_000 },
     { ...base, submissionId: 'invalid-too-old', formStartedAt: Date.now() - 7_200_001 },
   ];
 
@@ -122,6 +122,63 @@ test('deduplicates a submission ID and rate limits the fourth distinct inquiry i
   await expect(
     callContactServer(page, validInquiry('rate-limit-distinct-4'), requester),
   ).resolves.toMatchObject({ ok: false, code: 'RATE_LIMITED' });
+});
+
+test('coalesces concurrent duplicate submissions before consuming rate-limit quota', async ({
+  page,
+}) => {
+  await page.goto('/');
+  const requester = { e2eRequester: 'concurrent-deduplication' };
+  const duplicate = validInquiry('concurrent-idempotent-submission');
+
+  const duplicateResults = await Promise.all(
+    Array.from({ length: 5 }, () => callContactServer(page, duplicate, requester)),
+  );
+
+  expect(duplicateResults).toEqual(
+    Array.from({ length: 5 }, () => ({
+      ok: true,
+      submissionId: 'concurrent-idempotent-submission',
+      message: '문의가 정상적으로 접수되었습니다.',
+    })),
+  );
+  await expect(
+    callContactServer(page, validInquiry('concurrent-rate-slot-2'), requester),
+  ).resolves.toMatchObject({ ok: true });
+  await expect(
+    callContactServer(page, validInquiry('concurrent-rate-slot-3'), requester),
+  ).resolves.toMatchObject({ ok: true });
+  await expect(
+    callContactServer(page, validInquiry('concurrent-rate-slot-4'), requester),
+  ).resolves.toMatchObject({ ok: false, code: 'RATE_LIMITED' });
+});
+
+test('clears a failed concurrent submission so the same ID can be retried', async ({ page }) => {
+  await page.goto('/');
+  const requester = { e2eRequester: 'concurrent-failure-retry' };
+  const failedSubmission = {
+    ...validInquiry('concurrent-failure-submission'),
+    email: 'e2e-config-missing@futur.invalid',
+  };
+
+  const failedResults = await Promise.all(
+    Array.from({ length: 3 }, () => callContactServer(page, failedSubmission, requester)),
+  );
+
+  expect(failedResults).toEqual(
+    Array.from({ length: 3 }, () => ({
+      ok: false,
+      code: 'CONFIGURATION',
+      message: '문의 전송 설정을 확인할 수 없습니다.',
+      fallbackEmail: 'kjwoo@futur.co.kr',
+    })),
+  );
+  await expect(
+    callContactServer(page, validInquiry('concurrent-failure-submission'), requester),
+  ).resolves.toMatchObject({
+    ok: true,
+    submissionId: 'concurrent-failure-submission',
+  });
 });
 
 test('ignores caller-controlled forwarded IPs when proxy trust is disabled', async ({ page }) => {

@@ -147,6 +147,7 @@
   }
 }
 
+.keyboardToggle,
 .keyboardToggle .toggle,
 .keyboardToggle .answer {
   transition-duration: 0s;

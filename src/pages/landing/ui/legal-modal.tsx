@@ -1,5 +1,5 @@
 import { X } from 'lucide-react';
-import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 
 import { cx } from './lib/cx';
@@ -26,6 +26,14 @@ export function LegalModal({ open, title, onClose, children }: LegalModalProps) 
   const reduceMotion =
     typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const rendered = open || (!reduceMotion && !exitComplete);
+
+  const requestClose = useCallback(
+    (immediate: boolean) => {
+      setExitComplete(immediate || reduceMotion);
+      window.history.back();
+    },
+    [reduceMotion],
+  );
 
   useEffect(() => {
     onCloseRef.current = onClose;
@@ -70,7 +78,7 @@ export function LegalModal({ open, title, onClose, children }: LegalModalProps) 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         event.preventDefault();
-        window.history.back();
+        requestClose(true);
         return;
       }
 
@@ -108,7 +116,7 @@ export function LegalModal({ open, title, onClose, children }: LegalModalProps) 
       page?.removeAttribute('inert');
       previouslyFocused?.focus();
     };
-  }, [open, rendered]);
+  }, [open, rendered, requestClose]);
 
   useEffect(() => {
     if (!open) {
@@ -154,10 +162,6 @@ export function LegalModal({ open, title, onClose, children }: LegalModalProps) 
     return null;
   }
 
-  const handleClose = () => {
-    window.history.back();
-  };
-
   return createPortal(
     // Keep the explicit role for stable AT and legacy selector compatibility across dialog implementations.
     // eslint-disable-next-line jsx-a11y/no-redundant-roles
@@ -182,7 +186,7 @@ export function LegalModal({ open, title, onClose, children }: LegalModalProps) 
         aria-label='개인정보 처리방침 닫기'
         data-legal-backdrop
         tabIndex={-1}
-        onClick={handleClose}
+        onClick={() => requestClose(false)}
       />
       <div ref={shellRef} className={styles.shell}>
         <header className={styles.head}>
@@ -193,7 +197,7 @@ export function LegalModal({ open, title, onClose, children }: LegalModalProps) 
             ref={closeButtonRef}
             type='button'
             className={cx(styles.closeButton)}
-            onClick={handleClose}
+            onClick={(event) => requestClose(event.detail === 0)}
             aria-label='닫기'
           >
             <X size={18} strokeWidth={2.2} />

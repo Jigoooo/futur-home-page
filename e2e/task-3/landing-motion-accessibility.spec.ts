@@ -53,9 +53,6 @@ test('legal modal traps initial focus, makes the page inert, closes, and restore
   expect(await dialog.evaluate((element) => element.contains(document.activeElement))).toBe(true);
   await page.keyboard.press('Escape');
   const dialogElement = page.locator('dialog');
-  await expect(dialogElement).toHaveAttribute('data-state', 'closed');
-  await page.waitForTimeout(100);
-  await expect(dialogElement).toHaveCount(1);
   await expect(dialogElement).toHaveCount(0);
   await expect(dialog).toBeHidden();
   await expect(trigger).toBeFocused();
@@ -219,6 +216,7 @@ test('custom cursor restores the native cursor when RAF initialization fails', a
     window.dispatchEvent(new PointerEvent('pointermove', { clientX: 220, clientY: 180 }));
   });
   await expect(page.locator('body')).not.toHaveAttribute('data-landing-cursor-ready', 'true');
+  await expect(page.locator('body')).toHaveAttribute('data-landing-cursor-failed', 'true');
   await expect(page.locator('html')).not.toHaveAttribute('data-landing-cursor-enabled', 'true');
   expect(await page.evaluate(() => getComputedStyle(document.documentElement).cursor)).not.toBe(
     'none',
@@ -247,9 +245,22 @@ test('FAQ pointer transitions retain presence for 180ms enter and 120ms exit whi
   await toggle.focus();
   await toggle.press('Enter');
   await expect(panel).toBeVisible();
+  await expect(toggle.locator('..')).toHaveCSS('transition-duration', '0s');
   await expect(panel.locator('p')).toHaveCSS('transition-duration', '0s');
   await toggle.press('Enter');
   await expect(panel).toHaveAttribute('hidden', '');
+});
+
+test('reduced-motion FAQ pointer close hides and inerts immediately', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await waitForLanding(page);
+  const toggle = page.getByRole('button', { name: '기획서가 없는데 문의해도 되나요?' });
+  const panel = page.locator(`#${await toggle.getAttribute('aria-controls')}`);
+
+  await toggle.click();
+  await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+  await expect(panel).toHaveAttribute('hidden', '', { timeout: 100 });
+  await expect(panel).toHaveAttribute('inert', '', { timeout: 100 });
 });
 
 test('mobile disclosure retains pointer exit presence and keyboard toggles immediately', async ({
@@ -265,7 +276,11 @@ test('mobile disclosure retains pointer exit presence and keyboard toggles immed
   await toggle.click();
   await expect(shell).toHaveAttribute('data-state', 'closed');
   await expect(shell).toHaveCSS('transition-duration', '0.12s, 0.12s');
-  await page.waitForTimeout(140);
+  await shell.evaluate((element) =>
+    element.dispatchEvent(
+      new TransitionEvent('transitionend', { bubbles: true, propertyName: 'opacity' }),
+    ),
+  );
   await expect(shell).toHaveCount(0);
 
   await toggle.focus();
@@ -292,9 +307,77 @@ test('custom select refreshes keyboard modality for close and selection after po
   await expect(listbox).toHaveCSS('transition-duration', '0s');
   await select.click();
   await select.press('End');
+  const endOptionId = await select.getAttribute('aria-activedescendant');
+  expect(endOptionId).toBeTruthy();
+  await expect(page.locator(`#${endOptionId}`)).toHaveCSS('transition-duration', '0s');
+  await select.press('Home');
+  const homeOptionId = await select.getAttribute('aria-activedescendant');
+  expect(homeOptionId).toBeTruthy();
+  await expect(page.locator(`#${homeOptionId}`)).toHaveCSS('transition-duration', '0s');
+  await select.press('End');
   await select.press('Enter');
   await expect(listbox).toHaveCSS('transition-duration', '0s');
   await expect(select).toContainText('1,000만원 이상');
+});
+
+test('normal-motion modal closes immediately from keyboard and retains pointer exit', async ({
+  page,
+}) => {
+  await waitForLanding(page);
+  const trigger = page.getByRole('button', { name: '개인정보 처리방침 자세히 보기' });
+
+  await trigger.click();
+  await page.keyboard.press('Escape');
+  await expect(page.locator('dialog')).toHaveCount(0, { timeout: 100 });
+
+  await trigger.click();
+  await page.getByRole('dialog').getByRole('button', { name: '닫기', exact: true }).press('Enter');
+  await expect(page.locator('dialog')).toHaveCount(0, { timeout: 100 });
+
+  await trigger.click();
+  const pointerClose = page.getByRole('dialog').getByRole('button', { name: '닫기', exact: true });
+  await pointerClose.click();
+  await expect(page.locator('dialog')).toHaveAttribute('data-state', 'closed');
+  await page.waitForTimeout(100);
+  await expect(page.locator('dialog')).toHaveCount(1);
+  await expect(page.locator('dialog')).toHaveCount(0);
+
+  await trigger.click();
+  const backdrop = page.getByRole('dialog').locator('[data-legal-backdrop]');
+  await backdrop.click({ position: { x: 4, y: 4 } });
+  await page.waitForTimeout(100);
+  await expect(page.locator('dialog')).toHaveCount(1);
+  await expect(page.locator('dialog')).toHaveCount(0);
+});
+
+test('non-landing routes restore pointer interaction after the root style gate', async ({
+  page,
+}) => {
+  for (const pathname of ['/privacy', '/terms', '/missing-task-3-route']) {
+    await page.goto(pathname);
+    await expect(page.locator('html')).toHaveAttribute('data-style-gate', 'ready');
+    await expect(page.locator('.style-gate-app')).toHaveCSS('pointer-events', 'auto');
+    await page.locator('a').first().click({ trial: true });
+  }
+});
+
+test('contact link hover uses the shared token and is gated for reduced motion', async ({
+  page,
+}) => {
+  await waitForLanding(page);
+  const link = page.locator('#contact dl a[href^="mailto:"]').first();
+  await link.scrollIntoViewIfNeeded();
+  const normalColor = await link.evaluate((element) => getComputedStyle(element).color);
+  await link.hover();
+  await expect(link).toHaveCSS('transition-duration', '0.15s, 0.15s');
+  const hoverColor = await link.evaluate((element) => getComputedStyle(element).color);
+  expect(hoverColor).not.toBe(normalColor);
+
+  await page.mouse.move(0, 0);
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  const reducedColor = await link.evaluate((element) => getComputedStyle(element).color);
+  await link.hover({ force: true });
+  await expect(link).toHaveCSS('color', reducedColor);
 });
 
 test('reduced-motion modal closes immediately and releases inert state', async ({ page }) => {
@@ -406,17 +489,25 @@ test('approved motion tokens, hero budget, and GPU-only transition contracts are
   expect(contracts.heroEnd).toBeLessThanOrEqual(900);
 
   const styleDirectory = 'src/pages/landing/ui/styles';
-  const css = (
+  const landingCss = (
     await Promise.all(
       (await readdir(styleDirectory))
         .filter((file) => file.endsWith('.css'))
         .map((file) => readFile(`${styleDirectory}/${file}`, 'utf8')),
     )
   ).join('\n');
+  const css = [
+    landingCss,
+    await readFile('src/styles/globals.css', 'utf8'),
+    await readFile('src/pages/root/ui/root-document.tsx', 'utf8'),
+  ].join('\n');
   expect(css).not.toMatch(
-    /(?:transition|animation)[^;}]*(?:width|height|margin|padding|top|left)/i,
+    /(?:transition(?:-property)?|animation)[^;}]*(?:width|height|margin|padding|top|right|bottom|left)/i,
   );
-  expect(css).not.toMatch(/\b(?:160|200)ms\b/);
+  expect(css).not.toMatch(/transition[^;}]*(?:\b(?:160|200)ms\b|\b0\.(?:16|2)s\b)/i);
+  expect(await readFile('src/pages/landing/ui/header-section.tsx', 'utf8')).not.toContain(
+    'setTimeout',
+  );
   const packageJson = JSON.parse(await readFile('package.json', 'utf8')) as {
     dependencies?: Record<string, string>;
   };

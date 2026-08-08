@@ -467,7 +467,8 @@
 }
 
 .customSelect.keyboardOpen .selectArrow,
-.customSelect.keyboardOpen .selectMenu {
+.customSelect.keyboardOpen .selectMenu,
+.customSelect.keyboardOpen .selectOption {
   transition-duration: 0s;
 }
 

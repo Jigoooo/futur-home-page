@@ -26,6 +26,8 @@ export function useCustomCursor({ auraRef, dotRef, labelRef }: UseCustomCursorPa
     let frame = 0;
     let lastMovementAt = 0;
 
+    delete document.body.dataset.landingCursorFailed;
+
     const clearCursorState = () => {
       delete document.documentElement.dataset.landingCursorEnabled;
       delete document.body.dataset.landingCursorReady;
@@ -34,6 +36,11 @@ export function useCustomCursor({ auraRef, dotRef, labelRef }: UseCustomCursorPa
       delete document.body.dataset.landingCursorMuted;
       delete document.body.dataset.landingCursorRunning;
       label.textContent = '';
+    };
+
+    const failCursor = () => {
+      clearCursorState();
+      document.body.dataset.landingCursorFailed = 'true';
     };
 
     const stopRendering = () => {
@@ -60,7 +67,7 @@ export function useCustomCursor({ auraRef, dotRef, labelRef }: UseCustomCursorPa
         frame = window.requestAnimationFrame(render);
       } catch {
         frame = 0;
-        clearCursorState();
+        failCursor();
       }
     };
 
@@ -68,10 +75,11 @@ export function useCustomCursor({ auraRef, dotRef, labelRef }: UseCustomCursorPa
       if (frame || document.hidden) return;
       try {
         frame = window.requestAnimationFrame(render);
+        delete document.body.dataset.landingCursorFailed;
         document.body.dataset.landingCursorRunning = 'true';
       } catch {
         frame = 0;
-        clearCursorState();
+        failCursor();
       }
     };
 
@@ -177,6 +185,7 @@ export function useCustomCursor({ auraRef, dotRef, labelRef }: UseCustomCursorPa
     return () => {
       stopRendering();
       clearCursorState();
+      delete document.body.dataset.landingCursorFailed;
 
       hotTargets.forEach((target) => {
         target.removeEventListener('pointerenter', handlePointerEnter);

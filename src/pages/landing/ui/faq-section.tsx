@@ -69,7 +69,10 @@ export function FaqSection() {
                   aria-expanded={isOpen}
                   aria-controls={panelId}
                   onClick={(event) => {
-                    toggle(index, isOpen, event.detail === 0);
+                    const reduceMotion = window.matchMedia(
+                      '(prefers-reduced-motion: reduce)',
+                    ).matches;
+                    toggle(index, isOpen, event.detail === 0 || reduceMotion);
                   }}
                 >
                   <span className={styles.question}>{item.question}</span>

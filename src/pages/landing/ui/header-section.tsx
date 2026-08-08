@@ -45,45 +45,20 @@ export function HeaderSection() {
   const [keyboardMenu, setKeyboardMenu] = useState(false);
   const menuButtonRef = useRef<HTMLButtonElement | null>(null);
   const firstMenuLinkRef = useRef<HTMLAnchorElement | null>(null);
-  const menuExitTimerRef = useRef(0);
 
-  const clearMenuTransition = useCallback(() => {
-    window.clearTimeout(menuExitTimerRef.current);
-    menuExitTimerRef.current = 0;
+  const openMenu = useCallback((immediate: boolean) => {
+    setKeyboardMenu(immediate);
+    setMenuPresent(true);
+    setMenuOpen(true);
   }, []);
 
-  const openMenu = useCallback(
-    (immediate: boolean) => {
-      clearMenuTransition();
-      setKeyboardMenu(immediate);
-      setMenuPresent(true);
-      if (immediate) {
-        setMenuOpen(true);
-        return;
-      }
-      setMenuOpen(true);
-    },
-    [clearMenuTransition],
-  );
-
-  const closeMenu = useCallback(
-    (immediate: boolean) => {
-      clearMenuTransition();
-      setKeyboardMenu(immediate);
-      setMenuOpen(false);
-      if (immediate) {
-        setMenuPresent(false);
-        return;
-      }
-      menuExitTimerRef.current = window.setTimeout(() => {
-        setMenuPresent(false);
-        menuExitTimerRef.current = 0;
-      }, 120);
-    },
-    [clearMenuTransition],
-  );
-
-  useEffect(() => () => clearMenuTransition(), [clearMenuTransition]);
+  const closeMenu = useCallback((immediate: boolean) => {
+    setKeyboardMenu(immediate);
+    setMenuOpen(false);
+    if (immediate) {
+      setMenuPresent(false);
+    }
+  }, []);
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -150,6 +125,15 @@ export function HeaderSection() {
           data-state={menuOpen ? 'open' : 'closed'}
           aria-hidden={!menuOpen}
           inert={!menuOpen ? true : undefined}
+          onTransitionEnd={(event) => {
+            if (
+              !menuOpen &&
+              event.currentTarget === event.target &&
+              event.propertyName === 'opacity'
+            ) {
+              setMenuPresent(false);
+            }
+          }}
         >
           <nav id='mobile-menu' aria-label='모바일 메뉴'>
             {navigationItems.map((item, index) => (

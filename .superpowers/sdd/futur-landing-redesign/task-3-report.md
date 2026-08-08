@@ -267,3 +267,98 @@ Result: attempted after the final code change. Graphify again fail-closed becaus
 - `src/pages/landing/ui/styles/team.module.css`
 
 Protected dirty files remain untouched and unstaged.
+
+---
+
+## Fix round 2 — residual keyboard and route-gate review
+
+### Scope completed
+
+- Custom-select keyboard navigation now disables the active option's color/background/border transition as well as the listbox and arrow. Arrow/Home/End, selection, Escape, and keyboard reopen all refresh keyboard modality.
+- FAQ keyboard activation now disables the containing item's border/shadow transition in addition to the chevron and answer. Reduced-motion pointer close applies `hidden` and `inert` immediately instead of depending on a transition event that will not occur.
+- Legal-modal Escape and keyboard-activated close-button paths unmount immediately in normal motion. Pointer close-button and backdrop paths retain the 180ms exit and still release page inertness/focus on completion.
+- Mobile-menu pointer exit removal is synchronized to the shell opacity `transitionend`; the former independent 120ms timer was removed. Keyboard/Escape removal remains immediate.
+- The root style gate now restores pointer interaction for `/privacy`, `/terms`, and 404 pages once the style gate is ready, while the landing route still waits for its hydration-ready marker.
+- Contact-card email hover now uses `--motion-hover` and only applies on fine pointers with no reduced-motion preference.
+- Cursor RAF failures now clear custom-cursor state, restore the native cursor, and expose `data-landing-cursor-failed='true'` for diagnosis.
+- Static contracts now inspect root/global styles, seconds and milliseconds notation in transitions, all four positional layout properties, and the absence of timer-driven mobile-menu exit code.
+
+### RED evidence
+
+Command:
+
+```sh
+pnpm exec playwright test -c playwright.task-3.config.ts
+```
+
+Result before fix-round-2 implementation: **7 failed, 12 passed (55.3s)**.
+
+The seven failures were:
+
+1. cursor RAF failure had no diagnostic marker;
+2. FAQ keyboard toggle left the item border/shadow transition at 150ms;
+3. custom-select active option retained a 150ms transition under keyboard modality;
+4. normal-motion modal Escape did not unmount within 100ms;
+5. non-landing routes retained `pointer-events: none` after the root style gate became ready;
+6. contact-card hover still used the hard-coded `0.2s` contract and was not reduced-motion gated;
+7. expanded static duration/header checks detected the residual hard-coded transition/timer contract.
+
+### GREEN evidence
+
+Focused command:
+
+```sh
+pnpm exec playwright test -c playwright.task-3.config.ts
+```
+
+Final focused result after the hook-dependency cleanup rerun: **19 passed (49.2s)**.
+
+The real-browser assertions confirm immediate keyboard option/FAQ/modal state changes, retained pointer modal exit after 100ms, transition-completion menu removal, immediate reduced-motion FAQ cleanup, native cursor restoration with a failure marker, and working pointer interaction on privacy, terms, and 404 routes.
+
+Full regression command:
+
+```sh
+pnpm test:e2e
+```
+
+Result: **36 passed, 3 skipped (20.9s)** using six workers. FAQ, mobile disclosure, contact delivery/server boundaries, non-landing a11y routes, and all landing evidence flows passed together; there are no remaining full-suite failures.
+
+Static/build commands:
+
+```sh
+pnpm lint
+pnpm exec tsc -b --pretty false
+pnpm build
+git diff --check
+```
+
+Result: all passed; lint completed with zero warnings/errors. Build output was generated successfully and diff whitespace checks were clean.
+
+```sh
+graphify update .
+```
+
+Result: attempted after the final source changes. Graphify fail-closed because the extracted graph had 1,849 nodes versus 10,930 in the existing graph; no destructive `--force` overwrite was used, so existing graph artifacts were preserved.
+
+### Motion feel checks
+
+- Keyboard interaction reads as immediate: option focus/selection, FAQ container state, menu close, modal Escape, and modal close-button activation have no spatial or border/shadow lag.
+- Pointer disclosures retain their directional context: FAQ 180/120ms presence and modal 180ms exit remain visible long enough to read without exceeding the 300ms UI budget.
+- Reduced-motion paths remove dependency on spatial transition completion and restore hidden/inert state within the 100ms regression bound.
+- Contact hover uses the shared 150ms token only for fine-pointer/no-preference input; reduced motion retains the non-hover computed color.
+- Cursor failure visibly returns to the native pointer and leaves a diagnostic marker without stale ready/enabled attributes.
+
+### Fix-round-2 files
+
+- `.superpowers/sdd/futur-landing-redesign/task-3-report.md`
+- `e2e/task-3/landing-motion-accessibility.spec.ts`
+- `src/pages/root/ui/root-document.tsx`
+- `src/pages/landing/ui/faq-section.tsx`
+- `src/pages/landing/ui/header-section.tsx`
+- `src/pages/landing/ui/legal-modal.tsx`
+- `src/pages/landing/ui/use-custom-cursor.ts`
+- `src/pages/landing/ui/styles/contact.module.css`
+- `src/pages/landing/ui/styles/faq.module.css`
+- `src/pages/landing/ui/styles/form-controls.module.css`
+
+Protected and cross-task dirty files remain untouched and unstaged.

@@ -6,6 +6,12 @@ interface ServerResult {
   submissionId?: string;
 }
 
+interface RequestIdentityOptions {
+  e2eRequester?: string;
+  forwardedFor?: string;
+  now?: number;
+}
+
 function validInquiry(submissionId: string) {
   return {
     submissionId,
@@ -28,10 +34,10 @@ function validInquiry(submissionId: string) {
 async function callContactServer(
   page: Page,
   input: ReturnType<typeof validInquiry>,
-  requester: string,
+  identity: RequestIdentityOptions,
 ) {
   return page.evaluate(
-    async ({ payload, forwardedFor }) => {
+    async ({ payload, requestIdentity }) => {
       const modulePath = '/src/pages/landing/server/contact-inquiry.functions.ts';
       const server = (await import(/* @vite-ignore */ modulePath)) as {
         submitContactInquiry: (options: {
@@ -40,12 +46,23 @@ async function callContactServer(
         }) => Promise<ServerResult>;
       };
 
+      const headers: Record<string, string> = {};
+      if (requestIdentity.e2eRequester) {
+        headers['x-contact-e2e-requester'] = requestIdentity.e2eRequester;
+      }
+      if (requestIdentity.forwardedFor) {
+        headers['x-forwarded-for'] = requestIdentity.forwardedFor;
+      }
+      if (requestIdentity.now !== undefined) {
+        headers['x-contact-e2e-now'] = String(requestIdentity.now);
+      }
+
       return server.submitContactInquiry({
         data: payload,
-        headers: { 'x-forwarded-for': forwardedFor },
+        headers,
       });
     },
-    { payload: input, forwardedFor: requester },
+    { payload: input, requestIdentity: identity },
   );
 }
 
@@ -71,7 +88,9 @@ test('rejects invalid allowlists, bounds, consents, honeypot, and form age on th
   ];
 
   for (const input of invalidInputs) {
-    await expect(callContactServer(page, input, '203.0.113.31')).resolves.toMatchObject({
+    await expect(
+      callContactServer(page, input, { e2eRequester: 'server-validation' }),
+    ).resolves.toMatchObject({
       ok: false,
       code: 'INVALID',
     });
@@ -82,7 +101,7 @@ test('deduplicates a submission ID and rate limits the fourth distinct inquiry i
   page,
 }) => {
   await page.goto('/');
-  const requester = '203.0.113.32';
+  const requester = { e2eRequester: 'deduplication-baseline' };
   const duplicate = validInquiry('idempotent-submission');
 
   for (let attempt = 0; attempt < 4; attempt += 1) {
@@ -100,5 +119,132 @@ test('deduplicates a submission ID and rate limits the fourth distinct inquiry i
   ).resolves.toMatchObject({ ok: true });
   await expect(
     callContactServer(page, validInquiry('rate-limit-distinct-4'), requester),
+  ).resolves.toMatchObject({ ok: false, code: 'RATE_LIMITED' });
+});
+
+test('ignores caller-controlled forwarded IPs when proxy trust is disabled', async ({ page }) => {
+  await page.goto('/');
+
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    await expect(
+      callContactServer(page, validInquiry(`untrusted-forwarded-${attempt}`), {
+        e2eRequester: 'untrusted-forwarded-fixed-socket',
+        forwardedFor: `203.0.113.${attempt + 1}`,
+      }),
+    ).resolves.toMatchObject({ ok: true });
+  }
+
+  await expect(
+    callContactServer(page, validInquiry('untrusted-forwarded-fourth'), {
+      e2eRequester: 'untrusted-forwarded-fixed-socket',
+      forwardedFor: '203.0.113.99',
+    }),
+  ).resolves.toMatchObject({ ok: false, code: 'RATE_LIMITED' });
+});
+
+test('uses proxy-overwritten forwarded identities only when proxy trust is enabled', async ({
+  page,
+}) => {
+  test.skip(process.env.CONTACT_TRUST_PROXY !== '1', 'requires explicit trusted-proxy mode');
+  await page.goto('/');
+
+  for (let attempt = 0; attempt < 4; attempt += 1) {
+    await expect(
+      callContactServer(page, validInquiry(`trusted-forwarded-${attempt}`), {
+        forwardedFor: `198.51.100.${attempt + 1}`,
+      }),
+    ).resolves.toMatchObject({ ok: true });
+  }
+});
+
+test('evicts the oldest requester deterministically at the rate-store capacity', async ({
+  page,
+}) => {
+  await page.goto('/');
+
+  for (let index = 0; index < 17; index += 1) {
+    await callContactServer(page, validInquiry(`rate-capacity-seed-${index}`), {
+      e2eRequester: `rate-capacity-requester-${index}`,
+    });
+  }
+
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    await expect(
+      callContactServer(page, validInquiry(`rate-capacity-revisit-${attempt}`), {
+        e2eRequester: 'rate-capacity-requester-0',
+      }),
+    ).resolves.toMatchObject({ ok: true });
+  }
+});
+
+test('evicts the oldest idempotency record deterministically at capacity', async ({ page }) => {
+  await page.goto('/');
+
+  for (let index = 0; index < 9; index += 1) {
+    await callContactServer(page, validInquiry(`idempotency-capacity-${index}`), {
+      e2eRequester: `idempotency-capacity-requester-${index}`,
+    });
+  }
+
+  const firstRequester = { e2eRequester: 'idempotency-capacity-requester-0' };
+  await expect(
+    callContactServer(page, validInquiry('idempotency-capacity-0'), firstRequester),
+  ).resolves.toMatchObject({ ok: true });
+  await expect(
+    callContactServer(page, validInquiry('idempotency-capacity-next-1'), firstRequester),
+  ).resolves.toMatchObject({ ok: true });
+  await expect(
+    callContactServer(page, validInquiry('idempotency-capacity-next-2'), firstRequester),
+  ).resolves.toMatchObject({ ok: false, code: 'RATE_LIMITED' });
+});
+
+test('expires rate entries after 15 minutes and idempotency entries after 24 hours', async ({
+  page,
+}) => {
+  await page.goto('/');
+  const startedAt = Date.now();
+  const rateIdentity = { e2eRequester: 'rate-ttl', now: startedAt };
+
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    await expect(
+      callContactServer(page, validInquiry(`rate-ttl-${attempt}`), rateIdentity),
+    ).resolves.toMatchObject({ ok: true });
+  }
+  await expect(
+    callContactServer(page, validInquiry('rate-ttl-after-window'), {
+      ...rateIdentity,
+      now: startedAt + 15 * 60 * 1_000 + 1,
+    }),
+  ).resolves.toMatchObject({ ok: true });
+
+  const idempotencyIdentity = { e2eRequester: 'idempotency-ttl', now: startedAt };
+  await expect(
+    callContactServer(page, validInquiry('idempotency-ttl-original'), idempotencyIdentity),
+  ).resolves.toMatchObject({ ok: true });
+
+  const afterIdempotencyWindow = startedAt + 24 * 60 * 60 * 1_000 + 1;
+  await expect(
+    callContactServer(page, validInquiry('idempotency-ttl-original'), {
+      ...idempotencyIdentity,
+      now: afterIdempotencyWindow,
+    }),
+  ).resolves.toMatchObject({ ok: true });
+  await expect(
+    callContactServer(page, validInquiry('idempotency-ttl-next'), {
+      ...idempotencyIdentity,
+      now: afterIdempotencyWindow,
+    }),
+  ).resolves.toMatchObject({ ok: true });
+  await expect(
+    callContactServer(page, validInquiry('idempotency-ttl-next-2'), {
+      ...idempotencyIdentity,
+      now: afterIdempotencyWindow,
+    }),
+  ).resolves.toMatchObject({ ok: true });
+  await expect(
+    callContactServer(page, validInquiry('idempotency-ttl-limited'), {
+      ...idempotencyIdentity,
+      now: afterIdempotencyWindow,
+    }),
   ).resolves.toMatchObject({ ok: false, code: 'RATE_LIMITED' });
 });

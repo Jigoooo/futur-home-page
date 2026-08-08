@@ -30,10 +30,11 @@ export function PrivacyContent() {
         <p>회사는 상담 문의 접수 시 다음 항목을 수집합니다.</p>
         <ul>
           <li>
-            <strong>필수</strong>: 담당자명, 이메일 주소, 문의 내용, 필요한 서비스
+            <strong>필수</strong>: 담당자명, 이메일 주소, 문의 내용, 필요한 서비스, 프로젝트 단계,
+            일정, 예산 범위
           </li>
           <li>
-            <strong>선택</strong>: 회사명, 프로젝트 단계, 일정, 예산 범위
+            <strong>선택</strong>: 회사명
           </li>
         </ul>
       </section>

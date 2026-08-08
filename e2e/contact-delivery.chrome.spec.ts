@@ -61,3 +61,17 @@ test('preserves inquiry values and offers direct email when delivery is unavaila
   await expect(form.getByLabel('개인정보 수집·이용에 동의합니다.')).toBeChecked();
   await expect(form.getByLabel('개인정보 국외 이전에 동의합니다.')).toBeChecked();
 });
+
+test('discloses stage, schedule, and budget as required contact fields', async ({ page }) => {
+  await page.goto('/privacy');
+  const collectedItems = page.locator('section').filter({
+    has: page.getByRole('heading', { name: '2. 처리 항목' }),
+  });
+
+  await expect(collectedItems.getByText('필수', { exact: true }).locator('..')).toContainText(
+    '프로젝트 단계, 일정, 예산 범위',
+  );
+  await expect(collectedItems.getByText('선택', { exact: true }).locator('..')).toContainText(
+    '회사명',
+  );
+});

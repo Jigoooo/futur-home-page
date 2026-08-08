@@ -14,8 +14,11 @@ const FORM_MIN_AGE_MS = 3_000;
 const FORM_MAX_AGE_MS = 2 * 60 * 60 * 1_000;
 const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1_000;
 const RATE_LIMIT_MAX = 3;
+const IDEMPOTENCY_WINDOW_MS = 24 * 60 * 60 * 1_000;
+const DEFAULT_RATE_LIMIT_CAPACITY = 4_096;
+const DEFAULT_IDEMPOTENCY_CAPACITY = 8_192;
 const rateLimitEntries = new Map<string, number[]>();
-const deliveredSubmissions = new Map<string, ContactInquiryResult>();
+const deliveredSubmissions = new Map<string, { expiresAt: number; result: ContactInquiryResult }>();
 
 const stageIds = new Set<string>(briefStages.map(({ value }) => value));
 const timelineIds = new Set<string>(timelineOptions.map(({ value }) => value));
@@ -77,27 +80,83 @@ function getRateLimitSalt() {
   return null;
 }
 
-function getRequesterKey(salt: string) {
-  const headers = getRequestHeaders();
-  const requester =
-    getRequestIP({ xForwardedFor: true }) ||
-    headers.get('cf-connecting-ip') ||
-    headers.get('user-agent') ||
-    'unknown-requester';
-  return createHmac('sha256', salt).update(requester).digest('hex');
+function getPositiveIntegerEnvironmentValue(name: string, fallback: number) {
+  const value = Number(process.env[name]);
+  return Number.isSafeInteger(value) && value > 0 ? value : fallback;
 }
 
-function consumeRateLimit(key: string) {
-  const now = Date.now();
-  const attempts = (rateLimitEntries.get(key) ?? []).filter(
-    (timestamp) => now - timestamp < RATE_LIMIT_WINDOW_MS,
-  );
+function getRequestTime(headers: Headers) {
+  if (process.env.PLAYWRIGHT_E2E !== '1') return Date.now();
+
+  const e2eNow = Number(headers.get('x-contact-e2e-now'));
+  return Number.isFinite(e2eNow) ? e2eNow : Date.now();
+}
+
+function getRequesterIdentity(headers: Headers) {
+  if (process.env.PLAYWRIGHT_E2E === '1') {
+    const e2eRequester = headers.get('x-contact-e2e-requester');
+    if (e2eRequester) return `e2e:${e2eRequester}`;
+  }
+
+  const clientAddress =
+    process.env.CONTACT_TRUST_PROXY === '1'
+      ? getRequestIP({ xForwardedFor: true })
+      : getRequestIP();
+
+  return `client:${clientAddress || 'unavailable'}`;
+}
+
+function getRequesterContext(salt: string) {
+  const headers = getRequestHeaders();
+  const identity = getRequesterIdentity(headers);
+
+  return {
+    key: createHmac('sha256', salt).update(identity).digest('hex'),
+    now: getRequestTime(headers),
+  };
+}
+
+function evictOldestEntries<K, V>(store: Map<K, V>, capacity: number) {
+  while (store.size >= capacity) {
+    const oldestKey = store.keys().next().value as K | undefined;
+    if (oldestKey === undefined) return;
+    store.delete(oldestKey);
+  }
+}
+
+function evictExpiredEntries(now: number) {
+  for (const [key, timestamps] of rateLimitEntries) {
+    const activeTimestamps = timestamps.filter(
+      (timestamp) => now - timestamp < RATE_LIMIT_WINDOW_MS,
+    );
+
+    if (activeTimestamps.length === 0) rateLimitEntries.delete(key);
+    else if (activeTimestamps.length !== timestamps.length) {
+      rateLimitEntries.set(key, activeTimestamps);
+    }
+  }
+
+  for (const [key, entry] of deliveredSubmissions) {
+    if (entry.expiresAt <= now) deliveredSubmissions.delete(key);
+  }
+}
+
+function consumeRateLimit(key: string, now: number) {
+  const attempts = rateLimitEntries.get(key) ?? [];
 
   if (attempts.length >= RATE_LIMIT_MAX) {
-    rateLimitEntries.set(key, attempts);
     return false;
   }
 
+  if (!rateLimitEntries.has(key)) {
+    evictOldestEntries(
+      rateLimitEntries,
+      getPositiveIntegerEnvironmentValue(
+        'CONTACT_RATE_LIMIT_CAPACITY',
+        DEFAULT_RATE_LIMIT_CAPACITY,
+      ),
+    );
+  }
   attempts.push(now);
   rateLimitEntries.set(key, attempts);
   return true;
@@ -118,12 +177,13 @@ export async function deliverContactInquiry(input: unknown): Promise<ContactInqu
     };
   }
 
-  const requesterKey = getRequesterKey(salt);
-  const deduplicationKey = `${requesterKey}:${input.submissionId}`;
-  const previousResult = deliveredSubmissions.get(deduplicationKey);
-  if (previousResult) return previousResult;
+  const requester = getRequesterContext(salt);
+  evictExpiredEntries(requester.now);
+  const deduplicationKey = `${requester.key}:${input.submissionId}`;
+  const previousSubmission = deliveredSubmissions.get(deduplicationKey);
+  if (previousSubmission) return previousSubmission.result;
 
-  if (!consumeRateLimit(requesterKey)) {
+  if (!consumeRateLimit(requester.key, requester.now)) {
     return {
       ok: false,
       code: 'RATE_LIMITED',
@@ -152,6 +212,16 @@ export async function deliverContactInquiry(input: unknown): Promise<ContactInqu
     submissionId: input.submissionId,
     message: '문의가 정상적으로 접수되었습니다.',
   } satisfies ContactInquiryResult;
-  deliveredSubmissions.set(deduplicationKey, result);
+  evictOldestEntries(
+    deliveredSubmissions,
+    getPositiveIntegerEnvironmentValue(
+      'CONTACT_IDEMPOTENCY_CAPACITY',
+      DEFAULT_IDEMPOTENCY_CAPACITY,
+    ),
+  );
+  deliveredSubmissions.set(deduplicationKey, {
+    expiresAt: requester.now + IDEMPOTENCY_WINDOW_MS,
+    result,
+  });
   return result;
 }

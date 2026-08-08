@@ -28,7 +28,7 @@ export function LandingPage() {
   return (
     <>
       <CustomCursor />
-      <main ref={pageRef} className={sharedStyles.page} data-landing-page>
+      <main ref={pageRef} id='landing-page-content' className={sharedStyles.page} data-landing-page>
         <HeaderSection />
         <HeroSection />
         <TrustSection />

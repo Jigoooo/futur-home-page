@@ -1,7 +1,7 @@
 @keyframes heroIn {
   from {
     opacity: 0;
-    transform: translateY(22px);
+    transform: translateY(16px);
   }
   to {
     opacity: 1;
@@ -25,7 +25,7 @@
 .heroCopy p,
 .heroActions,
 .heroPoints {
-  animation: heroIn 0.7s var(--ease) both;
+  animation: heroIn 500ms var(--ease-out) both;
 }
 
 .eyebrow {
@@ -104,6 +104,7 @@
   border-radius: 46px;
   background: #ffffff;
   box-shadow: var(--shadow);
+  animation: heroIn 500ms var(--ease-out) 320ms both;
 }
 
 .mapHeader {
@@ -243,6 +244,10 @@
   .heroCopy p,
   .heroActions,
   .heroPoints {
+    animation: none;
+  }
+
+  .heroVisual {
     animation: none;
   }
 }

@@ -22,11 +22,13 @@
   color: #5d6c87;
   font-size: 12px;
   font-weight: 900;
+  transition: none;
 }
 .tabs button[aria-selected='true'] {
   border-color: var(--navy);
-  background: var(--navy);
-  color: #ffffff;
+  background: #ffffff;
+  box-shadow: inset 0 0 0 1px var(--navy);
+  color: var(--navy);
 }
 .tabs button:focus-visible {
   outline: 3px solid rgba(47, 107, 255, 0.24);
@@ -161,7 +163,7 @@
   font-size: 12px;
 }
 .artifactTopbar i {
-  color: #7888a4;
+  color: #586983;
   font-size: 9px;
   font-style: normal;
   font-weight: 950;
@@ -180,7 +182,7 @@
   text-align: center;
 }
 .artifactColumns dt {
-  color: #7386a7;
+  color: #546887;
   font-size: 8px;
   font-weight: 800;
 }
@@ -214,7 +216,7 @@
   font-size: 12px;
 }
 .artifactRow span {
-  color: #76849e;
+  color: #596984;
   font-size: 10px;
 }
 .artifactTable {
@@ -227,7 +229,7 @@
 }
 .artifactTable thead th {
   padding: 0 12px 3px;
-  color: #7386a7;
+  color: #546887;
   font-weight: 800;
   text-align: left;
 }
@@ -248,7 +250,7 @@
 .artifactTable tbody td:last-child {
   border-right: 1px solid #e2e9f4;
   border-radius: 0 13px 13px 0;
-  color: #76849e;
+  color: #596984;
 }
 .sideNote {
   display: flex;
@@ -275,7 +277,7 @@
 }
 .sideNote small {
   margin-top: 3px;
-  color: #78849b;
+  color: #59677d;
   font-size: 11px;
 }
 

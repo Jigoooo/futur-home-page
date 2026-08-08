@@ -22,13 +22,13 @@
   background: linear-gradient(180deg, #ffffff, #fbfdff);
   box-shadow: var(--shadow-soft);
   transition:
-    transform 0.34s var(--spring),
-    box-shadow 0.34s ease,
-    border-color 0.34s ease;
+    transform var(--motion-hover) var(--ease-out),
+    box-shadow var(--motion-hover) ease,
+    border-color var(--motion-hover) ease;
 }
 
 .roleCard:hover {
-  transform: translateY(-10px);
+  transform: translateY(-2px);
   border-color: color-mix(in srgb, var(--accent) 28%, #dfe8f5);
   box-shadow: var(--shadow-hover);
 }
@@ -57,16 +57,16 @@
   place-items: center;
   border-radius: 19px;
   background: #eef5ff;
-  color: var(--accent);
+  color: var(--blue);
   font-size: 13px;
   font-weight: 1000;
   transition:
-    transform 0.3s var(--spring),
-    background 0.25s ease;
+    transform var(--motion-hover) var(--ease-out),
+    background var(--motion-hover) ease;
 }
 
 .roleCard:hover .roleBadge {
-  transform: rotate(-6deg) scale(1.06);
+  transform: translateY(-2px);
   background: #ffffff;
   box-shadow: 0 14px 28px color-mix(in srgb, var(--accent) 16%, transparent);
 }
@@ -123,13 +123,13 @@
   padding: 7px 9px;
   border-radius: 999px;
   background: #f3f7ff;
-  color: #62748f;
+  color: #5d6d87;
   font-size: 11px;
   font-weight: 950;
   transition:
-    transform 0.22s var(--spring),
-    background 0.22s ease,
-    color 0.22s ease;
+    transform var(--motion-hover) var(--ease-out),
+    background var(--motion-hover) ease,
+    color var(--motion-hover) ease;
 }
 
 .roleCard:hover .tag {

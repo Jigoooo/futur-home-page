@@ -17,11 +17,11 @@
   border-radius: 999px;
   background: rgba(47, 107, 255, 0.05);
   transition:
-    width 0.26s var(--spring),
-    height 0.26s var(--spring),
-    border-color 0.26s ease,
-    background 0.26s ease,
-    opacity 0.2s ease;
+    width var(--motion-hover) var(--ease-out),
+    height var(--motion-hover) var(--ease-out),
+    border-color var(--motion-hover) ease,
+    background var(--motion-hover) ease,
+    opacity var(--motion-hover) var(--ease-out);
 }
 
 .cursorDot {
@@ -30,7 +30,7 @@
   height: 7px;
   border-radius: 999px;
   background: var(--blue);
-  transition: opacity 0.2s ease;
+  transition: opacity var(--motion-hover) var(--ease-out);
 }
 
 .cursorAura span {
@@ -45,8 +45,8 @@
   letter-spacing: 0.065em;
   white-space: nowrap;
   transition:
-    opacity 0.16s ease,
-    transform 0.18s var(--spring);
+    opacity var(--motion-hover) ease,
+    transform var(--motion-hover) var(--ease-out);
 }
 
 :global(body[data-landing-cursor-ready='true']:not([data-landing-cursor-muted='true'])) .cursorAura,
@@ -80,9 +80,9 @@
 }
 
 @media (pointer: fine) {
-  :global(html[data-landing-cursor-enabled='true']),
-  :global(html[data-landing-cursor-enabled='true'] body),
-  :global(html[data-landing-cursor-enabled='true'] *) {
+  :global(html[data-landing-cursor-enabled='true']:has(body[data-landing-cursor-ready='true'])),
+  :global(html[data-landing-cursor-enabled='true'] body[data-landing-cursor-ready='true']),
+  :global(html[data-landing-cursor-enabled='true'] body[data-landing-cursor-ready='true'] *) {
     cursor: none !important;
   }
 }

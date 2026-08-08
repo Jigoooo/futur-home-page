@@ -86,10 +86,10 @@
   text-align: left;
   box-shadow: 0 8px 22px rgba(31, 54, 105, 0.035);
   transition:
-    transform 0.28s var(--spring),
-    border-color 0.28s ease,
-    box-shadow 0.28s ease,
-    background 0.28s ease;
+    transform var(--motion-hover) var(--ease-out),
+    border-color var(--motion-hover) ease,
+    box-shadow var(--motion-hover) ease,
+    background var(--motion-hover) ease;
 }
 
 .stageCard::after {
@@ -103,7 +103,7 @@
   background: linear-gradient(180deg, #1e4dc4, #4f7ee8);
   transform: translateY(-50%) scaleY(0);
   transform-origin: center;
-  transition: transform 0.28s var(--ease);
+  transition: transform var(--motion-hover) var(--ease-out);
 }
 
 .stageIndex {
@@ -118,9 +118,9 @@
   font-size: 12px;
   font-weight: 1000;
   transition:
-    transform 0.28s var(--spring),
-    background 0.28s ease,
-    color 0.28s ease;
+    transform var(--motion-hover) var(--ease-out),
+    background var(--motion-hover) ease,
+    color var(--motion-hover) ease;
 }
 
 .stageCard strong {
@@ -139,7 +139,7 @@
 }
 
 .stageChoice:hover .stageCard {
-  transform: translateX(4px);
+  transform: translateX(2px);
   border-color: #cfdff8;
   box-shadow: 0 16px 38px rgba(31, 54, 105, 0.065);
 }
@@ -186,11 +186,11 @@
   line-height: 1.35;
   text-align: left;
   transition:
-    transform 0.24s var(--spring),
-    background 0.24s ease,
-    border-color 0.24s ease,
-    color 0.24s ease,
-    box-shadow 0.24s ease;
+    transform var(--motion-hover) var(--ease-out),
+    background var(--motion-hover) ease,
+    border-color var(--motion-hover) ease,
+    color var(--motion-hover) ease,
+    box-shadow var(--motion-hover) ease;
 }
 
 .checkBox {
@@ -202,9 +202,9 @@
   border-radius: 9px;
   background: #ffffff;
   transition:
-    background 0.2s ease,
-    border-color 0.2s ease,
-    box-shadow 0.2s ease;
+    background var(--motion-hover) ease,
+    border-color var(--motion-hover) ease,
+    box-shadow var(--motion-hover) ease;
 }
 
 .checkBox svg {
@@ -215,11 +215,11 @@
   stroke-width: 3;
   stroke-dasharray: 22;
   stroke-dashoffset: 22;
-  transition: stroke-dashoffset 0.22s var(--ease);
+  transition: stroke-dashoffset var(--motion-hover) var(--ease-out);
 }
 
 .checkTile:hover .checkUi {
-  transform: translateY(-3px);
+  transform: translateY(-2px);
   border-color: #d5e2f5;
   background: #ffffff;
   box-shadow: 0 12px 28px rgba(41, 63, 111, 0.065);
@@ -311,9 +311,9 @@
   color: #182448;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.88);
   transition:
-    border-color 0.2s ease,
-    box-shadow 0.2s ease,
-    background 0.2s ease;
+    border-color var(--motion-hover) ease,
+    box-shadow var(--motion-hover) ease,
+    background var(--motion-hover) ease;
 }
 
 .input {
@@ -379,9 +379,9 @@
     0 10px 26px rgba(31, 54, 105, 0.045),
     inset 0 1px 0 rgba(255, 255, 255, 0.92);
   transition:
-    border-color 0.2s ease,
-    box-shadow 0.2s ease,
-    background 0.2s ease;
+    border-color var(--motion-hover) ease,
+    box-shadow var(--motion-hover) ease,
+    background var(--motion-hover) ease;
 }
 
 .selectTrigger:hover {
@@ -422,9 +422,9 @@
   background: #edf4ff;
   color: #2c62d9;
   transition:
-    transform 0.24s var(--spring),
-    background 0.2s ease,
-    color 0.2s ease;
+    transform var(--motion-disclosure-enter) var(--ease-out),
+    background var(--motion-hover) ease,
+    color var(--motion-hover) ease;
 }
 
 .selectArrow svg {
@@ -459,9 +459,9 @@
   transform: translateY(-6px) scale(0.98);
   transform-origin: top;
   transition:
-    opacity 0.18s ease,
-    visibility 0.18s ease,
-    transform 0.22s var(--ease);
+    opacity var(--motion-disclosure-exit) var(--ease-out),
+    visibility 0s linear var(--motion-disclosure-exit),
+    transform var(--motion-disclosure-exit) var(--ease-out);
 }
 
 .customSelect.isUp .selectMenu {
@@ -475,6 +475,13 @@
   opacity: 1;
   visibility: visible;
   transform: translateY(0) scale(1);
+  transition-duration: var(--motion-disclosure-enter), 0s, var(--motion-disclosure-enter);
+  transition-delay: 0s;
+}
+
+.customSelect.keyboardOpen .selectArrow,
+.customSelect.keyboardOpen .selectMenu {
+  transition-duration: 0s;
 }
 
 .selectOption {
@@ -651,7 +658,7 @@
   border-color: var(--error);
   background: #fff;
   box-shadow: 0 0 0 4px var(--error-soft);
-  animation: fieldShake 0.4s var(--spring);
+  animation: fieldShake 220ms var(--ease-out);
 }
 
 .input.invalid:focus-visible,
@@ -664,7 +671,7 @@
 .consent.invalid .checkUi {
   border-color: var(--error);
   box-shadow: 0 0 0 4px var(--error-soft);
-  animation: fieldShake 0.4s var(--spring);
+  animation: fieldShake 220ms var(--ease-out);
 }
 
 .fieldError {

@@ -116,27 +116,33 @@
 }
 
 .reveal {
-  opacity: 0;
-  transition:
-    opacity 0.72s var(--ease),
-    transform 0.72s var(--ease);
-  will-change: opacity, transform;
+  transition: transform 500ms var(--ease-out);
+  will-change: transform;
 }
 
 .revealUp {
-  transform: translate3d(0, 38px, 0);
+  transform: translate3d(0, 16px, 0);
 }
 
 .revealLeft {
-  transform: translateX(-28px);
+  transform: translateX(-16px);
 }
 
 .revealRight {
-  transform: translateX(28px);
+  transform: translateX(16px);
+}
+
+.page [data-landing-interactive] {
+  transition-duration: var(--motion-hover);
+}
+
+.page [data-landing-interactive]:active {
+  transform: scale(0.97);
+  transition-duration: var(--motion-press);
+  transition-timing-function: var(--ease-out);
 }
 
 .reveal[data-landing-visible='true'] {
-  opacity: 1;
   transform: translate3d(0, 0, 0);
 }
 
@@ -209,6 +215,11 @@
 @media (prefers-reduced-motion: reduce) {
   .reveal {
     opacity: 1 !important;
+    transform: none !important;
+  }
+
+  .page [data-landing-interactive],
+  .page [data-landing-interactive]:active {
     transform: none !important;
   }
 }

@@ -10,18 +10,16 @@
   pointer-events: auto;
   touch-action: none;
   transition:
-    background 0.18s ease,
-    opacity 0.18s ease,
-    width 0.18s var(--spring);
+    background var(--motion-disclosure-enter) ease,
+    opacity var(--motion-disclosure-enter) var(--ease-out);
 }
 
-.track[data-visible="true"] {
+.track[data-visible='true'] {
   opacity: 0.84;
 }
 
-.track[data-hovered="true"],
-.track[data-dragging="true"] {
-  width: 14px;
+.track[data-hovered='true'],
+.track[data-dragging='true'] {
   background: rgba(13, 31, 70, 0.06);
   opacity: 1;
 }
@@ -39,24 +37,27 @@
   cursor: pointer;
   touch-action: none;
   transition:
-    width 0.18s var(--spring),
-    background 0.18s ease,
-    box-shadow 0.18s ease;
+    background var(--motion-disclosure-enter) ease,
+    box-shadow var(--motion-disclosure-enter) ease;
 }
 
-.track[data-hovered="true"] .thumb {
-  width: 8px;
+.track[data-hovered='true'] .thumb {
   background: rgba(7, 24, 63, 0.38);
 }
 
-.track[data-dragging="true"] .thumb {
-  width: 10px;
+.track[data-dragging='true'] .thumb {
   background: #1e4dc4;
   box-shadow: 0 6px 18px rgba(47, 107, 255, 0.22);
 }
 
-@media (max-width: 900px), (pointer: coarse), (prefers-reduced-motion: reduce) {
+@media (max-width: 900px), (pointer: coarse) {
   .track {
     display: none;
   }
+}
+
+.track:focus-visible {
+  outline: 3px solid rgba(47, 107, 255, 0.32);
+  outline-offset: 3px;
+  opacity: 1;
 }

@@ -7,15 +7,13 @@ import styles from './styles/faq.module.css';
 import sharedStyles from './styles/shared.module.css';
 
 export function FaqSection() {
-  const [openSet, setOpenSet] = useState<Set<number>>(() => new Set([0]));
+  const [openItems, setOpenItems] = useState<number[]>([0]);
+  const [keyboardToggle, setKeyboardToggle] = useState<number | null>(null);
 
   const toggle = (index: number) => {
-    setOpenSet((prev) => {
-      const next = new Set(prev);
-      if (next.has(index)) next.delete(index);
-      else next.add(index);
-      return next;
-    });
+    setOpenItems((current) =>
+      current.includes(index) ? current.filter((item) => item !== index) : [...current, index],
+    );
   };
 
   return (
@@ -40,18 +38,28 @@ export function FaqSection() {
           data-landing-reveal='up'
         >
           {faqItems.map((item, index) => {
-            const isOpen = openSet.has(index);
+            const isOpen = openItems.includes(index);
             const buttonId = `faq-button-${index}`;
             const panelId = `faq-panel-${index}`;
             return (
-              <div key={item.question} className={cx(styles.item, isOpen && styles.itemOpen)}>
+              <div
+                key={item.question}
+                className={cx(
+                  styles.item,
+                  isOpen && styles.itemOpen,
+                  keyboardToggle === index && styles.keyboardToggle,
+                )}
+              >
                 <button
                   type='button'
                   id={buttonId}
                   className={styles.summary}
                   aria-expanded={isOpen}
                   aria-controls={panelId}
-                  onClick={() => toggle(index)}
+                  onClick={(event) => {
+                    setKeyboardToggle(event.detail === 0 ? index : null);
+                    toggle(index);
+                  }}
                 >
                   <span className={styles.question}>{item.question}</span>
                   <span className={styles.toggle} aria-hidden='true'>
@@ -62,7 +70,8 @@ export function FaqSection() {
                   id={panelId}
                   aria-labelledby={buttonId}
                   className={styles.panel}
-                  aria-hidden={!isOpen}
+                  hidden={!isOpen}
+                  inert={!isOpen ? true : undefined}
                 >
                   <div className={styles.panelInner}>
                     <p className={styles.answer}>{item.answer}</p>

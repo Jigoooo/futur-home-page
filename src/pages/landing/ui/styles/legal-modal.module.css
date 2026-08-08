@@ -7,6 +7,12 @@
   }
 }
 
+@keyframes legalModalFadeOut {
+  to {
+    opacity: 0;
+  }
+}
+
 @keyframes legalModalShellIn {
   from {
     opacity: 0;
@@ -18,17 +24,30 @@
   }
 }
 
+@keyframes legalModalShellOut {
+  to {
+    opacity: 0;
+    transform: translate3d(0, 8px, 0) scale(0.985);
+  }
+}
+
 .backdrop {
   position: fixed;
   inset: 0;
   z-index: 2147483600;
   display: grid;
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  max-height: none;
+  margin: 0;
+  border: 0;
   place-items: center;
   padding: 24px;
   background: rgba(7, 24, 63, 0.42);
   -webkit-backdrop-filter: blur(6px);
   backdrop-filter: blur(6px);
-  animation: legalModalFadeIn 180ms ease-out both;
+  animation: legalModalFadeIn var(--motion-modal-enter) var(--ease-out) both;
   cursor: auto;
 }
 
@@ -58,7 +77,16 @@
   border-radius: 28px;
   box-shadow: 0 38px 96px rgba(20, 38, 80, 0.22);
   overflow: hidden;
-  animation: legalModalShellIn 240ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: legalModalShellIn var(--motion-modal-enter) var(--ease-out) both;
+}
+
+.backdrop[data-state='closed'] {
+  pointer-events: none;
+  animation: legalModalFadeOut var(--motion-modal-exit) var(--ease-out) both;
+}
+
+.backdrop[data-state='closed'] .shell {
+  animation: legalModalShellOut var(--motion-modal-exit) var(--ease-out) both;
 }
 
 .head {
@@ -94,15 +122,27 @@
     transform 160ms ease;
 }
 
-.closeButton:hover {
-  border-color: #c7d4ee;
-  color: #07183f;
-  transform: translateY(-1px);
+@media (hover: hover) and (pointer: fine) {
+  .closeButton:hover {
+    border-color: #c7d4ee;
+    color: #07183f;
+    transform: translateY(-1px);
+  }
 }
 
 .closeButton:focus-visible {
   outline: 2px solid #1e4dc4;
   outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .backdrop,
+  .backdrop[data-state='closed'],
+  .shell,
+  .backdrop[data-state='closed'] .shell {
+    animation-name: legalModalFadeIn;
+    animation-duration: var(--motion-modal-exit);
+  }
 }
 
 .body {

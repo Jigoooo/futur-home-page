@@ -14,7 +14,6 @@ html:not([data-style-gate='ready']) body {
 html[data-style-gate='ready'] .style-gate-app {
   opacity: 1;
   pointer-events: auto;
-  transition: opacity 160ms ease;
 }
 
 .style-gate-loader {
@@ -157,34 +156,13 @@ html[data-style-gate='ready'] .style-gate-card {
   height: 6px;
   border-radius: 999px;
   background: #2f6bff;
-  opacity: 0.35;
-  animation: styleGateDotPulse 1.4s ease-in-out infinite;
-}
-
-.style-gate-dots i:nth-child(2) {
-  animation-delay: 0.18s;
-}
-
-.style-gate-dots i:nth-child(3) {
-  animation-delay: 0.36s;
+  opacity: 0.6;
 }
 
 @keyframes styleGateCopyIn {
   to {
     opacity: 1;
     transform: translate3d(0, 0, 0);
-  }
-}
-
-@keyframes styleGateDotPulse {
-  0%,
-  100% {
-    opacity: 0.35;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 1;
-    transform: scale(1.2);
   }
 }
 

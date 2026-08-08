@@ -15,13 +15,13 @@
   font-weight: 1000;
   box-shadow: 0 14px 34px rgba(28, 50, 94, 0.12);
   transition:
-    transform 0.28s var(--spring),
-    background 0.28s ease,
-    color 0.28s ease;
+    transform var(--motion-hover) var(--ease-out),
+    background var(--motion-hover) ease,
+    color var(--motion-hover) ease;
 }
 
 .scrollTop:hover {
-  transform: translateY(-5px);
+  transform: translateY(-2px);
   background: var(--navy);
   color: #ffffff;
 }

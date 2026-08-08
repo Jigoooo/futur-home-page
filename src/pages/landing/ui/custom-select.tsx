@@ -1,5 +1,5 @@
 import { ChevronDown } from 'lucide-react';
-import { useEffect, useId, useRef, useState, type KeyboardEvent } from 'react';
+import { useEffect, useId, useLayoutEffect, useRef, useState, type KeyboardEvent } from 'react';
 
 import type { SelectOption } from '../model/types';
 import { cx } from './lib/cx';
@@ -41,6 +41,7 @@ export function CustomSelect({ label, name, value, options, onChange }: CustomSe
   const [isOpen, setIsOpen] = useState(false);
   const [focusedIndex, setFocusedIndex] = useState(selectedIndex);
   const [placement, setPlacement] = useState<'down' | 'up'>('down');
+  const [keyboardOpen, setKeyboardOpen] = useState(false);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -56,11 +57,16 @@ export function CustomSelect({ label, name, value, options, onChange }: CustomSe
     setIsOpen(false);
   };
 
-  const openSelect = () => {
+  const openSelect = (fromKeyboard: boolean) => {
     setFocusedIndex(selectedIndex);
-    updateSelectPlacement(triggerRef.current, menuRef.current, setPlacement);
+    setKeyboardOpen(fromKeyboard);
     setIsOpen(true);
   };
+
+  useLayoutEffect(() => {
+    if (!isOpen) return;
+    updateSelectPlacement(triggerRef.current, menuRef.current, setPlacement);
+  }, [isOpen]);
 
   useEffect(() => {
     if (!isOpen) return undefined;
@@ -96,7 +102,7 @@ export function CustomSelect({ label, name, value, options, onChange }: CustomSe
     }
 
     if (!isOpen) {
-      openSelect();
+      openSelect(true);
       return;
     }
 
@@ -140,11 +146,13 @@ export function CustomSelect({ label, name, value, options, onChange }: CustomSe
         className={cx(
           styles.customSelect,
           isOpen && styles.isOpen,
+          keyboardOpen && styles.keyboardOpen,
           placement === 'up' && styles.isUp,
         )}
         data-landing-cursor-soft
       >
         <input type='hidden' name={name} value={value} />
+        {/* eslint-disable-next-line jsx-a11y/prefer-tag-over-role -- custom single-select requires the ARIA combobox interaction contract */}
         <button
           ref={triggerRef}
           type='button'
@@ -162,7 +170,7 @@ export function CustomSelect({ label, name, value, options, onChange }: CustomSe
               return;
             }
 
-            openSelect();
+            openSelect(false);
           }}
           onKeyDown={handleKeyDown}
         >
@@ -173,15 +181,18 @@ export function CustomSelect({ label, name, value, options, onChange }: CustomSe
             <ChevronDown strokeWidth={2.2} />
           </span>
         </button>
+        {/* eslint-disable-next-line jsx-a11y/prefer-tag-over-role -- popup options are owned by the custom combobox trigger */}
         <ul
           ref={menuRef}
           id={listboxId}
           className={styles.selectMenu}
           role='listbox'
           aria-labelledby={labelId}
+          aria-hidden={!isOpen}
+          inert={!isOpen ? true : undefined}
         >
           {options.map((option, optionIndex) => (
-            // eslint-disable-next-line jsx-a11y/click-events-have-key-events -- combobox 패턴: 키보드 처리는 trigger 버튼의 handleKeyDown이 담당, 옵션은 tabIndex=-1로 포커스 받지 않음
+            // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/prefer-tag-over-role -- combobox 패턴: 키보드 처리는 trigger 버튼의 handleKeyDown이 담당, 옵션은 tabIndex=-1로 포커스 받지 않음
             <li
               key={option.value}
               id={`${id}-option-${optionIndex}`}

@@ -1,4 +1,4 @@
-import { useRef, useState, type KeyboardEvent } from 'react';
+import { useLayoutEffect, useRef, useState, type KeyboardEvent, type MouseEvent } from 'react';
 
 import { caseStories } from '../config';
 import { Lines } from '../lib/line-breaks';
@@ -62,12 +62,47 @@ function ArtifactBoard({ story }: { story: (typeof caseStories)[number] }) {
 export function CaseStoriesSection() {
   const [activeKey, setActiveKey] = useState<CaseStoryKey>('web');
   const tabRefs = useRef<Array<HTMLButtonElement | null>>([]);
+  const recordListRef = useRef<HTMLDivElement>(null);
+  const tabAnimationRef = useRef<Animation | null>(null);
+  const motionDirectionRef = useRef(1);
+  const shouldAnimateRef = useRef(false);
+
+  const selectTab = (key: CaseStoryKey, animate: boolean) => {
+    const currentIndex = caseStories.findIndex((story) => story.key === activeKey);
+    const nextIndex = caseStories.findIndex((story) => story.key === key);
+    motionDirectionRef.current = nextIndex >= currentIndex ? 1 : -1;
+    shouldAnimateRef.current = animate;
+    if (!animate) tabAnimationRef.current?.cancel();
+    setActiveKey(key);
+  };
+
+  useLayoutEffect(() => {
+    const recordList = recordListRef.current;
+    if (!recordList || !shouldAnimateRef.current) return;
+    shouldAnimateRef.current = false;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    tabAnimationRef.current?.cancel();
+    tabAnimationRef.current = recordList.animate(
+      [
+        { transform: `translate3d(${motionDirectionRef.current * 12}px, 0, 0)` },
+        { transform: 'translate3d(0, 0, 0)' },
+      ],
+      { duration: 220, easing: 'cubic-bezier(0.77, 0, 0.175, 1)' },
+    );
+
+    return () => tabAnimationRef.current?.cancel();
+  }, [activeKey]);
 
   const activateTabAt = (index: number) => {
     const story = caseStories[index];
     if (!story) return;
-    setActiveKey(story.key);
+    selectTab(story.key, false);
     tabRefs.current[index]?.focus();
+  };
+
+  const handleTabClick = (event: MouseEvent<HTMLButtonElement>, key: CaseStoryKey) => {
+    selectTab(key, event.detail > 0);
   };
 
   const handleTabKeyDown = (event: KeyboardEvent<HTMLButtonElement>, index: number) => {
@@ -113,7 +148,7 @@ export function CaseStoriesSection() {
                 aria-controls={`record-panel-${story.key}`}
                 aria-selected={story.key === activeKey}
                 tabIndex={story.key === activeKey ? 0 : -1}
-                onClick={() => setActiveKey(story.key)}
+                onClick={(event) => handleTabClick(event, story.key)}
                 onKeyDown={(event) => handleTabKeyDown(event, index)}
               >
                 {story.tabLabel}
@@ -121,9 +156,9 @@ export function CaseStoriesSection() {
             ))}
           </div>
         </div>
-        <div className={styles.recordList}>
+        <div ref={recordListRef} className={styles.recordList}>
           {caseStories.map((story, index) => (
-            <article
+            <div
               key={story.key}
               className={cx(styles.record, index === 0 && styles.recordLead)}
               id={`record-panel-${story.key}`}
@@ -166,7 +201,7 @@ export function CaseStoriesSection() {
                   </div>
                 </div>
               </div>
-            </article>
+            </div>
           ))}
         </div>
       </div>

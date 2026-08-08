@@ -17,8 +17,6 @@ export function useCustomCursor({ auraRef, dotRef, labelRef }: UseCustomCursorPa
 
     if (!aura || !dot || !label || reduceMotion || !finePointer) return undefined;
 
-    document.documentElement.dataset.landingCursorEnabled = 'true';
-
     let mouseX = window.innerWidth / 2;
     let mouseY = window.innerHeight / 2;
     let auraX = mouseX;
@@ -26,8 +24,21 @@ export function useCustomCursor({ auraRef, dotRef, labelRef }: UseCustomCursorPa
     let dotX = mouseX;
     let dotY = mouseY;
     let frame = 0;
+    let lastMovementAt = 0;
+
+    const stopRendering = () => {
+      if (!frame) return;
+      window.cancelAnimationFrame(frame);
+      frame = 0;
+      delete document.body.dataset.landingCursorRunning;
+    };
 
     const render = () => {
+      if (document.hidden || performance.now() - lastMovementAt >= 1200) {
+        stopRendering();
+        return;
+      }
+
       auraX += (mouseX - auraX) * 0.17;
       auraY += (mouseY - auraY) * 0.17;
       dotX += (mouseX - dotX) * 0.46;
@@ -35,6 +46,12 @@ export function useCustomCursor({ auraRef, dotRef, labelRef }: UseCustomCursorPa
 
       aura.style.transform = `translate3d(${auraX}px,${auraY}px,0) translate(-50%,-50%)`;
       dot.style.transform = `translate3d(${dotX}px,${dotY}px,0) translate(-50%,-50%)`;
+      frame = window.requestAnimationFrame(render);
+    };
+
+    const startRendering = () => {
+      if (frame || document.hidden) return;
+      document.body.dataset.landingCursorRunning = 'true';
       frame = window.requestAnimationFrame(render);
     };
 
@@ -49,8 +66,11 @@ export function useCustomCursor({ auraRef, dotRef, labelRef }: UseCustomCursorPa
     const handleMove = (event: PointerEvent | MouseEvent) => {
       mouseX = event.clientX;
       mouseY = event.clientY;
+      lastMovementAt = performance.now();
+      document.documentElement.dataset.landingCursorEnabled = 'true';
       delete document.body.dataset.landingCursorMuted;
       document.body.dataset.landingCursorReady = 'true';
+      startRendering();
     };
 
     const handlePointerEnter = (event: Event) => {
@@ -86,6 +106,7 @@ export function useCustomCursor({ auraRef, dotRef, labelRef }: UseCustomCursorPa
     const handleBlur = () => resetCursorState({ mute: true, duration: 520 });
     const handleVisibilityChange = () => {
       if (document.hidden) {
+        stopRendering();
         resetCursorState({ mute: true, duration: 520 });
         return;
       }
@@ -94,7 +115,7 @@ export function useCustomCursor({ auraRef, dotRef, labelRef }: UseCustomCursorPa
     };
     const handlePointerUp = () => window.setTimeout(recoverCursor, 80);
     const handleProtocolLink = () => resetCursorState({ mute: true, duration: 380 });
-    const handleClickablePointerDown = () => resetCursorState();
+    const handleClickablePointerDown = () => resetCursorState({ mute: true, duration: 160 });
 
     const hotTargets = Array.from(document.querySelectorAll<HTMLElement>('[data-cursor-text]'));
     const softTargets = Array.from(
@@ -127,22 +148,20 @@ export function useCustomCursor({ auraRef, dotRef, labelRef }: UseCustomCursorPa
     });
 
     window.addEventListener('pointermove', handleMove, { passive: true });
-    window.addEventListener('mousemove', handleMove, { passive: true });
     window.addEventListener('focus', recoverCursor);
     window.addEventListener('pageshow', recoverCursor);
     window.addEventListener('blur', handleBlur);
     document.addEventListener('pointerup', handlePointerUp, { passive: true });
     document.addEventListener('visibilitychange', handleVisibilityChange);
 
-    frame = window.requestAnimationFrame(render);
-
     return () => {
-      window.cancelAnimationFrame(frame);
+      stopRendering();
       delete document.documentElement.dataset.landingCursorEnabled;
       delete document.body.dataset.landingCursorReady;
       delete document.body.dataset.landingCursorHot;
       delete document.body.dataset.landingCursorSoft;
       delete document.body.dataset.landingCursorMuted;
+      delete document.body.dataset.landingCursorRunning;
 
       hotTargets.forEach((target) => {
         target.removeEventListener('pointerenter', handlePointerEnter);
@@ -160,7 +179,6 @@ export function useCustomCursor({ auraRef, dotRef, labelRef }: UseCustomCursorPa
         target.removeEventListener('pointerdown', handleClickablePointerDown);
       });
       window.removeEventListener('pointermove', handleMove);
-      window.removeEventListener('mousemove', handleMove);
       window.removeEventListener('focus', recoverCursor);
       window.removeEventListener('pageshow', recoverCursor);
       window.removeEventListener('blur', handleBlur);

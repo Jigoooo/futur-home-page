@@ -102,6 +102,7 @@ test('uses qualitative evidence and semantic artifact boards instead of generate
 
 test('does not promise fixed communication cadence or hard support SLAs', async ({ page }) => {
   await page.goto('/');
+  await waitForLandingReady(page);
 
   await expect(
     page.getByText(/일일 단위|매일 업데이트|24\/7|SLA|4시간 내|24시간 이내/),
@@ -208,6 +209,7 @@ test('opens a keyboard-safe mobile disclosure menu and restores trigger focus', 
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/');
+  await waitForLandingReady(page);
 
   const menuButton = page.locator('button[aria-controls="mobile-menu"]');
   await expect(menuButton).toBeVisible();

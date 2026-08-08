@@ -12,19 +12,17 @@ const SECTION_ORDER = [
 ] as const;
 
 const PROJECT_RECORDS = [
-  { tab: '웹 플랫폼', panel: 'record-panel-web', board: '결제·상태 흐름 보드', stack: 'Payment' },
-  { tab: '모바일 앱', panel: 'record-panel-mobile', board: '현장 입력 흐름 보드', stack: 'Expo' },
+  { tab: '웹 플랫폼', panel: 'record-panel-web', board: '결제·상태 흐름 보드' },
+  { tab: '모바일 앱', panel: 'record-panel-mobile', board: '현장 입력 흐름 보드' },
   {
     tab: '업무 시스템',
     panel: 'record-panel-system',
     board: '역할·권한·상태 매트릭스',
-    stack: 'RBAC',
   },
   {
     tab: '연동·자동화',
     panel: 'record-panel-automation',
     board: 'API·재시도·로그 지도',
-    stack: 'Queue',
   },
 ] as const;
 
@@ -38,7 +36,6 @@ async function expectSelectedRecord(page: Page, record: (typeof PROJECT_RECORDS)
   const panel = page.locator(`#${record.panel}`);
   await expect(panel).toBeVisible();
   await expect(panel.getByText(record.board, { exact: true })).toBeVisible();
-  await expect(panel.locator('[data-stack-tag]', { hasText: record.stack })).toBeVisible();
 }
 
 async function waitForLandingReady(page: Page) {
@@ -95,7 +92,12 @@ test('uses qualitative evidence and semantic artifact boards instead of generate
     { tag: 'FIGURE', caption: expect.stringContaining('역할·권한·상태 매트릭스') },
     { tag: 'FIGURE', caption: expect.stringContaining('API·재시도·로그 지도') },
   ]);
-  await expect(page.locator('#cases [data-stack-tag]').first()).toBeVisible();
+  const cases = page.locator('#cases');
+  await expect(cases.locator('[data-stack-tag]')).toHaveCount(0);
+  await expect(cases.getByText(/Payment|Camera|Admin Web|RBAC|Queue/, { exact: true })).toHaveCount(
+    0,
+  );
+  await expect(cases.getByText('STACK', { exact: true })).toHaveCount(0);
 });
 
 test('does not promise fixed communication cadence or hard support SLAs', async ({ page }) => {

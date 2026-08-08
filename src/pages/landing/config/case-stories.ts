@@ -17,7 +17,7 @@ export const caseStories: CaseStory[] = [
       '결과: 운영자가 신청 상태와 처리 이력을 한 화면에서 확인하도록 구성',
     ],
     tags: ['예약 흐름', '관리자 화면', '결제 상태', '운영 개선'],
-    stack: ['React', 'TypeScript', 'API', 'Payment'],
+    stack: [],
     artifact: {
       label: '결제·상태 흐름 보드',
       columns: ['사용자', '결제', '운영'],
@@ -44,7 +44,7 @@ export const caseStories: CaseStory[] = [
       '결과: 관리자 화면과 연결해 진행 상태와 누락 항목을 확인',
     ],
     tags: ['모바일 앱', '사진 업로드', '바코드 스캔', '체크리스트'],
-    stack: ['React Native', 'Expo', 'Camera', 'Admin Web'],
+    stack: [],
     artifact: {
       label: '현장 입력 흐름 보드',
       columns: ['촬영', '스캔', '확인'],
@@ -71,7 +71,7 @@ export const caseStories: CaseStory[] = [
       '결과: 누락 여부와 처리 이력을 같은 화면에서 추적하도록 구성',
     ],
     tags: ['업무 시스템', '권한 관리', '상태 이력', '승인 흐름'],
-    stack: ['React', 'Spring Boot', 'PostgreSQL', 'RBAC'],
+    stack: [],
     artifact: {
       label: '역할·권한·상태 매트릭스',
       columns: ['요청자', '담당자', '관리자'],
@@ -98,7 +98,7 @@ export const caseStories: CaseStory[] = [
       '결과: 실패 로그와 재시도 기준을 함께 관리하도록 구성',
     ],
     tags: ['API 연동', '알림 자동화', '실패 로그', '재시도 기준'],
-    stack: ['Node.js', 'REST API', 'Queue', 'Docker'],
+    stack: [],
     artifact: {
       label: 'API·재시도·로그 지도',
       columns: ['서비스', 'API', '운영'],

@@ -182,14 +182,6 @@ export function CaseStoriesSection() {
                     <span key={tag}>{tag}</span>
                   ))}
                 </div>
-                <div className={styles.stackTags} aria-label='적용 기술'>
-                  <strong>STACK</strong>
-                  {story.stack.map((tag) => (
-                    <span key={tag} data-stack-tag>
-                      {tag}
-                    </span>
-                  ))}
-                </div>
               </div>
               <div className={styles.caseVisual}>
                 <ArtifactBoard story={story} />

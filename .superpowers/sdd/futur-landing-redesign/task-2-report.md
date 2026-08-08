@@ -328,3 +328,67 @@ git diff --check
 ### Fix concerns
 
 - `graphify update .`는 새 추출 1,869 nodes와 기존 10,930 nodes 차이를 감지해 다시 fail-closed로 덮어쓰기를 거부했다. `--force`는 사용하지 않았다.
+
+## Final evidence fix
+
+### Finding addressed
+
+- Project Records에 표시되던 case별 stack tag 영역을 제거했다.
+- `caseStories`의 미검증 stack 값은 모두 빈 배열로 교체해 `Payment`, `Camera`, `Admin Web`, `RBAC`, `Queue` 등 프로젝트별 기술 주장 데이터가 남지 않게 했다.
+- tab 공통 assertion에서 stack tag 요구를 제거하고, Project Records 안에 stack tag/`STACK` 레이블/금지된 case-specific stack 문구가 없음을 검증한다.
+
+### RED evidence
+
+명령:
+
+```bash
+pnpm exec playwright test --config playwright.task-2.config.ts --grep "qualitative evidence"
+```
+
+프로덕션 수정 전 결과: exit 1, 1 failed.
+
+- `[data-stack-tag]` expected 0, received 16으로 실패했다.
+
+### GREEN evidence
+
+독립 회귀 테스트:
+
+```bash
+pnpm exec playwright test --config playwright.task-2.config.ts --grep "qualitative evidence"
+```
+
+결과: exit 0, `1 passed (3.5s)`.
+
+전체 Task 2 suite:
+
+```bash
+pnpm exec playwright test --config playwright.task-2.config.ts
+```
+
+결과: exit 0, `11 passed (8.4s)`.
+
+추가 검증:
+
+```bash
+pnpm exec eslint e2e/landing-evidence.chrome.spec.ts src/pages/landing/config/case-stories.ts src/pages/landing/ui/case-stories-section.tsx
+pnpm exec tsc -b --pretty false
+pnpm build
+git diff --check
+```
+
+- targeted lint: exit 0, 출력 없음.
+- typecheck: exit 0, 출력 없음.
+- build: exit 0, client/SSR/Nitro 성공.
+- diff check: exit 0, 출력 없음.
+
+### Fix files
+
+- `.superpowers/sdd/futur-landing-redesign/task-2-report.md`
+- `e2e/landing-evidence.chrome.spec.ts`
+- `src/pages/landing/config/case-stories.ts`
+- `src/pages/landing/ui/case-stories-section.tsx`
+
+### Concerns
+
+- `graphify update .`는 새 추출 1,847 nodes와 기존 10,930 nodes 차이를 감지해 fail-closed로 덮어쓰기를 거부했다. `--force`는 사용하지 않았다.
+- 다른 agent/user의 contact server, motion test, CI/Playwright 변경은 보존하고 stage하지 않았다.

@@ -15,7 +15,7 @@ function ArtifactBoard({ story }: { story: (typeof caseStories)[number] }) {
       <figcaption className={styles.artifactTopbar}>
         <span>{story.icon}</span>
         <strong>{story.artifact.label}</strong>
-        <i>STRUCTURE</i>
+        <i aria-hidden='true'>STRUCTURE</i>
       </figcaption>
       <dl className={styles.artifactColumns} aria-label={`${story.artifact.label} 속성`}>
         {story.artifact.columns.map((column, index) => (

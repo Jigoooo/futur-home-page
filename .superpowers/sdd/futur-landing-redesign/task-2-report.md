@@ -198,3 +198,62 @@ git diff --check
 ### Fix concerns
 
 - `graphify update .`는 재실행했지만 이전과 동일하게 새 추출 1,866 nodes와 기존 10,930 nodes 차이를 감지해 fail-closed로 종료했다. 강제 덮어쓰기는 하지 않았다.
+
+## Fix round 2/5
+
+### Findings addressed
+
+- artifact board의 `STRUCTURE` 레이블만 `aria-hidden='true'`로 처리하고, 실제 프로젝트 데이터인 `<dl>`, `<ol>`, `<table>`은 접근성 트리에 유지했다.
+- blanket `aria-hidden` 0건 검사를 제거했다. 대신 장식 레이블은 숨겨져야 하고, 속성·흐름·권한 상태 데이터에는 `aria-hidden`이 없어야 한다는 계약을 각각 검증한다.
+- 네 Project Record의 pointer/keyboard 검증을 공통 `expectSelectedRecord` assertion으로 통합했다. 모든 전환마다 선택 tab, visible matching panel, 고유 board 제목, stack tag를 확인한다.
+- keyboard 경로는 `Home`, 네 레코드를 순회하는 `ArrowRight`, 우측 wrap, `ArrowLeft` wrap, `Home`, `End`를 모두 검증한다.
+
+### RED evidence
+
+초기 테스트 작성 후 동일 명령에서 이름 있는 flow 내부가 아닌 첫 일반 list item을 선택한 테스트 오류를 확인했다: exit 1, `1 failed, 10 passed (18.7s)`. locator를 이름 있는 flow list로 한정하고 실제 semantic 데이터(`신청 정보`, `사용자`)를 사용하도록 테스트만 정정했다.
+
+명령:
+
+```bash
+pnpm exec playwright test --config playwright.task-2.config.ts
+```
+
+프로덕션 수정 전 결과: exit 1, `1 failed, 10 passed (18.9s)`.
+
+- 실패: `STRUCTURE` locator의 `aria-hidden` expected `"true"`, received `null`.
+- 통과: 강화한 전체 pointer/keyboard tab 경로와 `<dl>/<ol>/<table>` semantic data 노출 검사.
+
+### GREEN evidence
+
+명령:
+
+```bash
+pnpm exec playwright test --config playwright.task-2.config.ts
+```
+
+결과: exit 0, `11 passed (12.3s)`.
+
+추가 검증:
+
+```bash
+pnpm lint
+pnpm exec tsc -b --pretty false
+pnpm build
+git diff --check
+```
+
+- lint: exit 0, error 0. 기존 미수정 `custom-select.tsx`/`legal-modal.tsx` warning 4개 유지.
+- typecheck: exit 0, 출력 없음.
+- build: exit 0, client/SSR/Nitro 성공.
+- diff check: exit 0, 출력 없음.
+
+### Fix files
+
+- `.superpowers/sdd/futur-landing-redesign/task-2-report.md`
+- `e2e/landing-evidence.chrome.spec.ts`
+- `src/pages/landing/ui/case-stories-section.tsx`
+
+### Fix concerns
+
+- `graphify update .`는 재실행했지만 새 추출 1,868 nodes와 기존 10,930 nodes 차이를 감지해 fail-closed로 덮어쓰기를 거부했다. `--force`는 사용하지 않았다.
+- lint warning 4개는 이번 round의 좁은 범위 밖인 기존 custom select/legal modal 구현에 남아 있다.

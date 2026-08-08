@@ -11,6 +11,36 @@ const SECTION_ORDER = [
   'contact',
 ] as const;
 
+const PROJECT_RECORDS = [
+  { tab: '웹 플랫폼', panel: 'record-panel-web', board: '결제·상태 흐름 보드', stack: 'Payment' },
+  { tab: '모바일 앱', panel: 'record-panel-mobile', board: '현장 입력 흐름 보드', stack: 'Expo' },
+  {
+    tab: '업무 시스템',
+    panel: 'record-panel-system',
+    board: '역할·권한·상태 매트릭스',
+    stack: 'RBAC',
+  },
+  {
+    tab: '연동·자동화',
+    panel: 'record-panel-automation',
+    board: 'API·재시도·로그 지도',
+    stack: 'Queue',
+  },
+] as const;
+
+async function expectSelectedRecord(page: Page, record: (typeof PROJECT_RECORDS)[number]) {
+  const cases = page.locator('#cases');
+  await expect(cases.getByRole('tab', { name: record.tab })).toHaveAttribute(
+    'aria-selected',
+    'true',
+  );
+
+  const panel = page.locator(`#${record.panel}`);
+  await expect(panel).toBeVisible();
+  await expect(panel.getByText(record.board, { exact: true })).toBeVisible();
+  await expect(panel.locator('[data-stack-tag]', { hasText: record.stack })).toBeVisible();
+}
+
 async function expectNoHorizontalOverflow(page: Page) {
   const overflow = await page.evaluate(() => ({
     document: document.documentElement.scrollWidth - document.documentElement.clientWidth,
@@ -79,40 +109,31 @@ test('exposes every project record through working pointer and keyboard tabs', a
 
   const cases = page.locator('#cases');
   const tab = (name: string) => cases.getByRole('tab', { name });
-  const records = [
-    { tab: '웹 플랫폼', panel: 'record-panel-web', board: '결제·상태 흐름 보드', stack: 'Payment' },
-    { tab: '모바일 앱', panel: 'record-panel-mobile', board: '현장 입력 흐름 보드', stack: 'Expo' },
-    {
-      tab: '업무 시스템',
-      panel: 'record-panel-system',
-      board: '역할·권한·상태 매트릭스',
-      stack: 'RBAC',
-    },
-    {
-      tab: '연동·자동화',
-      panel: 'record-panel-automation',
-      board: 'API·재시도·로그 지도',
-      stack: 'Queue',
-    },
-  ] as const;
 
-  for (const record of records) {
-    const recordTab = tab(record.tab);
-    await recordTab.click();
-    await expect(recordTab).toHaveAttribute('aria-selected', 'true');
-    const panel = page.locator(`#${record.panel}`);
-    await expect(panel).toBeVisible();
-    await expect(panel.getByText(record.board, { exact: true })).toBeVisible();
-    await expect(panel.locator('[data-stack-tag]', { hasText: record.stack })).toBeVisible();
+  for (const record of PROJECT_RECORDS) {
+    await tab(record.tab).click();
+    await expectSelectedRecord(page, record);
   }
 
-  const automationTab = tab('연동·자동화');
-  await automationTab.press('Home');
-  await expect(tab('웹 플랫폼')).toHaveAttribute('aria-selected', 'true');
-  await tab('웹 플랫폼').press('ArrowRight');
-  await expect(tab('모바일 앱')).toHaveAttribute('aria-selected', 'true');
-  await tab('모바일 앱').press('End');
-  await expect(automationTab).toHaveAttribute('aria-selected', 'true');
+  await tab(PROJECT_RECORDS[3].tab).press('Home');
+  await expectSelectedRecord(page, PROJECT_RECORDS[0]);
+
+  for (let index = 1; index < PROJECT_RECORDS.length; index += 1) {
+    await tab(PROJECT_RECORDS[index - 1].tab).press('ArrowRight');
+    await expectSelectedRecord(page, PROJECT_RECORDS[index]);
+  }
+
+  await tab(PROJECT_RECORDS[3].tab).press('ArrowRight');
+  await expectSelectedRecord(page, PROJECT_RECORDS[0]);
+
+  await tab(PROJECT_RECORDS[0].tab).press('ArrowLeft');
+  await expectSelectedRecord(page, PROJECT_RECORDS[3]);
+
+  await tab(PROJECT_RECORDS[3].tab).press('Home');
+  await expectSelectedRecord(page, PROJECT_RECORDS[0]);
+
+  await tab(PROJECT_RECORDS[0].tab).press('End');
+  await expectSelectedRecord(page, PROJECT_RECORDS[3]);
 });
 
 test('exposes artifact board structure to assistive technology', async ({ page }) => {
@@ -120,14 +141,32 @@ test('exposes artifact board structure to assistive technology', async ({ page }
 
   const cases = page.locator('#cases');
   const webPanel = page.locator('#record-panel-web');
-  await expect(webPanel.getByRole('list', { name: '결제·상태 흐름' })).toBeVisible();
+  const webFlow = webPanel.getByRole('list', { name: '결제·상태 흐름' });
+  await expect(webFlow).toBeVisible();
+  await expect(webFlow.getByRole('listitem').first()).toContainText('신청 정보');
   await expect(webPanel.locator('dl')).toBeVisible();
-  await expect(webPanel.locator('[data-artifact-board] [aria-hidden="true"]')).toHaveCount(0);
+  await expect(webPanel.locator('dt').first()).toHaveText('영역 1');
+  await expect(webPanel.locator('dd').first()).toHaveText('사용자');
+  await expect(webPanel.getByText('STRUCTURE', { exact: true })).toHaveAttribute(
+    'aria-hidden',
+    'true',
+  );
+  await expect(webPanel.locator('dl[aria-hidden="true"], ol[aria-hidden="true"]')).toHaveCount(0);
 
   await cases.getByRole('tab', { name: '업무 시스템' }).click();
   const systemPanel = page.locator('#record-panel-system');
-  await expect(systemPanel.getByRole('table', { name: '역할·권한·상태 매트릭스' })).toBeVisible();
-  await expect(systemPanel.locator('[data-artifact-board] [aria-hidden="true"]')).toHaveCount(0);
+  const permissionsTable = systemPanel.getByRole('table', {
+    name: '역할·권한·상태 매트릭스',
+  });
+  await expect(permissionsTable).toBeVisible();
+  await expect(permissionsTable.getByRole('row', { name: /03 완료 승인 · 이력/ })).toBeVisible();
+  await expect(systemPanel.getByText('STRUCTURE', { exact: true })).toHaveAttribute(
+    'aria-hidden',
+    'true',
+  );
+  await expect(
+    systemPanel.locator('dl[aria-hidden="true"], table[aria-hidden="true"]'),
+  ).toHaveCount(0);
 });
 
 for (const viewport of [

@@ -305,6 +305,13 @@ test('custom select refreshes keyboard modality for close and selection after po
   await select.click();
   await select.press('Escape');
   await expect(listbox).toHaveCSS('transition-duration', '0s');
+  await expect(select).toHaveCSS('transition-duration', '0s');
+  await select.press('Enter');
+  await expect(select).toHaveAttribute('aria-expanded', 'true');
+  await expect(select).toHaveCSS('transition-duration', '0s');
+  await select.press('Escape');
+  await expect(select).toHaveAttribute('aria-expanded', 'false');
+  await expect(select).toHaveCSS('transition-duration', '0s');
   await select.click();
   await select.press('End');
   const endOptionId = await select.getAttribute('aria-activedescendant');

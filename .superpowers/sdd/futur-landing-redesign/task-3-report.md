@@ -362,3 +362,28 @@ Result: attempted after the final source changes. Graphify fail-closed because t
 - `src/pages/landing/ui/styles/form-controls.module.css`
 
 Protected and cross-task dirty files remain untouched and unstaged.
+
+---
+
+## Final narrow motion fix — custom-select trigger
+
+- Added computed-style coverage for the combobox trigger on keyboard Escape, reopen, and close.
+- Included `.selectTrigger` in the existing keyboard-modality zero-duration rule so its border/color/background state does not lag behind Arrow/Home/End/open/close actions.
+
+RED:
+
+```sh
+pnpm exec playwright test -c playwright.task-3.config.ts --grep "custom select refreshes keyboard modality"
+```
+
+Result: **1 failed**; the trigger computed `transition-duration: 0.15s` instead of `0s`.
+
+GREEN:
+
+```sh
+pnpm exec playwright test -c playwright.task-3.config.ts --grep "custom select refreshes keyboard modality"
+pnpm exec playwright test -c playwright.task-3.config.ts
+pnpm lint
+```
+
+Result: **1 passed**, then **19 passed (48.0s)**; lint completed with zero warnings/errors.

@@ -466,6 +466,7 @@
   transition-delay: 0s;
 }
 
+.customSelect.keyboardOpen .selectTrigger,
 .customSelect.keyboardOpen .selectArrow,
 .customSelect.keyboardOpen .selectMenu,
 .customSelect.keyboardOpen .selectOption {

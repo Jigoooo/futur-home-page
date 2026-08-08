@@ -13,7 +13,7 @@
   margin: 0 0 clamp(74px, 6.5vw, 104px);
   padding: 64px 58px;
   border: 1px solid #dce8f7;
-  border-radius: 40px;
+  border-radius: 28px;
   background: #f4f8ff;
   box-shadow: 0 30px 90px rgba(20, 42, 94, 0.1);
 }
@@ -231,7 +231,7 @@
   .footerTop {
     margin-bottom: 56px;
     padding: 38px 28px;
-    border-radius: 34px;
+    border-radius: 28px;
   }
 
   .footerTop h2 {

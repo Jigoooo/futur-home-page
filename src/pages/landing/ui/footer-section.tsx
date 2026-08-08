@@ -10,7 +10,7 @@ export function FooterSection() {
   return (
     <footer className={styles.footer}>
       <div className={sharedStyles.container}>
-        <div className={styles.footerTop}>
+        <div className={styles.footerTop} data-standard-surface>
           <div>
             <h2>FUTUR와 다음 프로젝트를 시작해보세요.</h2>
             <p>기술을 어렵게 보이지 않게, 필요한 결과를 명확하게 만들겠습니다.</p>

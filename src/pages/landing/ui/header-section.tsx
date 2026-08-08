@@ -1,5 +1,5 @@
 import { ArrowRight, Menu, X } from 'lucide-react';
-import { useEffect, useState, type MouseEvent } from 'react';
+import { useEffect, useRef, useState, type MouseEvent } from 'react';
 
 import { navigationItems } from '../config';
 import { Button } from './button';
@@ -41,12 +41,18 @@ function handleHashLinkClick(event: MouseEvent<HTMLAnchorElement>) {
 
 export function HeaderSection() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const menuButtonRef = useRef<HTMLButtonElement | null>(null);
+  const firstMenuLinkRef = useRef<HTMLAnchorElement | null>(null);
 
   useEffect(() => {
     if (!menuOpen) return;
 
+    firstMenuLinkRef.current?.focus();
+
     const handleKeyDown = (event: globalThis.KeyboardEvent) => {
-      if (event.key === 'Escape') setMenuOpen(false);
+      if (event.key !== 'Escape') return;
+      setMenuOpen(false);
+      requestAnimationFrame(() => menuButtonRef.current?.focus());
     };
 
     window.addEventListener('keydown', handleKeyDown);
@@ -82,6 +88,7 @@ export function HeaderSection() {
         </span>
       </Button>
       <button
+        ref={menuButtonRef}
         type='button'
         className={styles.menuButton}
         aria-label={menuOpen ? '메뉴 닫기' : '메뉴 열기'}
@@ -92,21 +99,26 @@ export function HeaderSection() {
         {menuOpen ? <X size={20} aria-hidden='true' /> : <Menu size={20} aria-hidden='true' />}
       </button>
       {menuOpen ? (
-        <dialog id='mobile-menu' className={styles.mobileMenu} aria-label='모바일 메뉴' open>
-          <nav aria-label='모바일 주요 메뉴'>
-            {navigationItems.map((item) => (
-              <a key={item.href} href={item.href} onClick={handleMenuLinkClick}>
+        <div className={styles.mobileMenu}>
+          <nav id='mobile-menu' aria-label='모바일 메뉴'>
+            {navigationItems.map((item, index) => (
+              <a
+                key={item.href}
+                ref={index === 0 ? firstMenuLinkRef : undefined}
+                href={item.href}
+                onClick={handleMenuLinkClick}
+              >
                 {item.label}
               </a>
             ))}
+            <Button href='#contact' className={styles.mobileCta} onClick={handleMenuLinkClick}>
+              <span data-landing-label>문의하기</span>
+              <span data-landing-arrow>
+                <ArrowRight size={14} strokeWidth={2.2} />
+              </span>
+            </Button>
           </nav>
-          <Button href='#contact' className={styles.mobileCta} onClick={handleMenuLinkClick}>
-            <span data-landing-label>문의하기</span>
-            <span data-landing-arrow>
-              <ArrowRight size={14} strokeWidth={2.2} />
-            </span>
-          </Button>
-        </dialog>
+        </div>
       ) : null}
     </header>
   );

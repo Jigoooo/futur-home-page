@@ -195,6 +195,7 @@ export function ContactSection() {
         <div
           className={cx(styles.ctaWrap, sharedStyles.reveal, sharedStyles.revealUp)}
           data-landing-reveal='up'
+          data-standard-surface
         >
           <div>
             <h2>
@@ -226,6 +227,7 @@ export function ContactSection() {
               sharedStyles.revealLeft,
             )}
             data-landing-reveal='left'
+            data-standard-surface
           >
             <h3>상담 전 확인사항</h3>
             <p>정확한 견적보다 먼저, 프로젝트의 목적과 우선순위를 맞추는 것부터 시작합니다.</p>
@@ -261,6 +263,7 @@ export function ContactSection() {
             className={cx(styles.contactForm, sharedStyles.reveal, sharedStyles.revealRight)}
             data-landing-contact-form
             data-landing-reveal='right'
+            data-standard-surface
             aria-label='프로젝트 상담 양식'
             noValidate
             onSubmit={handleSubmit}

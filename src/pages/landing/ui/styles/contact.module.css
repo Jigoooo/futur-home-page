@@ -13,7 +13,7 @@
   margin-bottom: 80px;
   padding: 62px 72px;
   border: 1px solid #e1e8f4;
-  border-radius: 42px;
+  border-radius: 28px;
   background: #f3f7ff;
   box-shadow: var(--shadow);
 }
@@ -217,7 +217,7 @@
   .ctaWrap {
     grid-template-columns: 1fr;
     padding: 36px 28px;
-    border-radius: 34px;
+    border-radius: 28px;
   }
 
   .ctaActions {
@@ -227,7 +227,7 @@
 
   .contactForm {
     padding: 28px;
-    border-radius: 34px;
+    border-radius: 28px;
   }
 
   .formActions {

@@ -173,14 +173,22 @@
   gap: 6px;
   padding: 13px 13px 0;
 }
-.artifactColumns span {
+.artifactColumns div {
   padding: 8px;
   border-radius: 10px;
   background: #eaf1ff;
+  text-align: center;
+}
+.artifactColumns dt {
+  color: #7386a7;
+  font-size: 8px;
+  font-weight: 800;
+}
+.artifactColumns dd {
+  margin: 2px 0 0;
   color: #31528d;
   font-size: 10px;
   font-weight: 900;
-  text-align: center;
 }
 .artifactRows {
   display: grid;
@@ -208,6 +216,39 @@
 .artifactRow span {
   color: #76849e;
   font-size: 10px;
+}
+.artifactTable {
+  width: calc(100% - 26px);
+  margin: 13px;
+  border-collapse: separate;
+  border-spacing: 0 8px;
+  color: #21335c;
+  font-size: 10px;
+}
+.artifactTable thead th {
+  padding: 0 12px 3px;
+  color: #7386a7;
+  font-weight: 800;
+  text-align: left;
+}
+.artifactTable tbody tr {
+  background: #ffffff;
+}
+.artifactTable tbody th,
+.artifactTable tbody td {
+  padding: 13px 12px;
+  border-block: 1px solid #e2e9f4;
+  text-align: left;
+}
+.artifactTable tbody th {
+  border-left: 1px solid #e2e9f4;
+  border-radius: 13px 0 0 13px;
+  color: var(--blue);
+}
+.artifactTable tbody td:last-child {
+  border-right: 1px solid #e2e9f4;
+  border-radius: 0 13px 13px 0;
+  color: #76849e;
 }
 .sideNote {
   display: flex;

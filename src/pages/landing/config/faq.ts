@@ -1,6 +1,4 @@
 import type { FaqItem } from '../model/types';
-
-// TODO(사용자 확인): 실제 운영 방식과 다른 부분은 답변 미세 조정.
 export const faqItems: FaqItem[] = [
   {
     question: '기획서가 없는데 문의해도 되나요?',
@@ -30,6 +28,6 @@ export const faqItems: FaqItem[] = [
   {
     question: '의사소통은 어떻게 진행되나요?',
     answer:
-      '슬랙·노션 같은 도구로 일일 단위 업데이트를 공유합니다. 고객사에서 사용하는 도구가 있다면 맞춰 진행합니다.',
+      '프로젝트에서 합의한 주기와 도구로 진행 상황을 공유합니다. 고객사에서 사용하는 협업 도구가 있다면 맞춰 진행합니다.',
   },
 ];

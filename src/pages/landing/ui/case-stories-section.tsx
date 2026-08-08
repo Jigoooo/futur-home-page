@@ -8,27 +8,53 @@ import styles from './styles/case-stories.module.css';
 import sharedStyles from './styles/shared.module.css';
 
 function ArtifactBoard({ story }: { story: (typeof caseStories)[number] }) {
+  const flowLabel = story.artifact.label.replace(/ 보드$/, '');
+
   return (
     <figure className={styles.artifactBoard} data-artifact-board>
       <figcaption className={styles.artifactTopbar}>
         <span>{story.icon}</span>
         <strong>{story.artifact.label}</strong>
-        <i aria-hidden='true'>STRUCTURE</i>
+        <i>STRUCTURE</i>
       </figcaption>
-      <div className={styles.artifactColumns} aria-hidden='true'>
-        {story.artifact.columns.map((column) => (
-          <span key={column}>{column}</span>
-        ))}
-      </div>
-      <div className={styles.artifactRows} aria-hidden='true'>
-        {story.artifact.rows.map((row, index) => (
-          <div key={row.title} className={styles.artifactRow}>
-            <b>{String(index + 1).padStart(2, '0')}</b>
-            <strong>{row.title}</strong>
-            <span>{row.meta}</span>
+      <dl className={styles.artifactColumns} aria-label={`${story.artifact.label} 속성`}>
+        {story.artifact.columns.map((column, index) => (
+          <div key={column}>
+            <dt>영역 {index + 1}</dt>
+            <dd>{column}</dd>
           </div>
         ))}
-      </div>
+      </dl>
+      {story.key === 'system' ? (
+        <table className={styles.artifactTable} aria-label={story.artifact.label}>
+          <thead>
+            <tr>
+              <th scope='col'>단계</th>
+              <th scope='col'>상태</th>
+              <th scope='col'>권한·처리 기준</th>
+            </tr>
+          </thead>
+          <tbody>
+            {story.artifact.rows.map((row, index) => (
+              <tr key={row.title}>
+                <th scope='row'>{String(index + 1).padStart(2, '0')}</th>
+                <td>{row.title}</td>
+                <td>{row.meta}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      ) : (
+        <ol className={styles.artifactRows} aria-label={flowLabel}>
+          {story.artifact.rows.map((row, index) => (
+            <li key={row.title} className={styles.artifactRow}>
+              <b>{String(index + 1).padStart(2, '0')}</b>
+              <strong>{row.title}</strong>
+              <span>{row.meta}</span>
+            </li>
+          ))}
+        </ol>
+      )}
     </figure>
   );
 }

@@ -131,3 +131,70 @@ pnpm lint && pnpm build && pnpm exec playwright test --config=playwright.task-2.
 - `graphify update .`는 실행했지만 새 추출 1,866 nodes와 기존 graph.json 10,930 nodes 차이를 감지해 fail-closed로 덮어쓰기를 거부했다. `--force`는 그래프 대량 축소 위험 때문에 사용하지 않았다.
 - WebP는 `apply_patch`가 binary UTF-8 read에서 실패해, 참조 제거 확인 후 정확한 5개 경로를 `rm`으로 삭제했다.
 - 전체 lint의 warning 4개는 이번 Task 2에서 수정하지 않은 기존 custom select/legal modal 역할 구현에 남아 있다.
+
+## Fix round 1/5
+
+### Findings addressed
+
+- FAQ의 `TODO(사용자 확인)`와 고정 `일일 단위 업데이트` 약속을 제거하고, 프로젝트에서 합의한 주기와 도구를 따르는 조건부 문구로 교체했다.
+- artifact board에서 `aria-hidden`을 제거했다. 공통 속성은 `<dl>`, 웹·모바일·연동 흐름은 `<ol>`, 업무 권한·상태 매트릭스는 `<table>`로 노출했다.
+- 모바일 sheet를 modal dialog가 아닌 disclosure navigation으로 변경했다. 열릴 때 첫 링크로 focus를 이동하고 Escape로 닫을 때 trigger focus를 복원한다.
+- Contact CTA/card/form과 Footer lead surface를 `data-standard-surface`로 명시하고 desktop/mobile radius를 모두 20-28px 범위로 제한했다.
+- 네 Project Record tab을 pointer와 ArrowRight/Home/End 키로 전환하며 `aria-selected`, matching panel, unique board content, stack tag를 검증하도록 회귀 테스트를 확장했다.
+
+### RED evidence
+
+명령:
+
+```bash
+pnpm exec playwright test --config=playwright.task-2.config.ts
+```
+
+결과: exit 1, `5 failed, 6 passed (42.6s)`.
+
+- 고정 cadence/SLA 금지 문구 검사: `일일 단위` 1건 검출.
+- artifact semantics 검사: 이름 있는 flow list와 `<dl>` 부재.
+- mobile disclosure 검사: 이름 있는 navigation 부재.
+- standard surface radius 검사: desktop/mobile 모두 계약 marker 0개.
+- 네 tab pointer/keyboard 전환 검사는 기존 구현에서 통과했고, unique panel/board/stack 계약을 추가로 고정했다.
+
+### GREEN evidence
+
+명령:
+
+```bash
+pnpm exec playwright test --config=playwright.task-2.config.ts
+```
+
+결과: exit 0, `11 passed (13.9s)`.
+
+추가 검증:
+
+```bash
+pnpm lint
+pnpm exec tsc -b --pretty false
+pnpm build
+git diff --check
+```
+
+- lint: exit 0, error 0. 기존 미수정 `custom-select.tsx`/`legal-modal.tsx` warning 4개 유지.
+- typecheck: exit 0, 출력 없음.
+- build: exit 0, client/SSR/Nitro 성공.
+- diff check: exit 0, 출력 없음.
+
+### Fix files
+
+- `.superpowers/sdd/futur-landing-redesign/task-2-report.md`
+- `e2e/landing-evidence.chrome.spec.ts`
+- `src/pages/landing/config/faq.ts`
+- `src/pages/landing/ui/case-stories-section.tsx`
+- `src/pages/landing/ui/header-section.tsx`
+- `src/pages/landing/ui/contact-section.tsx`
+- `src/pages/landing/ui/footer-section.tsx`
+- `src/pages/landing/ui/styles/case-stories.module.css`
+- `src/pages/landing/ui/styles/contact.module.css`
+- `src/pages/landing/ui/styles/footer.module.css`
+
+### Fix concerns
+
+- `graphify update .`는 재실행했지만 이전과 동일하게 새 추출 1,866 nodes와 기존 10,930 nodes 차이를 감지해 fail-closed로 종료했다. 강제 덮어쓰기는 하지 않았다.

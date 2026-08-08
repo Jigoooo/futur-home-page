@@ -11,6 +11,7 @@ export function ServicesSection() {
     <section
       className={cx(sharedStyles.sectionBlock, sharedStyles.bgSoft, sharedStyles.section)}
       id='services'
+      data-landing-section='services'
     >
       <div className={sharedStyles.container}>
         <div className={cx(styles.serviceLayout, sharedStyles.gridLayout)}>

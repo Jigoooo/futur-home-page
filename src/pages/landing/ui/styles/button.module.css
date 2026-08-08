@@ -31,22 +31,8 @@
     color 0.28s ease;
 }
 
-.button::before {
-  content: "";
-  position: absolute;
-  inset: -1px;
-  z-index: -1;
-  border-radius: inherit;
-  background: radial-gradient(
-    190px circle at var(--spot-x) var(--spot-y),
-    rgba(255, 255, 255, 0.33),
-    transparent 44%
-  );
-  opacity: var(--btn-spot-opacity);
-}
-
 .button::after {
-  content: "";
+  content: '';
   position: absolute;
   top: -28%;
   left: -72%;

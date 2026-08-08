@@ -1,5 +1,5 @@
-import { ArrowRight } from 'lucide-react';
-import { type MouseEvent } from 'react';
+import { ArrowRight, Menu, X } from 'lucide-react';
+import { useEffect, useState, type MouseEvent } from 'react';
 
 import { navigationItems } from '../config';
 import { Button } from './button';
@@ -40,6 +40,24 @@ function handleHashLinkClick(event: MouseEvent<HTMLAnchorElement>) {
 }
 
 export function HeaderSection() {
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+
+    const handleKeyDown = (event: globalThis.KeyboardEvent) => {
+      if (event.key === 'Escape') setMenuOpen(false);
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [menuOpen]);
+
+  const handleMenuLinkClick = (event: MouseEvent<HTMLAnchorElement>) => {
+    handleHashLinkClick(event);
+    setMenuOpen(false);
+  };
+
   return (
     <header id='top' className={styles.nav} data-landing-nav>
       <a href='#top' className={styles.logo} aria-label='FUTUR home' onClick={handleHashLinkClick}>
@@ -63,6 +81,33 @@ export function HeaderSection() {
           <ArrowRight size={14} strokeWidth={2.2} />
         </span>
       </Button>
+      <button
+        type='button'
+        className={styles.menuButton}
+        aria-label={menuOpen ? '메뉴 닫기' : '메뉴 열기'}
+        aria-expanded={menuOpen}
+        aria-controls='mobile-menu'
+        onClick={() => setMenuOpen((open) => !open)}
+      >
+        {menuOpen ? <X size={20} aria-hidden='true' /> : <Menu size={20} aria-hidden='true' />}
+      </button>
+      {menuOpen ? (
+        <dialog id='mobile-menu' className={styles.mobileMenu} aria-label='모바일 메뉴' open>
+          <nav aria-label='모바일 주요 메뉴'>
+            {navigationItems.map((item) => (
+              <a key={item.href} href={item.href} onClick={handleMenuLinkClick}>
+                {item.label}
+              </a>
+            ))}
+          </nav>
+          <Button href='#contact' className={styles.mobileCta} onClick={handleMenuLinkClick}>
+            <span data-landing-label>문의하기</span>
+            <span data-landing-arrow>
+              <ArrowRight size={14} strokeWidth={2.2} />
+            </span>
+          </Button>
+        </dialog>
+      ) : null}
     </header>
   );
 }

@@ -4,16 +4,13 @@ import { useRef } from 'react';
 import { CaseStoriesSection } from './case-stories-section';
 import { ContactSection } from './contact-section';
 import { CustomCursor } from './custom-cursor';
+import { DeliverySection } from './delivery-section';
 import { FaqSection } from './faq-section';
 import { FooterSection } from './footer-section';
 import { HeaderSection } from './header-section';
 import { HeroSection } from './hero-section';
 import { LandingScrollbar } from './landing-scrollbar';
-import { OperationsPolicySection } from './operations-policy-section';
-import { ProcessSection } from './process-section';
-import { ReviewsSection } from './reviews-section';
 import { ServicesSection } from './services-section';
-import { StackSection } from './stack-section';
 import scrollTopStyles from './styles/scroll-top.module.css';
 import sharedStyles from './styles/shared.module.css';
 import { TeamSection } from './team-section';
@@ -35,13 +32,10 @@ export function LandingPage() {
         <HeaderSection />
         <HeroSection />
         <TrustSection />
-        <ServicesSection />
-        <StackSection />
         <CaseStoriesSection />
+        <ServicesSection />
+        <DeliverySection />
         <TeamSection />
-        <ProcessSection />
-        <OperationsPolicySection />
-        <ReviewsSection />
         <FaqSection />
         <ContactSection />
         <FooterSection />

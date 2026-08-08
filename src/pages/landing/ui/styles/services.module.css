@@ -4,7 +4,7 @@
 }
 
 .serviceList {
-  gap: 34px;
+  gap: 24px;
 }
 
 .serviceCard {
@@ -15,11 +15,11 @@
   isolation: isolate;
   display: flex;
   flex-direction: column;
-  min-height: 280px;
+  min-height: 248px;
   overflow: hidden;
-  padding: 34px 36px 32px;
+  padding: 30px;
   border: 1px solid var(--line);
-  border-radius: 40px;
+  border-radius: 26px;
   background: linear-gradient(180deg, #ffffff, #fbfdff);
   box-shadow: var(--shadow-soft);
   transition:
@@ -28,69 +28,15 @@
     border-color 0.36s ease;
 }
 
-.serviceCard::before {
-  content: "";
-  position: absolute;
-  right: -74px;
-  top: -74px;
-  width: 220px;
-  height: 220px;
-  border-radius: 999px;
-  background: radial-gradient(circle, color-mix(in srgb, var(--accent) 18%, transparent), transparent 68%);
-  opacity: 0.72;
-  transition:
-    transform 0.38s var(--ease),
-    opacity 0.28s ease;
-}
-
-.serviceCard::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background: radial-gradient(
-    520px circle at var(--mx) var(--my),
-    color-mix(in srgb, var(--accent) 10%, transparent),
-    transparent 50%
-  );
-  opacity: 0;
-  transition: opacity 0.32s ease;
-}
-
 .serviceCard > * {
   position: relative;
   z-index: 1;
-}
-
-.serviceCard:nth-child(1) {
-  --accent: #21b992;
-}
-
-.serviceCard:nth-child(2) {
-  --accent: #316cff;
-}
-
-.serviceCard:nth-child(3) {
-  --accent: #8a72ff;
-}
-
-.serviceCard:nth-child(4) {
-  --accent: #ff9f4d;
 }
 
 .serviceCard:hover {
   transform: translateY(-12px) scale(1.012);
   border-color: color-mix(in srgb, var(--accent) 26%, #dfe8f5);
   box-shadow: var(--shadow-hover);
-}
-
-.serviceCard:hover::before {
-  transform: translate(-15px, 18px) scale(1.18);
-  opacity: 0.95;
-}
-
-.serviceCard:hover::after {
-  opacity: 1;
 }
 
 .serviceIcon {
@@ -153,7 +99,7 @@
 }
 
 .cardLink::before {
-  content: "";
+  content: '';
   position: absolute;
   left: 0;
   right: 24px;
@@ -195,7 +141,7 @@
   .serviceCard {
     min-height: auto;
     padding: 32px;
-    border-radius: 32px;
+    border-radius: 24px;
   }
 }
 
@@ -203,10 +149,6 @@
   .serviceCard:hover {
     transform: none;
     box-shadow: inherit;
-  }
-
-  .serviceCard:hover::after {
-    opacity: 0;
   }
 
   .serviceCard:hover .serviceIcon,

@@ -93,14 +93,14 @@
 }
 
 .stageCard::after {
-  content: "";
+  content: '';
   position: absolute;
   right: 16px;
   top: 50%;
   width: 5px;
   height: 44px;
   border-radius: 999px;
-  background: linear-gradient(180deg, #1e4dc4, #8a70ff);
+  background: linear-gradient(180deg, #1e4dc4, #4f7ee8);
   transform: translateY(-50%) scaleY(0);
   transform-origin: center;
   transition: transform 0.28s var(--ease);
@@ -508,14 +508,14 @@
   color: #245cdb;
 }
 
-.selectOption[aria-selected="true"] {
+.selectOption[aria-selected='true'] {
   border-color: #cfe0ff;
   background: linear-gradient(180deg, #eef5ff, #f7fbff);
   color: #245cdb;
 }
 
-.selectOption[aria-selected="true"]::after {
-  content: "";
+.selectOption[aria-selected='true']::after {
+  content: '';
   position: absolute;
   right: 17px;
   top: 50%;
@@ -527,8 +527,8 @@
   transform: translateY(-50%);
 }
 
-.selectOption[aria-selected="true"]::before {
-  content: "";
+.selectOption[aria-selected='true']::before {
+  content: '';
   position: absolute;
   right: 23px;
   top: 50%;
@@ -693,11 +693,22 @@
 }
 
 @keyframes fieldShake {
-  0%, 100% { transform: translate3d(0, 0, 0); }
-  20% { transform: translate3d(-6px, 0, 0); }
-  40% { transform: translate3d(6px, 0, 0); }
-  60% { transform: translate3d(-3px, 0, 0); }
-  80% { transform: translate3d(3px, 0, 0); }
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  20% {
+    transform: translate3d(-6px, 0, 0);
+  }
+  40% {
+    transform: translate3d(6px, 0, 0);
+  }
+  60% {
+    transform: translate3d(-3px, 0, 0);
+  }
+  80% {
+    transform: translate3d(3px, 0, 0);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

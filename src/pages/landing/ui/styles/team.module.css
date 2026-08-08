@@ -8,7 +8,7 @@
 }
 
 .roleGrid {
-  gap: 30px;
+  gap: 24px;
 }
 
 .roleCard {
@@ -18,45 +18,13 @@
   overflow: hidden;
   padding: 30px;
   border: 1px solid #e2e9f4;
-  border-radius: 34px;
+  border-radius: 26px;
   background: linear-gradient(180deg, #ffffff, #fbfdff);
   box-shadow: var(--shadow-soft);
   transition:
     transform 0.34s var(--spring),
     box-shadow 0.34s ease,
     border-color 0.34s ease;
-}
-
-.roleCard::before {
-  content: "";
-  position: absolute;
-  right: -72px;
-  top: -72px;
-  width: 180px;
-  height: 180px;
-  border-radius: 999px;
-  background: radial-gradient(circle, color-mix(in srgb, var(--accent) 16%, transparent), transparent 68%);
-  opacity: 0.8;
-}
-
-.roleCard:nth-child(2) {
-  --accent: #31c7a4;
-}
-
-.roleCard:nth-child(3) {
-  --accent: #8a70ff;
-}
-
-.roleCard:nth-child(4) {
-  --accent: #ffb95c;
-}
-
-.roleCard:nth-child(5) {
-  --accent: #1e4dc4;
-}
-
-.roleCard:nth-child(6) {
-  --accent: #ff7d9f;
 }
 
 .roleCard:hover {

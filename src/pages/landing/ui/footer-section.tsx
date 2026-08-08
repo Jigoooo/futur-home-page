@@ -21,7 +21,9 @@ export function FooterSection() {
               <Icon name='mail' />
               {COMPANY_INFOS.EMAIL}
             </a>
-            <span className={styles.footerContactNote}>평균 회신 영업일 24시간 이내</span>
+            <span className={styles.footerContactNote}>
+              문의 내용을 확인해 다음 논의 항목을 안내합니다.
+            </span>
           </div>
         </div>
 

@@ -3,8 +3,6 @@ import type { TeamRole } from '../model/types';
 export const teamRoles: TeamRole[] = [
   {
     badge: 'PM',
-    location: '서울',
-    experience: '7년+',
     title: '프로젝트 매니저',
     job: '기획 · 일정 · 커뮤니케이션',
     strength: '요구사항 정리, 범위 조율',
@@ -13,8 +11,6 @@ export const teamRoles: TeamRole[] = [
   },
   {
     badge: 'PLAN',
-    location: '서울',
-    experience: '5년+',
     title: '서비스 기획',
     job: '요구사항 정리 · 화면 흐름 · IA',
     strength: '복잡한 요구를 실행 가능한 단위로 정리',
@@ -23,8 +19,6 @@ export const teamRoles: TeamRole[] = [
   },
   {
     badge: 'FE',
-    location: '경기',
-    experience: '5년+',
     title: '프론트엔드 · 모바일 · UI/UX 설계',
     job: '웹/모바일 화면 · UI/UX 설계 · 디자인 시스템',
     strength: '실사용 환경에 맞는 화면 흐름과 디자인 시스템',
@@ -33,8 +27,6 @@ export const teamRoles: TeamRole[] = [
   },
   {
     badge: 'BE',
-    location: '서울',
-    experience: '6년+',
     title: '백엔드 개발',
     job: 'API · 데이터 · 권한 구조',
     strength: '안정적인 서비스 로직',
@@ -43,8 +35,6 @@ export const teamRoles: TeamRole[] = [
   },
   {
     badge: 'OPS',
-    location: '경기',
-    experience: '5년+',
     title: '운영·인프라',
     job: '배포 · 모니터링 · 장애 대응',
     strength: '운영 가능한 배포 환경',

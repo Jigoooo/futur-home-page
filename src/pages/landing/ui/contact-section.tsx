@@ -187,7 +187,11 @@ export function ContactSection() {
 
   return (
     <>
-      <section className={cx(styles.contactSection, sharedStyles.container)} id='contact'>
+      <section
+        className={cx(styles.contactSection, sharedStyles.container)}
+        id='contact'
+        data-landing-section='contact'
+      >
         <div
           className={cx(styles.ctaWrap, sharedStyles.reveal, sharedStyles.revealUp)}
           data-landing-reveal='up'
@@ -240,8 +244,8 @@ export function ContactSection() {
                 </dd>
               </div>
               <div>
-                <dt>평균 회신</dt>
-                <dd>영업일 기준 24시간 이내</dd>
+                <dt>진행 방식</dt>
+                <dd>내용 확인 후 다음 논의 항목 안내</dd>
               </div>
               <div>
                 <dt>사무실</dt>

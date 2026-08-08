@@ -19,7 +19,11 @@ export function FaqSection() {
   };
 
   return (
-    <section className={cx(sharedStyles.sectionBlock, styles.faqSection)} id='faq'>
+    <section
+      className={cx(sharedStyles.sectionBlock, styles.faqSection)}
+      id='faq'
+      data-landing-section='faq'
+    >
       <div className={sharedStyles.container}>
         <div
           className={cx(styles.head, sharedStyles.reveal, sharedStyles.revealUp)}
@@ -54,9 +58,8 @@ export function FaqSection() {
                     <ChevronDown size={16} strokeWidth={1.8} />
                   </span>
                 </button>
-                <div
+                <section
                   id={panelId}
-                  role='region'
                   aria-labelledby={buttonId}
                   className={styles.panel}
                   aria-hidden={!isOpen}
@@ -64,7 +67,7 @@ export function FaqSection() {
                   <div className={styles.panelInner}>
                     <p className={styles.answer}>{item.answer}</p>
                   </div>
-                </div>
+                </section>
               </div>
             );
           })}

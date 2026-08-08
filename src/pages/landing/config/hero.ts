@@ -1,5 +1,5 @@
 export const heroPoints = [
-  { title: '기획 전 상담 가능', description: '아이디어 단계부터 정리' },
-  { title: '범위·일정 투명화', description: '무리 없는 개발 단계 설계' },
-  { title: '운영까지 고려', description: '배포 후 개선과 유지보수' },
+  { title: '웹·앱', description: '사용자와 현장의 작업 흐름' },
+  { title: '업무 시스템', description: '권한·상태·데이터 구조' },
+  { title: 'API·운영', description: '연동·배포·인수인계 기준' },
 ];

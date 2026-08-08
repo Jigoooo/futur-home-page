@@ -1,9 +1,18 @@
-import type { TrustStat } from '../model/types';
-
-// TODO(사용자 확인): 실제 누적 수치로 교체.
-export const trustStats: TrustStat[] = [
-  { value: '30+', label: '누적 프로젝트', caption: '운영까지 함께' },
-  { value: '4년+', label: '평균 운영 동행', caption: '배포 이후도 함께' },
-  { value: '95%+', label: '재의뢰율', caption: '계속 함께하는 이유' },
-  { value: '24h', label: '평균 회신', caption: '빠른 첫 답변' },
+export const trustCriteria = [
+  {
+    index: '01',
+    title: '사용자 흐름을 먼저 봅니다',
+    description: '기능 목록보다 실제 사용자가 시작하고 완료하는 순서를 먼저 정리합니다.',
+  },
+  {
+    index: '02',
+    title: '화면과 데이터 구조를 함께 봅니다',
+    description: '보이는 화면, 권한, 상태, 저장되는 데이터가 같은 기준으로 움직이게 설계합니다.',
+  },
+  {
+    index: '03',
+    title: '운영 인수인계를 포함합니다',
+    description:
+      '배포 기준과 운영 체크리스트, 코드와 문서를 다음 담당자가 이어받을 수 있게 정리합니다.',
+  },
 ];

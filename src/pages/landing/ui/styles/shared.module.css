@@ -21,9 +21,9 @@
 .page input,
 .page textarea,
 .page label,
-.page [role="button"],
-.page [role="tab"],
-.page [role="combobox"],
+.page [role='button'],
+.page [role='tab'],
+.page [role='combobox'],
 .page [data-landing-interactive] {
   -webkit-tap-highlight-color: transparent;
 }
@@ -39,7 +39,7 @@
 }
 
 .section {
-  padding-block: clamp(205px, 13.5vw, 280px);
+  padding-block: clamp(126px, 10vw, 176px);
 }
 
 .sectionBlock {
@@ -69,7 +69,7 @@
 }
 
 .kicker::before {
-  content: "";
+  content: '';
   width: 7px;
   height: 7px;
   border-radius: 999px;
@@ -135,7 +135,7 @@
   transform: translateX(28px);
 }
 
-.reveal[data-landing-visible="true"] {
+.reveal[data-landing-visible='true'] {
   opacity: 1;
   transform: translate3d(0, 0, 0);
 }
@@ -165,8 +165,7 @@
   }
 
   .section {
-    padding-top: 130px;
-    padding-bottom: 150px;
+    padding-block: 92px;
   }
 
   .sectionTitle {
@@ -186,8 +185,7 @@
   }
 
   .section {
-    padding-top: 96px;
-    padding-bottom: 112px;
+    padding-block: 76px;
   }
 
   .nowrap {
@@ -203,7 +201,7 @@
   }
 
   .sectionTitle br::after {
-    content: " ";
+    content: ' ';
     white-space: pre;
   }
 }

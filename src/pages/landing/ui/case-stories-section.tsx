@@ -13,7 +13,7 @@ function ArtifactBoard({ story }: { story: (typeof caseStories)[number] }) {
   return (
     <figure className={styles.artifactBoard} data-artifact-board>
       <figcaption className={styles.artifactTopbar}>
-        <span>{story.icon}</span>
+        <span aria-hidden='true'>{story.icon}</span>
         <strong>{story.artifact.label}</strong>
         <i aria-hidden='true'>STRUCTURE</i>
       </figcaption>

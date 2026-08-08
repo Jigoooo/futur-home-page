@@ -41,6 +41,10 @@ async function expectSelectedRecord(page: Page, record: (typeof PROJECT_RECORDS)
   await expect(panel.locator('[data-stack-tag]', { hasText: record.stack })).toBeVisible();
 }
 
+async function waitForLandingReady(page: Page) {
+  await expect(page.locator('body')).toHaveAttribute('data-landing-ready', 'true');
+}
+
 async function expectNoHorizontalOverflow(page: Page) {
   const overflow = await page.evaluate(() => ({
     document: document.documentElement.scrollWidth - document.documentElement.clientWidth,
@@ -106,6 +110,7 @@ test('does not promise fixed communication cadence or hard support SLAs', async 
 
 test('exposes every project record through working pointer and keyboard tabs', async ({ page }) => {
   await page.goto('/');
+  await waitForLandingReady(page);
 
   const cases = page.locator('#cases');
   const tab = (name: string) => cases.getByRole('tab', { name });
@@ -138,8 +143,14 @@ test('exposes every project record through working pointer and keyboard tabs', a
 
 test('exposes artifact board structure to assistive technology', async ({ page }) => {
   await page.goto('/');
+  await waitForLandingReady(page);
 
   const cases = page.locator('#cases');
+  const artifactIcons = cases.locator('[data-artifact-board] figcaption > span');
+  await expect(artifactIcons).toHaveText(['WEB', 'APP', 'SYS', 'API']);
+  for (const icon of await artifactIcons.all()) {
+    await expect(icon).toHaveAttribute('aria-hidden', 'true');
+  }
   const webPanel = page.locator('#record-panel-web');
   const webFlow = webPanel.getByRole('list', { name: '결제·상태 흐름' });
   await expect(webFlow).toBeVisible();

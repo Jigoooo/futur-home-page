@@ -257,3 +257,74 @@ git diff --check
 
 - `graphify update .`는 재실행했지만 새 추출 1,868 nodes와 기존 10,930 nodes 차이를 감지해 fail-closed로 덮어쓰기를 거부했다. `--force`는 사용하지 않았다.
 - lint warning 4개는 이번 round의 좁은 범위 밖인 기존 custom select/legal modal 구현에 남아 있다.
+
+## Fix round 3/5
+
+### Findings addressed
+
+- artifact topbar의 장식용 `WEB`, `APP`, `SYS`, `API` icon span에만 `aria-hidden='true'`를 추가했다. 기존 `<dl>`, `<ol>`, `<table>`과 내부 데이터는 계속 접근성 트리에 노출된다.
+- case tab을 click 또는 keyboard로 조작하는 두 테스트가 `body[data-landing-ready='true']`를 먼저 기다리도록 공통 helper를 추가했다. Playwright assertion 기반 대기라 고정 timeout은 사용하지 않는다.
+- 장식 아이콘 네 개의 정확한 텍스트와 `aria-hidden`만 좁게 검사하며, blanket `aria-hidden` 규칙은 추가하지 않았다.
+
+### RED evidence
+
+명령:
+
+```bash
+pnpm exec playwright test --config playwright.task-2.config.ts --grep "artifact board structure"
+```
+
+프로덕션 수정 전 결과: exit 1, 1 failed.
+
+- hydration-ready 대기와 semantic board 검사는 통과했다.
+- 첫 장식 icon `WEB`의 `aria-hidden` expected `"true"`, received `null`로 실패했다.
+
+### GREEN evidence
+
+독립 artifact 접근성 테스트:
+
+```bash
+pnpm exec playwright test --config playwright.task-2.config.ts --grep "artifact board structure"
+```
+
+결과: exit 0, `1 passed (4.5s)`.
+
+독립 tab interaction 테스트:
+
+```bash
+pnpm exec playwright test --config playwright.task-2.config.ts --grep "working pointer and keyboard tabs"
+```
+
+결과: exit 0, `1 passed (4.7s)`.
+
+전체 Task 2 suite:
+
+```bash
+pnpm exec playwright test --config playwright.task-2.config.ts
+```
+
+결과: exit 0, `11 passed (9.0s)`.
+
+추가 검증:
+
+```bash
+pnpm exec eslint e2e/landing-evidence.chrome.spec.ts src/pages/landing/ui/case-stories-section.tsx
+pnpm exec tsc -b --pretty false
+pnpm build
+git diff --check
+```
+
+- targeted lint: exit 0, 출력 없음.
+- typecheck: exit 0, 출력 없음.
+- build: exit 0, client/SSR/Nitro 성공.
+- diff check: exit 0, 출력 없음.
+
+### Fix files
+
+- `.superpowers/sdd/futur-landing-redesign/task-2-report.md`
+- `e2e/landing-evidence.chrome.spec.ts`
+- `src/pages/landing/ui/case-stories-section.tsx`
+
+### Fix concerns
+
+- `graphify update .`는 새 추출 1,869 nodes와 기존 10,930 nodes 차이를 감지해 다시 fail-closed로 덮어쓰기를 거부했다. `--force`는 사용하지 않았다.

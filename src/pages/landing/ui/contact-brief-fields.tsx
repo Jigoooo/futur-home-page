@@ -132,14 +132,24 @@ export function ContactBriefFields({
           </span>
         ) : null}
         {etcChecked ? (
-          <input
-            className={formStyles.input}
-            name='etcText'
-            value={etcText}
-            onChange={(event) => onEtcTextChange(event.currentTarget.value)}
-            placeholder='기타 항목을 직접 입력해 주세요.'
-            aria-label='기타 서비스 직접 입력'
-          />
+          <label className={formStyles.formControl}>
+            <span className={formStyles.formLabel}>기타 서비스</span>
+            <input
+              className={cx(formStyles.input, errors.otherService && formStyles.invalid)}
+              name='otherService'
+              value={etcText}
+              onChange={(event) => onEtcTextChange(event.currentTarget.value)}
+              placeholder='기타 항목을 직접 입력해 주세요.'
+              maxLength={100}
+              aria-invalid={errors.otherService ? 'true' : 'false'}
+              aria-describedby={errors.otherService ? 'contact-error-other-service' : undefined}
+            />
+            {errors.otherService ? (
+              <span id='contact-error-other-service' className={formStyles.fieldError} role='alert'>
+                {errors.otherService}
+              </span>
+            ) : null}
+          </label>
         ) : null}
       </div>
 

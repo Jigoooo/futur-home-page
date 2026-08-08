@@ -2,12 +2,22 @@ import { cx } from './lib/cx';
 import formStyles from './styles/form-controls.module.css';
 
 export type ContactFieldErrors = Partial<
-  Record<'name' | 'email' | 'message' | 'agree' | 'services', string>
+  Record<
+    | 'name'
+    | 'company'
+    | 'email'
+    | 'message'
+    | 'collectionConsent'
+    | 'overseasTransferConsent'
+    | 'services'
+    | 'otherService',
+    string
+  >
 >;
 
 interface ContactIdentityFieldsProps {
   errors: ContactFieldErrors;
-  onFieldChange: (field: 'name' | 'email') => void;
+  onFieldChange: (field: 'name' | 'company' | 'email') => void;
 }
 
 export function ContactIdentityFields({ errors, onFieldChange }: ContactIdentityFieldsProps) {
@@ -16,7 +26,21 @@ export function ContactIdentityFields({ errors, onFieldChange }: ContactIdentity
       <div className={formStyles.formGrid}>
         <label className={formStyles.formControl}>
           <span className={formStyles.formLabel}>회사명</span>
-          <input className={formStyles.input} name='company' placeholder='회사 또는 서비스명' />
+          <input
+            className={cx(formStyles.input, errors.company && formStyles.invalid)}
+            name='company'
+            placeholder='회사 또는 서비스명'
+            autoComplete='organization'
+            maxLength={100}
+            aria-invalid={errors.company ? 'true' : 'false'}
+            aria-describedby={errors.company ? 'contact-error-company' : undefined}
+            onChange={() => onFieldChange('company')}
+          />
+          {errors.company ? (
+            <span id='contact-error-company' className={formStyles.fieldError} role='alert'>
+              {errors.company}
+            </span>
+          ) : null}
         </label>
         <label className={formStyles.formControl}>
           <span className={formStyles.formLabel}>
@@ -26,6 +50,8 @@ export function ContactIdentityFields({ errors, onFieldChange }: ContactIdentity
             className={cx(formStyles.input, errors.name && formStyles.invalid)}
             name='name'
             placeholder='성함'
+            autoComplete='name'
+            maxLength={50}
             aria-invalid={errors.name ? 'true' : 'false'}
             aria-describedby={errors.name ? 'contact-error-name' : undefined}
             onChange={() => onFieldChange('name')}
@@ -45,6 +71,8 @@ export function ContactIdentityFields({ errors, onFieldChange }: ContactIdentity
             name='email'
             type='email'
             placeholder='contact@example.com'
+            autoComplete='email'
+            maxLength={254}
             aria-invalid={errors.email ? 'true' : 'false'}
             aria-describedby={errors.email ? 'contact-error-email' : undefined}
             onChange={() => onFieldChange('email')}

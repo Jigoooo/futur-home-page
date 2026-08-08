@@ -1,6 +1,6 @@
 import type { BriefStage, ContactCheckItem, ContactChip, SelectOption } from '../model/types';
 
-export const briefStages: BriefStage[] = [
+export const briefStages = [
   {
     value: '아이디어',
     index: '01',
@@ -19,21 +19,21 @@ export const briefStages: BriefStage[] = [
     label: '운영 개선',
     description: '기존 서비스의 문제를 개선하는 단계',
   },
-];
+] as const satisfies readonly BriefStage[];
 
-export const timelineOptions: SelectOption[] = [
+export const timelineOptions = [
   { value: '협의 후 결정', label: '협의 후 결정' },
   { value: '1개월 이내', label: '1개월 이내' },
   { value: '1~3개월', label: '1~3개월' },
   { value: '3개월 이상', label: '3개월 이상' },
-];
+] as const satisfies readonly SelectOption[];
 
-export const budgetOptions: SelectOption[] = [
+export const budgetOptions = [
   { value: '협의 필요', label: '협의 필요' },
   { value: '500만원 이하', label: '500만원 이하' },
   { value: '500~1,000만원', label: '500~1,000만원' },
   { value: '1,000만원 이상', label: '1,000만원 이상' },
-];
+] as const satisfies readonly SelectOption[];
 
 export const contactChips: ContactChip[] = [
   { label: '기획서 없이 문의 가능', icon: 'calendar' },
@@ -41,9 +41,9 @@ export const contactChips: ContactChip[] = [
   { label: '운영까지 고려한 제안', icon: 'shield' },
 ];
 
-export const contactServices: ContactCheckItem[] = [
+export const contactServices = [
   { value: '웹·앱 개발', title: '웹·앱 개발', description: '랜딩·관리자·모바일 화면' },
   { value: '업무 시스템', title: '업무 시스템', description: 'ERP·WMS·내부 포털' },
   { value: '연동·API', title: '연동·API', description: '인증·결제·알림·파일' },
   { value: '운영·유지보수', title: '운영·유지보수', description: '배포 이후 개선과 대응' },
-];
+] as const satisfies readonly ContactCheckItem[];

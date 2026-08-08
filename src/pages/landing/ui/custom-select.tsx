@@ -9,7 +9,7 @@ interface CustomSelectProps {
   label: string;
   name: string;
   value: string;
-  options: SelectOption[];
+  options: readonly SelectOption[];
   onChange: (value: string) => void;
 }
 

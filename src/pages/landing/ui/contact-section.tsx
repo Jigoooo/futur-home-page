@@ -1,5 +1,6 @@
+import { useServerFn } from '@tanstack/react-start';
 import { ArrowRight, ChevronRight } from 'lucide-react';
-import { useState, type FormEvent } from 'react';
+import { useRef, useState, type FormEvent } from 'react';
 
 import { Button } from './button';
 import { ContactBriefFields } from './contact-brief-fields';
@@ -13,6 +14,15 @@ import styles from './styles/contact.module.css';
 import formStyles from './styles/form-controls.module.css';
 import sharedStyles from './styles/shared.module.css';
 import { mailHref } from '../lib/company-links';
+import type {
+  ContactBudgetId,
+  ContactInquiryInput,
+  ContactInquiryResult,
+  ContactServiceId,
+  ContactStageId,
+  ContactTimelineId,
+} from '../model/contact-inquiry';
+import { submitContactInquiry as submitContactInquiryServer } from '../server/contact-inquiry.functions';
 import { COMPANY_INFOS } from '@/entities/company';
 import { PrivacyContent } from '@/pages/legal/privacy';
 
@@ -20,17 +30,30 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 type ContactFieldName = keyof ContactFieldErrors;
 
-const FIELD_ORDER: ContactFieldName[] = ['name', 'email', 'services', 'message', 'agree'];
+const FIELD_ORDER: ContactFieldName[] = [
+  'name',
+  'company',
+  'email',
+  'services',
+  'otherService',
+  'message',
+  'collectionConsent',
+  'overseasTransferConsent',
+];
 
 export function ContactSection() {
-  const [stage, setStage] = useState(briefStages[0]!.value);
-  const [timeline, setTimeline] = useState(timelineOptions[0]!.value);
-  const [budget, setBudget] = useState(budgetOptions[0]!.value);
+  const [stage, setStage] = useState<string>(briefStages[0]!.value);
+  const [timeline, setTimeline] = useState<string>(timelineOptions[0]!.value);
+  const [budget, setBudget] = useState<string>(budgetOptions[0]!.value);
   const [etcChecked, setEtcChecked] = useState(false);
   const [etcText, setEtcText] = useState('');
-  const [result, setResult] = useState('');
+  const [result, setResult] = useState<ContactInquiryResult | null>(null);
   const [errors, setErrors] = useState<ContactFieldErrors>({});
   const [privacyOpen, setPrivacyOpen] = useState(false);
+  const [pending, setPending] = useState(false);
+  const formStartedAt = useRef(0);
+  const submissionId = useRef('');
+  const submitContactInquiry = useServerFn(submitContactInquiryServer);
 
   const clearFieldError = (field: ContactFieldName) => {
     setErrors((prev) => {
@@ -51,17 +74,35 @@ export function ContactSection() {
     const data = new FormData(formEl);
     const next: ContactFieldErrors = {};
     const name = String(data.get('name') ?? '').trim();
+    const company = String(data.get('company') ?? '').trim();
     const email = String(data.get('email') ?? '').trim();
+    const otherService = String(data.get('otherService') ?? '').trim();
     const message = String(data.get('message') ?? '').trim();
-    const agree = data.get('agree');
-    const services = data.getAll('services');
+    const collectionConsent = data.get('collectionConsent');
+    const overseasTransferConsent = data.get('overseasTransferConsent');
+    const services = data.getAll('services').map(String);
 
     if (!name) next.name = '담당자명을 입력해 주세요.';
+    else if (name.length > 50) next.name = '담당자명은 50자 이하로 입력해 주세요.';
+    if (company.length > 100) next.company = '회사명은 100자 이하로 입력해 주세요.';
     if (!email) next.email = '이메일 주소를 입력해 주세요.';
     else if (!EMAIL_PATTERN.test(email)) next.email = '이메일 주소를 정확히 입력해 주세요.';
+    else if (email.length > 254) next.email = '이메일 주소는 254자 이하로 입력해 주세요.';
     if (services.length === 0) next.services = '필요한 서비스를 한 개 이상 선택해 주세요.';
-    if (!message) next.message = '문의 내용을 알려주세요.';
-    if (!agree) next.agree = '개인정보 수집·이용 동의가 필요합니다.';
+    else if (services.length > 5) next.services = '서비스는 최대 다섯 개까지 선택해 주세요.';
+    if (services.includes('기타') && !otherService) {
+      next.otherService = '기타 서비스를 입력해 주세요.';
+    } else if (otherService.length > 100) {
+      next.otherService = '기타 서비스는 100자 이하로 입력해 주세요.';
+    }
+    if (message.length < 20) next.message = '문의 내용을 20자 이상 입력해 주세요.';
+    else if (message.length > 3_000) next.message = '문의 내용은 3,000자 이하로 입력해 주세요.';
+    if (!collectionConsent) {
+      next.collectionConsent = '개인정보 수집·이용 동의가 필요합니다.';
+    }
+    if (!overseasTransferConsent) {
+      next.overseasTransferConsent = '개인정보 국외 이전 동의가 필요합니다.';
+    }
     return next;
   };
 
@@ -82,18 +123,66 @@ export function ContactSection() {
     }
   };
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (pending) return;
+
     const formEl = event.currentTarget;
     const nextErrors = validate(formEl);
     if (Object.keys(nextErrors).length > 0) {
       setErrors(nextErrors);
-      setResult('');
+      setResult(null);
       focusFirstError(formEl, nextErrors);
       return;
     }
+
+    const data = new FormData(formEl);
+    if (!submissionId.current) submissionId.current = crypto.randomUUID();
+
+    const input: ContactInquiryInput = {
+      submissionId: submissionId.current,
+      name: String(data.get('name')).trim(),
+      company: String(data.get('company') ?? '').trim(),
+      email: String(data.get('email')).trim(),
+      stage: stage as ContactStageId,
+      timeline: timeline as ContactTimelineId,
+      budget: budget as ContactBudgetId,
+      services: data.getAll('services').map(String) as ContactServiceId[],
+      otherService: String(data.get('otherService') ?? '').trim(),
+      message: String(data.get('message')).trim(),
+      collectionConsent: data.get('collectionConsent') === 'on',
+      overseasTransferConsent: data.get('overseasTransferConsent') === 'on',
+      website: String(data.get('website') ?? ''),
+      formStartedAt: formStartedAt.current,
+    };
+
     setErrors({});
-    setResult('입력 내용을 확인했습니다. 실제 서비스에서는 전송 API와 연결하면 됩니다.');
+    setResult(null);
+    setPending(true);
+
+    try {
+      const nextResult = await submitContactInquiry({ data: input });
+      setResult(nextResult);
+
+      if (nextResult.ok) {
+        formEl.reset();
+        setStage(briefStages[0]!.value);
+        setTimeline(timelineOptions[0]!.value);
+        setBudget(budgetOptions[0]!.value);
+        setEtcChecked(false);
+        setEtcText('');
+        formStartedAt.current = Date.now();
+        submissionId.current = '';
+      }
+    } catch {
+      setResult({
+        ok: false,
+        code: 'DELIVERY',
+        message: '문의 전송에 실패했습니다. 잠시 후 다시 시도해 주세요.',
+      });
+    } finally {
+      setPending(false);
+    }
   };
 
   return (
@@ -162,6 +251,9 @@ export function ContactSection() {
           </div>
 
           <form
+            ref={(form) => {
+              if (form && formStartedAt.current === 0) formStartedAt.current = Date.now();
+            }}
             className={cx(styles.contactForm, sharedStyles.reveal, sharedStyles.revealRight)}
             data-landing-contact-form
             data-landing-reveal='right'
@@ -180,7 +272,10 @@ export function ContactSection() {
               onTimelineChange={setTimeline}
               onBudgetChange={setBudget}
               onEtcCheckedChange={handleEtcCheckedChange}
-              onEtcTextChange={setEtcText}
+              onEtcTextChange={(value) => {
+                setEtcText(value);
+                clearFieldError('otherService');
+              }}
               onServicesChange={() => clearFieldError('services')}
             />
 
@@ -194,6 +289,8 @@ export function ContactSection() {
                 className={cx(formStyles.textareaInput, errors.message && formStyles.invalid)}
                 name='message'
                 placeholder='현재 상황, 필요한 기능, 참고 서비스, 일정, 예산 범위, 걱정되는 부분 등을 자유롭게 적어주세요.'
+                minLength={20}
+                maxLength={3000}
                 aria-invalid={errors.message ? 'true' : 'false'}
                 aria-describedby={errors.message ? 'contact-error-message' : undefined}
                 onChange={() => clearFieldError('message')}
@@ -209,22 +306,29 @@ export function ContactSection() {
               )}
             </label>
 
+            <label className={styles.honeypot} aria-hidden='true'>
+              웹사이트
+              <input name='website' tabIndex={-1} autoComplete='off' />
+            </label>
+
             <div className={styles.consentBlock}>
               <div className={styles.consentRow}>
                 <label
                   className={cx(
                     formStyles.consent,
                     formStyles.checkTile,
-                    errors.agree && formStyles.invalid,
+                    errors.collectionConsent && formStyles.invalid,
                   )}
                   data-landing-interactive='check-tile'
                 >
                   <input
                     type='checkbox'
-                    name='agree'
-                    aria-invalid={errors.agree ? 'true' : 'false'}
-                    aria-describedby={errors.agree ? 'contact-error-agree' : undefined}
-                    onChange={() => clearFieldError('agree')}
+                    name='collectionConsent'
+                    aria-invalid={errors.collectionConsent ? 'true' : 'false'}
+                    aria-describedby={
+                      errors.collectionConsent ? 'contact-error-collection-consent' : undefined
+                    }
+                    onChange={() => clearFieldError('collectionConsent')}
                   />
                   <span className={formStyles.checkUi} data-landing-surface>
                     <span className={formStyles.checkBox}>
@@ -254,32 +358,115 @@ export function ContactSection() {
                 </li>
                 <li>
                   <strong>보유 기간</strong>
-                  <span>상담 종료 후 1년</span>
+                  <span>법률 검토 후 확정·고지 예정</span>
                 </li>
                 <li>
                   <strong>거부권</strong>
                   <span>거부 가능 · 거부 시 상담 응대가 어려울 수 있음</span>
                 </li>
               </ul>
-              {errors.agree ? (
-                <span id='contact-error-agree' className={formStyles.fieldError} role='alert'>
-                  {errors.agree}
+              {errors.collectionConsent ? (
+                <span
+                  id='contact-error-collection-consent'
+                  className={formStyles.fieldError}
+                  role='alert'
+                >
+                  {errors.collectionConsent}
+                </span>
+              ) : null}
+            </div>
+
+            <div className={styles.consentBlock}>
+              <div className={styles.consentRow}>
+                <label
+                  className={cx(
+                    formStyles.consent,
+                    formStyles.checkTile,
+                    errors.overseasTransferConsent && formStyles.invalid,
+                  )}
+                  data-landing-interactive='check-tile'
+                >
+                  <input
+                    type='checkbox'
+                    name='overseasTransferConsent'
+                    aria-invalid={errors.overseasTransferConsent ? 'true' : 'false'}
+                    aria-describedby={
+                      errors.overseasTransferConsent
+                        ? 'contact-error-overseas-transfer-consent'
+                        : undefined
+                    }
+                    onChange={() => clearFieldError('overseasTransferConsent')}
+                  />
+                  <span className={formStyles.checkUi} data-landing-surface>
+                    <span className={formStyles.checkBox}>
+                      <Icon name='check' />
+                    </span>
+                    개인정보 국외 이전에 동의합니다.
+                  </span>
+                </label>
+                <button
+                  type='button'
+                  className={styles.consentLink}
+                  onClick={() => setPrivacyOpen(true)}
+                  aria-label='개인정보 국외 이전 자세히 보기'
+                >
+                  자세히 보기
+                  <ChevronRight size={14} strokeWidth={2.4} aria-hidden='true' />
+                </button>
+              </div>
+              <ul className={styles.consentNotice} aria-label='개인정보 국외 이전 고지'>
+                <li>
+                  <strong>이전받는 자</strong>
+                  <span>Resend, Inc.</span>
+                </li>
+                <li>
+                  <strong>이전 국가</strong>
+                  <span>미국</span>
+                </li>
+                <li>
+                  <strong>목적</strong>
+                  <span>상담 문의 이메일 전송</span>
+                </li>
+                <li>
+                  <strong>보유 기간</strong>
+                  <span>법률 검토 후 확정·고지 예정</span>
+                </li>
+              </ul>
+              {errors.overseasTransferConsent ? (
+                <span
+                  id='contact-error-overseas-transfer-consent'
+                  className={formStyles.fieldError}
+                  role='alert'
+                >
+                  {errors.overseasTransferConsent}
                 </span>
               ) : null}
             </div>
 
             <div className={styles.formActions}>
-              <div className={styles.result} aria-live='polite'>
-                {result}
-              </div>
+              {result?.ok ? (
+                <output className={styles.result}>
+                  <span>{result.message}</span>
+                </output>
+              ) : result ? (
+                <div className={cx(styles.result, styles.resultError)} role='alert'>
+                  <span>{result.message}</span>
+                  {result.fallbackEmail ? (
+                    <a href={`mailto:${result.fallbackEmail}`}>이메일로 직접 문의하기</a>
+                  ) : null}
+                </div>
+              ) : (
+                <div className={styles.result} aria-live='polite' />
+              )}
               <button
                 type='submit'
                 className={cx(buttonStyles.button, buttonStyles.blue, styles.submitButton)}
                 data-landing-interactive='button'
                 data-landing-spotlight='button'
                 data-cursor-text='SEND'
+                disabled={pending}
               >
-                <span data-landing-label>상담 신청하기</span>
+                <span data-landing-label>{pending ? '전송 중…' : '상담 신청하기'}</span>
                 <span data-landing-arrow>
                   <ArrowRight size={14} strokeWidth={2.2} />
                 </span>

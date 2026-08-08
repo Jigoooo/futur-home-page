@@ -104,7 +104,7 @@ function animateButtonDetails(control: HTMLElement, active: boolean) {
       duration: active ? 0.24 : 0.2,
       ease: 'power3.out',
       overwrite: true,
-      clearProps: active ? undefined : 'transform',
+      ...(active ? {} : { clearProps: 'transform' }),
     });
   }
 
@@ -114,7 +114,7 @@ function animateButtonDetails(control: HTMLElement, active: boolean) {
       duration: active ? 0.28 : 0.22,
       ease: active ? 'back.out(2.2)' : 'power3.out',
       overwrite: true,
-      clearProps: active ? undefined : 'transform',
+      ...(active ? {} : { clearProps: 'transform' }),
     });
   }
 }

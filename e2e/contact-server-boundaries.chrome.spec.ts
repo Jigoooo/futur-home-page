@@ -1,5 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 
+test.describe.configure({ mode: 'serial' });
+
 interface ServerResult {
   ok: boolean;
   code?: string;
@@ -159,7 +161,11 @@ test('uses proxy-overwritten forwarded identities only when proxy trust is enabl
 
 test('evicts the oldest requester deterministically at the rate-store capacity', async ({
   page,
-}) => {
+}, testInfo) => {
+  test.skip(
+    testInfo.project.metadata.contactCapacityTests !== true,
+    'capacity limits are isolated by the task-owned server configuration',
+  );
   await page.goto('/');
 
   for (let index = 0; index < 17; index += 1) {
@@ -177,7 +183,13 @@ test('evicts the oldest requester deterministically at the rate-store capacity',
   }
 });
 
-test('evicts the oldest idempotency record deterministically at capacity', async ({ page }) => {
+test('evicts the oldest idempotency record deterministically at capacity', async ({
+  page,
+}, testInfo) => {
+  test.skip(
+    testInfo.project.metadata.contactCapacityTests !== true,
+    'capacity limits are isolated by the task-owned server configuration',
+  );
   await page.goto('/');
 
   for (let index = 0; index < 9; index += 1) {
@@ -202,7 +214,9 @@ test('expires rate entries after 15 minutes and idempotency entries after 24 hou
   page,
 }) => {
   await page.goto('/');
-  const startedAt = Date.now();
+  // Keep the synthetic clock at or before wall time so this parallel test cannot
+  // expire another worker's in-flight process-local entries.
+  const startedAt = Date.now() - 24 * 60 * 60 * 1_000 - 1;
   const rateIdentity = { e2eRequester: 'rate-ttl', now: startedAt };
 
   for (let attempt = 0; attempt < 3; attempt += 1) {

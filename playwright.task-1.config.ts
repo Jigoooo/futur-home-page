@@ -4,6 +4,9 @@ const baseURL = 'http://127.0.0.1:3000';
 const trustProxy = process.env.CONTACT_TRUST_PROXY ?? '0';
 
 export default defineConfig({
+  metadata: {
+    contactCapacityTests: true,
+  },
   testDir: './e2e',
   fullyParallel: false,
   forbidOnly: true,

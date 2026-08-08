@@ -218,7 +218,9 @@ test('opens a keyboard-safe mobile disclosure menu and restores trigger focus', 
   const firstLink = menu.getByRole('link', { name: '프로젝트 기록' });
   await expect(firstLink).toBeVisible();
   await expect(firstLink).toBeFocused();
-  await expect(menu.getByRole('link', { name: '문의하기' })).toBeVisible();
+  const mobileCta = menu.getByRole('link', { name: '문의하기' });
+  await expect(mobileCta).toBeVisible();
+  await expect(mobileCta).toHaveCSS('color', 'rgb(255, 255, 255)');
 
   await page.keyboard.press('Escape');
   await expect(menu).toBeHidden();

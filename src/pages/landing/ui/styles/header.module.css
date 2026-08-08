@@ -169,7 +169,7 @@
     display: grid;
   }
 
-  .mobileMenu nav a {
+  .mobileMenu nav > a:not(.mobileCta) {
     padding: 13px 8px;
     border-bottom: 1px solid #eef2f8;
     color: #18284f;

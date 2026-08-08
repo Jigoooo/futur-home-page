@@ -3,7 +3,7 @@
 import '@tanstack/react-start/server-only';
 
 import { getRequestHeaders, getRequestIP } from '@tanstack/react-start/server';
-import { createHmac } from 'node:crypto';
+import { createHmac, randomUUID } from 'node:crypto';
 
 import { sendContactInquiryEmail } from './contact-mail.server';
 import { briefStages, budgetOptions, contactServices, timelineOptions } from '../config/contact';
@@ -231,13 +231,18 @@ export async function deliverContactInquiry(input: unknown): Promise<ContactInqu
       });
       return result;
     })
-    .catch(
-      (): ContactInquiryResult => ({
+    .catch((): ContactInquiryResult => {
+      console.error('[contact-inquiry] unexpected delivery failure', {
+        requestId: randomUUID(),
+        submissionId: input.submissionId,
+      });
+
+      return {
         ok: false,
         code: 'DELIVERY',
         message: '문의 전송에 실패했습니다. 잠시 후 다시 시도해 주세요.',
-      }),
-    );
+      };
+    });
 
   inFlightSubmissions.set(deduplicationKey, deliveryPromise);
   try {

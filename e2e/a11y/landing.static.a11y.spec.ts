@@ -16,7 +16,7 @@ test.describe('/ 랜딩 페이지 정적 스캔', () => {
     { id: '#services', name: 'Services' },
     { id: '#cases', name: 'CaseStories(초기 상태)' },
     { id: '#team', name: 'Team' },
-    { id: '#delivery', name: 'Delivery' },
+    { id: '#process', name: 'Process' },
     { id: '#faq', name: 'FAQ(첫 항목만 펼침)' },
     { id: '#contact', name: 'Contact(초기 상태)' },
   ] as const;

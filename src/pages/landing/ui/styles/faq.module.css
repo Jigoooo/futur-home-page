@@ -25,8 +25,8 @@
   background: linear-gradient(180deg, #ffffff, #fbfdff);
   box-shadow: var(--shadow-soft);
   transition:
-    border-color var(--motion-hover) ease,
-    box-shadow var(--motion-hover) ease;
+    border-color 0.24s ease,
+    box-shadow 0.24s ease;
 }
 
 .itemOpen {
@@ -91,10 +91,10 @@
   background: #ffffff;
   color: var(--navy);
   transition:
-    transform var(--motion-disclosure-exit) var(--ease-out),
-    background var(--motion-hover) ease,
-    border-color var(--motion-hover) ease,
-    color var(--motion-hover) ease;
+    transform 0.36s var(--spring),
+    background 0.24s ease,
+    border-color 0.24s ease,
+    color 0.24s ease;
   flex-shrink: 0;
 }
 
@@ -103,16 +103,16 @@
   background: linear-gradient(180deg, #eef5ff, #f8fbff);
   border-color: #d6e2f6;
   color: var(--blue);
-  transition-duration:
-    var(--motion-disclosure-enter), var(--motion-hover), var(--motion-hover), var(--motion-hover);
 }
 
 .panel {
-  display: block;
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.36s var(--spring);
 }
 
-.panel[hidden] {
-  display: none;
+.itemOpen .panel {
+  grid-template-rows: 1fr;
 }
 
 .panelInner {
@@ -130,27 +130,13 @@
   opacity: 0;
   transform: translate3d(0, -4px, 0);
   transition:
-    opacity var(--motion-disclosure-exit) var(--ease-out),
-    transform var(--motion-disclosure-exit) var(--ease-out);
+    opacity 0.32s ease 0.06s,
+    transform 0.32s var(--spring) 0.06s;
 }
 
 .itemOpen .answer {
   opacity: 1;
   transform: translate3d(0, 0, 0);
-  transition-duration: var(--motion-disclosure-enter), var(--motion-disclosure-enter);
-}
-
-@starting-style {
-  .itemOpen .answer {
-    opacity: 0;
-    transform: translate3d(0, -4px, 0);
-  }
-}
-
-.keyboardToggle,
-.keyboardToggle .toggle,
-.keyboardToggle .answer {
-  transition-duration: 0s;
 }
 
 @media (max-width: 560px) {

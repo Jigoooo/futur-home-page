@@ -10,8 +10,9 @@
   pointer-events: auto;
   touch-action: none;
   transition:
-    background var(--motion-disclosure-enter) ease,
-    opacity var(--motion-disclosure-enter) var(--ease-out);
+    background 0.18s ease,
+    opacity 0.18s ease,
+    width 0.18s var(--spring);
 }
 
 .track[data-visible='true'] {
@@ -20,6 +21,7 @@
 
 .track[data-hovered='true'],
 .track[data-dragging='true'] {
+  width: 14px;
   background: rgba(13, 31, 70, 0.06);
   opacity: 1;
 }
@@ -37,27 +39,24 @@
   cursor: pointer;
   touch-action: none;
   transition:
-    background var(--motion-disclosure-enter) ease,
-    box-shadow var(--motion-disclosure-enter) ease;
+    width 0.18s var(--spring),
+    background 0.18s ease,
+    box-shadow 0.18s ease;
 }
 
 .track[data-hovered='true'] .thumb {
+  width: 8px;
   background: rgba(7, 24, 63, 0.38);
 }
 
 .track[data-dragging='true'] .thumb {
+  width: 10px;
   background: #1e4dc4;
   box-shadow: 0 6px 18px rgba(47, 107, 255, 0.22);
 }
 
-@media (max-width: 900px), (pointer: coarse) {
+@media (max-width: 900px), (pointer: coarse), (prefers-reduced-motion: reduce) {
   .track {
     display: none;
   }
-}
-
-.track:focus-visible {
-  outline: 3px solid rgba(47, 107, 255, 0.32);
-  outline-offset: 3px;
-  opacity: 1;
 }

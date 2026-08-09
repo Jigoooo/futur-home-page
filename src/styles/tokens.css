@@ -25,16 +25,6 @@
   --radius-lg: 44px;
   --radius-md: 30px;
   --radius-sm: 20px;
-  --ease: cubic-bezier(0.23, 1, 0.32, 1);
-  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
-  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
-  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
-  --spring: cubic-bezier(0.23, 1, 0.32, 1);
-  --motion-press: 100ms;
-  --motion-hover: 150ms;
-  --motion-disclosure-enter: 180ms;
-  --motion-disclosure-exit: 120ms;
-  --motion-tabs: 220ms;
-  --motion-modal-enter: 250ms;
-  --motion-modal-exit: 180ms;
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --spring: cubic-bezier(0.2, 1.25, 0.34, 1);
 }

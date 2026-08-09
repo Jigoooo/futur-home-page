@@ -1,36 +1,47 @@
 import { ChevronUp } from 'lucide-react';
+import { useRef } from 'react';
 
 import { CaseStoriesSection } from './case-stories-section';
 import { ContactSection } from './contact-section';
 import { CustomCursor } from './custom-cursor';
-import { DeliverySection } from './delivery-section';
 import { FaqSection } from './faq-section';
 import { FooterSection } from './footer-section';
 import { HeaderSection } from './header-section';
 import { HeroSection } from './hero-section';
 import { LandingScrollbar } from './landing-scrollbar';
+import { OperationsPolicySection } from './operations-policy-section';
+import { ProcessSection } from './process-section';
+import { ReviewsSection } from './reviews-section';
 import { ServicesSection } from './services-section';
+import { StackSection } from './stack-section';
 import scrollTopStyles from './styles/scroll-top.module.css';
 import sharedStyles from './styles/shared.module.css';
 import { TeamSection } from './team-section';
 import { TrustSection } from './trust-section';
 import { useInViewReveal } from './use-in-view-reveal';
+import { useLandingGsapInteractions } from './use-landing-gsap-interactions';
 import { scrollToPageTop } from '../lib/scroll-to-page-top';
 
 export function LandingPage() {
+  const pageRef = useRef<HTMLElement | null>(null);
+
   useInViewReveal();
+  useLandingGsapInteractions(pageRef);
 
   return (
     <>
       <CustomCursor />
-      <main id='landing-page-content' className={sharedStyles.page} data-landing-page>
+      <main ref={pageRef} className={sharedStyles.page} data-landing-page>
         <HeaderSection />
         <HeroSection />
         <TrustSection />
-        <CaseStoriesSection />
         <ServicesSection />
-        <DeliverySection />
+        <StackSection />
+        <CaseStoriesSection />
         <TeamSection />
+        <ProcessSection />
+        <OperationsPolicySection />
+        <ReviewsSection />
         <FaqSection />
         <ContactSection />
         <FooterSection />

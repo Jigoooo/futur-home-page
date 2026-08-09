@@ -1,5 +1,4 @@
 import {
-  type KeyboardEvent,
   type PointerEvent as ReactPointerEvent,
   useCallback,
   useEffect,
@@ -68,7 +67,9 @@ export function LandingScrollbar() {
   }, [clearIdleTimer]);
 
   useEffect(() => {
-    const shouldUseOverlay = window.matchMedia('(pointer: fine) and (min-width: 901px)').matches;
+    const shouldUseOverlay = window.matchMedia(
+      '(pointer: fine) and (min-width: 901px) and (prefers-reduced-motion: no-preference)',
+    ).matches;
 
     if (!shouldUseOverlay) return undefined;
 
@@ -184,25 +185,6 @@ export function LandingScrollbar() {
     document.addEventListener('pointercancel', handlePointerUp);
   };
 
-  const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-    const scrollElement = getScrollElement();
-    const lineStep = 48;
-    const pageStep = Math.max(1, scrollState?.clientHeight ?? window.innerHeight) * 0.9;
-    let nextTop: number | null = null;
-
-    if (event.key === 'ArrowDown') nextTop = scrollElement.scrollTop + lineStep;
-    if (event.key === 'ArrowUp') nextTop = scrollElement.scrollTop - lineStep;
-    if (event.key === 'PageDown') nextTop = scrollElement.scrollTop + pageStep;
-    if (event.key === 'PageUp') nextTop = scrollElement.scrollTop - pageStep;
-    if (event.key === 'Home') nextTop = 0;
-    if (event.key === 'End') nextTop = geometry.maxScrollTop;
-    if (nextTop === null) return;
-
-    event.preventDefault();
-    setInstantScrollTop(Math.max(0, Math.min(nextTop, geometry.maxScrollTop)));
-    revealTemporarily();
-  };
-
   return (
     <div
       ref={trackRef}
@@ -212,18 +194,10 @@ export function LandingScrollbar() {
       data-hovered={isHovered || isDragging ? 'true' : undefined}
       data-dragging={isDragging ? 'true' : undefined}
       style={{ height: geometry.trackHeight }}
-      role='scrollbar'
-      tabIndex={0}
-      aria-label='페이지 스크롤'
-      aria-controls='landing-page-content'
-      aria-orientation='vertical'
-      aria-valuemin={0}
-      aria-valuemax={Math.round(geometry.maxScrollTop)}
-      aria-valuenow={Math.round(scrollState?.scrollTop ?? 0)}
+      aria-hidden='true'
       onPointerEnter={() => setIsHovered(true)}
       onPointerLeave={() => setIsHovered(false)}
       onPointerDown={handleTrackPointerDown}
-      onKeyDown={handleKeyDown}
     >
       <div
         className={styles.thumb}

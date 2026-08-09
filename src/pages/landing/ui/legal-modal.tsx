@@ -1,6 +1,5 @@
 import { X } from 'lucide-react';
-import { useCallback, useEffect, useId, useRef, useState, type ReactNode } from 'react';
-import { createPortal } from 'react-dom';
+import { useEffect, useRef, type ReactNode } from 'react';
 
 import { cx } from './lib/cx';
 import styles from './styles/legal-modal.module.css';
@@ -17,23 +16,8 @@ interface LegalModalHistoryState {
 }
 
 export function LegalModal({ open, title, onClose, children }: LegalModalProps) {
-  const titleId = useId();
   const historyKeyRef = useRef<string | null>(null);
   const onCloseRef = useRef(onClose);
-  const shellRef = useRef<HTMLDivElement>(null);
-  const closeButtonRef = useRef<HTMLButtonElement>(null);
-  const [exitComplete, setExitComplete] = useState(!open);
-  const reduceMotion =
-    typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const rendered = open || (!reduceMotion && !exitComplete);
-
-  const requestClose = useCallback(
-    (immediate: boolean) => {
-      setExitComplete(immediate || reduceMotion);
-      window.history.back();
-    },
-    [reduceMotion],
-  );
 
   useEffect(() => {
     onCloseRef.current = onClose;
@@ -66,57 +50,19 @@ export function LegalModal({ open, title, onClose, children }: LegalModalProps) 
   }, [open]);
 
   useEffect(() => {
-    if (!open || !rendered) {
+    if (!open) {
       return;
     }
 
-    const previouslyFocused =
-      document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    const page = document.querySelector<HTMLElement>('#landing-page-content');
-    page?.setAttribute('inert', '');
-
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
-        event.preventDefault();
-        requestClose(true);
-        return;
-      }
-
-      if (event.key !== 'Tab') return;
-
-      const focusable = Array.from(
-        shellRef.current?.querySelectorAll<HTMLElement>(
-          'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
-        ) ?? [],
-      ).filter((element) => !element.hidden && element.getAttribute('aria-hidden') !== 'true');
-
-      if (focusable.length === 0) {
-        event.preventDefault();
-        closeButtonRef.current?.focus();
-        return;
-      }
-
-      const first = focusable[0];
-      const last = focusable.at(-1);
-      if (event.shiftKey && document.activeElement === first) {
-        event.preventDefault();
-        last?.focus();
-      } else if (!event.shiftKey && document.activeElement === last) {
-        event.preventDefault();
-        first?.focus();
+        window.history.back();
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
-    const focusFrame = window.requestAnimationFrame(() => closeButtonRef.current?.focus());
-
-    return () => {
-      window.cancelAnimationFrame(focusFrame);
-      window.removeEventListener('keydown', handleKeyDown);
-      page?.removeAttribute('inert');
-      previouslyFocused?.focus();
-    };
-  }, [open, rendered, requestClose]);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [open]);
 
   useEffect(() => {
     if (!open) {
@@ -158,46 +104,30 @@ export function LegalModal({ open, title, onClose, children }: LegalModalProps) 
     };
   }, [open]);
 
-  if (!rendered) {
+  if (!open) {
     return null;
   }
 
-  return createPortal(
-    // Keep the explicit role for stable AT and legacy selector compatibility across dialog implementations.
-    // eslint-disable-next-line jsx-a11y/no-redundant-roles
-    <dialog
-      open
-      className={styles.backdrop}
-      data-state={open ? 'open' : 'closed'}
-      role='dialog'
-      aria-modal='true'
-      aria-labelledby={titleId}
-      aria-hidden={!open}
-      onAnimationStart={() => {
-        if (open) setExitComplete(false);
-      }}
-      onAnimationEnd={(event) => {
-        if (!open && event.currentTarget === event.target) setExitComplete(true);
-      }}
-    >
+  const handleClose = () => {
+    window.history.back();
+  };
+
+  return (
+    <div className={styles.backdrop} role='dialog' aria-modal='true' aria-label={title}>
       <button
         type='button'
         className={styles.backdropButton}
         aria-label='개인정보 처리방침 닫기'
-        data-legal-backdrop
         tabIndex={-1}
-        onClick={() => requestClose(false)}
+        onClick={handleClose}
       />
-      <div ref={shellRef} className={styles.shell}>
+      <div className={styles.shell}>
         <header className={styles.head}>
-          <strong id={titleId} className={styles.title}>
-            {title}
-          </strong>
+          <strong className={styles.title}>{title}</strong>
           <button
-            ref={closeButtonRef}
             type='button'
             className={cx(styles.closeButton)}
-            onClick={(event) => requestClose(event.detail === 0)}
+            onClick={handleClose}
             aria-label='닫기'
           >
             <X size={18} strokeWidth={2.2} />
@@ -205,7 +135,6 @@ export function LegalModal({ open, title, onClose, children }: LegalModalProps) 
         </header>
         <div className={styles.body}>{children}</div>
       </div>
-    </dialog>,
-    document.body,
+    </div>
   );
 }

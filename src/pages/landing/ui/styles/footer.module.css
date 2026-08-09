@@ -13,8 +13,10 @@
   margin: 0 0 clamp(74px, 6.5vw, 104px);
   padding: 64px 58px;
   border: 1px solid #dce8f7;
-  border-radius: 28px;
-  background: #f4f8ff;
+  border-radius: 46px;
+  background:
+    radial-gradient(640px 300px at 90% 0%, rgba(47, 107, 255, 0.16), transparent 68%),
+    linear-gradient(135deg, #ffffff 0%, #f4f8ff 100%);
   box-shadow: 0 30px 90px rgba(20, 42, 94, 0.1);
 }
 
@@ -27,7 +29,7 @@
 
 .footerTop p {
   margin: 12px 0 0;
-  color: #52617a;
+  color: #5e6b85;
   font-size: 15px;
   line-height: 1.7;
 }
@@ -69,17 +71,15 @@
   font-weight: 900;
   box-shadow: 0 12px 28px rgba(31, 54, 105, 0.055);
   transition:
-    transform var(--motion-hover) var(--ease-out),
-    background var(--motion-hover) ease,
-    border-color var(--motion-hover) ease;
+    transform 0.24s var(--spring),
+    background 0.24s ease,
+    border-color 0.24s ease;
 }
 
-@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
-  .footerPill:hover {
-    transform: translateY(-2px);
-    border-color: #cfdff8;
-    background: #ffffff;
-  }
+.footerPill:hover {
+  transform: translateY(-3px);
+  border-color: #cfdff8;
+  background: #ffffff;
 }
 
 .footerPill svg {
@@ -113,7 +113,7 @@
 .footer p {
   max-width: 420px;
   margin: 0;
-  color: #52617a;
+  color: #687693;
   font-size: 14px;
   line-height: 1.75;
 }
@@ -161,7 +161,7 @@
   font-size: 13px;
   letter-spacing: -0.005em;
   text-decoration: none;
-  transition: color var(--motion-hover) ease;
+  transition: color 160ms ease;
 }
 
 .legalPrimary {
@@ -233,7 +233,7 @@
   .footerTop {
     margin-bottom: 56px;
     padding: 38px 28px;
-    border-radius: 28px;
+    border-radius: 34px;
   }
 
   .footerTop h2 {
@@ -267,7 +267,7 @@
   }
 }
 
-@media (hover: none), (pointer: coarse), (prefers-reduced-motion: reduce) {
+@media (hover: none), (pointer: coarse) {
   .footerPill:hover {
     transform: none;
     box-shadow: inherit;

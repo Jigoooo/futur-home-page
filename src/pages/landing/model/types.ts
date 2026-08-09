@@ -47,18 +47,19 @@ export interface CaseStory {
   icon: string;
   noteTitle: string;
   noteDescription: string;
+  image: {
+    src: string;
+    alt: string;
+  };
+  metrics: Array<{ value: string; label: string }>;
   items: string[];
   tags: string[];
-  stack: string[];
-  artifact: {
-    label: string;
-    columns: string[];
-    rows: Array<{ title: string; meta: string }>;
-  };
 }
 
 export interface TeamRole {
   badge: string;
+  location: string;
+  experience: string;
   title: string;
   job: string;
   strength: string;
@@ -72,6 +73,12 @@ export interface ProcessStep {
   description: string;
 }
 
+export interface ReviewItem {
+  quote: string;
+  person: string;
+  context: string;
+}
+
 export interface ContactCheckItem {
   value: string;
   title: string;
@@ -82,6 +89,23 @@ export interface ContactCheckItem {
 export interface ContactChip {
   label: string;
   icon: IconName;
+}
+
+export interface TrustStat {
+  value: string;
+  label: string;
+  caption?: string;
+}
+
+export interface StackItem {
+  name: string;
+  group: 'Frontend' | 'Mobile' | 'Backend' | 'Data · Infra' | 'Design';
+}
+
+export interface OperationsPolicy {
+  icon: IconName;
+  title: string;
+  description: string;
 }
 
 export interface FaqItem {

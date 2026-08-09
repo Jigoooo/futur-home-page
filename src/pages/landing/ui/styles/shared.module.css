@@ -39,7 +39,7 @@
 }
 
 .section {
-  padding-block: clamp(126px, 10vw, 176px);
+  padding-block: clamp(205px, 13.5vw, 280px);
 }
 
 .sectionBlock {
@@ -116,33 +116,27 @@
 }
 
 .reveal {
-  transition: transform 500ms var(--ease-out);
-  will-change: transform;
+  opacity: 0;
+  transition:
+    opacity 0.72s var(--ease),
+    transform 0.72s var(--ease);
+  will-change: opacity, transform;
 }
 
 .revealUp {
-  transform: translate3d(0, 16px, 0);
+  transform: translate3d(0, 38px, 0);
 }
 
 .revealLeft {
-  transform: translateX(-16px);
+  transform: translateX(-28px);
 }
 
 .revealRight {
-  transform: translateX(16px);
-}
-
-.page [data-landing-interactive] {
-  transition-duration: var(--motion-hover);
-}
-
-.page [data-landing-interactive]:active {
-  transform: scale(0.97);
-  transition-duration: var(--motion-press);
-  transition-timing-function: var(--ease-out);
+  transform: translateX(28px);
 }
 
 .reveal[data-landing-visible='true'] {
+  opacity: 1;
   transform: translate3d(0, 0, 0);
 }
 
@@ -171,7 +165,8 @@
   }
 
   .section {
-    padding-block: 92px;
+    padding-top: 130px;
+    padding-bottom: 150px;
   }
 
   .sectionTitle {
@@ -191,7 +186,8 @@
   }
 
   .section {
-    padding-block: 76px;
+    padding-top: 96px;
+    padding-bottom: 112px;
   }
 
   .nowrap {
@@ -215,11 +211,6 @@
 @media (prefers-reduced-motion: reduce) {
   .reveal {
     opacity: 1 !important;
-    transform: none !important;
-  }
-
-  .page [data-landing-interactive],
-  .page [data-landing-interactive]:active {
     transform: none !important;
   }
 }

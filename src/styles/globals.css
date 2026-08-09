@@ -15,7 +15,10 @@
 }
 
 html {
-  --landing-canvas-background: linear-gradient(180deg, #fbfcff 0%, #ffffff 46%, #fbfcff 100%);
+  --landing-canvas-background:
+    radial-gradient(1100px 620px at 92% 8%, rgba(227, 238, 255, 0.62), rgba(227, 238, 255, 0) 76%),
+    radial-gradient(760px 440px at 6% 14%, rgba(242, 247, 255, 0.78), rgba(242, 247, 255, 0) 72%),
+    linear-gradient(180deg, #fbfcff 0%, #ffffff 46%, #fbfcff 100%);
   background: var(--landing-canvas-background);
   background-attachment: fixed;
   scroll-behavior: smooth;
@@ -186,10 +189,9 @@ ol {
   *,
   *::before,
   *::after {
-    animation: none !important;
-    transition-property: opacity, color, background-color, border-color !important;
-    transition-duration: 150ms !important;
-    transition-timing-function: ease !important;
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
     scroll-behavior: auto !important;
   }
 }

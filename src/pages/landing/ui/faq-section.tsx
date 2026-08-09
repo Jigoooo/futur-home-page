@@ -7,32 +7,19 @@ import styles from './styles/faq.module.css';
 import sharedStyles from './styles/shared.module.css';
 
 export function FaqSection() {
-  const [openItems, setOpenItems] = useState<number[]>([0]);
-  const [presentItems, setPresentItems] = useState<number[]>([0]);
-  const [keyboardToggle, setKeyboardToggle] = useState<number | null>(null);
+  const [openSet, setOpenSet] = useState<Set<number>>(() => new Set([0]));
 
-  const toggle = (index: number, isOpen: boolean, immediate: boolean) => {
-    setKeyboardToggle(immediate ? index : null);
-
-    if (isOpen) {
-      setOpenItems((current) => current.filter((item) => item !== index));
-      if (immediate) {
-        setPresentItems((current) => current.filter((item) => item !== index));
-        return;
-      }
-      return;
-    }
-
-    setPresentItems((current) => (current.includes(index) ? current : [...current, index]));
-    setOpenItems((current) => (current.includes(index) ? current : [...current, index]));
+  const toggle = (index: number) => {
+    setOpenSet((prev) => {
+      const next = new Set(prev);
+      if (next.has(index)) next.delete(index);
+      else next.add(index);
+      return next;
+    });
   };
 
   return (
-    <section
-      className={cx(sharedStyles.sectionBlock, styles.faqSection)}
-      id='faq'
-      data-landing-section='faq'
-    >
+    <section className={cx(sharedStyles.sectionBlock, styles.faqSection)} id='faq'>
       <div className={sharedStyles.container}>
         <div
           className={cx(styles.head, sharedStyles.reveal, sharedStyles.revealUp)}
@@ -49,59 +36,35 @@ export function FaqSection() {
           data-landing-reveal='up'
         >
           {faqItems.map((item, index) => {
-            const isOpen = openItems.includes(index);
-            const isPresent = presentItems.includes(index);
+            const isOpen = openSet.has(index);
             const buttonId = `faq-button-${index}`;
             const panelId = `faq-panel-${index}`;
             return (
-              <div
-                key={item.question}
-                className={cx(
-                  styles.item,
-                  isOpen && styles.itemOpen,
-                  keyboardToggle === index && styles.keyboardToggle,
-                )}
-              >
+              <div key={item.question} className={cx(styles.item, isOpen && styles.itemOpen)}>
                 <button
                   type='button'
                   id={buttonId}
                   className={styles.summary}
                   aria-expanded={isOpen}
                   aria-controls={panelId}
-                  onClick={(event) => {
-                    const reduceMotion = window.matchMedia(
-                      '(prefers-reduced-motion: reduce)',
-                    ).matches;
-                    toggle(index, isOpen, event.detail === 0 || reduceMotion);
-                  }}
+                  onClick={() => toggle(index)}
                 >
                   <span className={styles.question}>{item.question}</span>
                   <span className={styles.toggle} aria-hidden='true'>
                     <ChevronDown size={16} strokeWidth={1.8} />
                   </span>
                 </button>
-                <section
+                <div
                   id={panelId}
+                  role='region'
                   aria-labelledby={buttonId}
                   className={styles.panel}
-                  hidden={!isPresent}
-                  inert={!isPresent ? true : undefined}
+                  aria-hidden={!isOpen}
                 >
-                  <div
-                    className={styles.panelInner}
-                    onTransitionEnd={(event) => {
-                      if (
-                        !isOpen &&
-                        event.target === event.currentTarget.firstElementChild &&
-                        event.propertyName === 'opacity'
-                      ) {
-                        setPresentItems((current) => current.filter((item) => item !== index));
-                      }
-                    }}
-                  >
+                  <div className={styles.panelInner}>
                     <p className={styles.answer}>{item.answer}</p>
                   </div>
-                </section>
+                </div>
               </div>
             );
           })}

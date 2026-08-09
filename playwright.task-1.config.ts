@@ -23,6 +23,7 @@ export default defineConfig({
       testMatch: [
         /contact-delivery\.chrome\.spec\.ts$/,
         /contact-server-boundaries\.chrome\.spec\.ts$/,
+        /landing-rollback\.chrome\.spec\.ts$/,
         /landing-runtime-errors\.chrome\.spec\.ts$/,
       ],
       use: {

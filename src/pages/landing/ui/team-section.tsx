@@ -8,7 +8,6 @@ export function TeamSection() {
     <section
       className={cx(sharedStyles.sectionBlock, sharedStyles.section, styles.teamSection)}
       id='team'
-      data-landing-section='team'
     >
       <div className={sharedStyles.container}>
         <div className={cx(styles.teamLayout, sharedStyles.gridLayout)}>
@@ -39,6 +38,11 @@ export function TeamSection() {
               <article key={role.badge} className={styles.roleCard}>
                 <div className={styles.roleTop}>
                   <div className={styles.roleBadge}>{role.badge}</div>
+                  <div className={styles.roleMeta}>
+                    {role.location}
+                    <br />
+                    {role.experience}
+                  </div>
                 </div>
                 <h3>{role.title}</h3>
                 <div className={styles.roleJob}>{role.job}</div>

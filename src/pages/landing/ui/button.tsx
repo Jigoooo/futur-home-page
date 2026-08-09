@@ -21,6 +21,7 @@ export function Button({
     <a
       className={cx(styles.button, styles[variant], className)}
       data-landing-interactive='button'
+      data-landing-spotlight='button'
       data-cursor-text={cursorText}
       {...props}
     >

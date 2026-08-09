@@ -2,6 +2,11 @@
   --btn-bg: #ffffff;
   --btn-color: var(--ink);
   --btn-border: #dce5f3;
+  --spot-x: 50%;
+  --spot-y: 50%;
+  --btn-spot-opacity: 0;
+  --btn-sheen-opacity: 0;
+  --btn-sheen-x: 0%;
   position: relative;
   isolation: isolate;
   overflow: hidden;
@@ -20,10 +25,45 @@
   white-space: nowrap;
   box-shadow: 0 12px 28px rgba(23, 44, 88, 0.07);
   transition:
-    box-shadow var(--motion-hover) ease,
-    background var(--motion-hover) ease,
-    border-color var(--motion-hover) ease,
-    color var(--motion-hover) ease;
+    box-shadow 0.28s var(--ease),
+    background 0.28s ease,
+    border-color 0.28s ease,
+    color 0.28s ease;
+}
+
+.button::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  z-index: -1;
+  border-radius: inherit;
+  background: radial-gradient(
+    190px circle at var(--spot-x) var(--spot-y),
+    rgba(255, 255, 255, 0.33),
+    transparent 44%
+  );
+  opacity: var(--btn-spot-opacity);
+}
+
+.button::after {
+  content: '';
+  position: absolute;
+  top: -28%;
+  left: -72%;
+  z-index: -1;
+  width: 72%;
+  height: 156%;
+  border-radius: 999px;
+  background: linear-gradient(
+    110deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0) 22%,
+    rgba(255, 255, 255, 0.34) 50%,
+    rgba(255, 255, 255, 0) 78%,
+    transparent 100%
+  );
+  transform: skewX(-14deg) translateX(var(--btn-sheen-x));
+  opacity: var(--btn-sheen-opacity);
 }
 
 .button [data-landing-label],

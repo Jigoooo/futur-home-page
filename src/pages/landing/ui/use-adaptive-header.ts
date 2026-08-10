@@ -31,6 +31,13 @@ const sectionLabels = new Map([
   ['faq', { href: '#faq', label: 'FAQ' }],
 ]);
 
+function clearMotionStyles(header: HTMLElement) {
+  gsap.set(header, { clearProps: 'all' });
+  gsap.set(header.querySelectorAll('*'), {
+    clearProps: 'opacity,transform,transformOrigin',
+  });
+}
+
 function isPlainHashNavigation(event: MouseEvent<HTMLAnchorElement>) {
   const anchor = event.currentTarget;
 
@@ -73,7 +80,9 @@ export function useAdaptiveHeader({ headerRef, menuRef, toggleRef }: AdaptiveHea
   const openScrollYRef = useRef(0);
   const motionReadyRef = useRef(false);
   const reducedMotionRef = useRef(false);
+  const focusReturnPendingRef = useRef(false);
   const pendingFlipRef = useRef<ReturnType<typeof Flip.getState> | null>(null);
+  const motionTimelineRef = useRef<gsap.core.Timeline | null>(null);
 
   const updateLayout = useCallback(
     (nextLayout: HeaderLayout) => {
@@ -81,8 +90,11 @@ export function useAdaptiveHeader({ headerRef, menuRef, toggleRef }: AdaptiveHea
 
       const header = headerRef.current;
       if (header && motionReadyRef.current && !reducedMotionRef.current) {
+        motionTimelineRef.current?.kill();
+        motionTimelineRef.current = null;
         gsap.killTweensOf([header, ...header.querySelectorAll('*')]);
         Flip.killFlipsOf(header);
+        clearMotionStyles(header);
         pendingFlipRef.current = Flip.getState(header);
       }
 
@@ -93,15 +105,21 @@ export function useAdaptiveHeader({ headerRef, menuRef, toggleRef }: AdaptiveHea
   );
 
   const restoreToggleFocus = useCallback(() => {
-    window.requestAnimationFrame(() => {
-      toggleRef.current?.focus({ preventScroll: true });
-    });
+    focusReturnPendingRef.current = true;
+    window.setTimeout(
+      () => {
+        if (!focusReturnPendingRef.current || layoutRef.current === 'menu-expanded') return;
+        focusReturnPendingRef.current = false;
+        toggleRef.current?.focus({ preventScroll: true });
+      },
+      reducedMotionRef.current ? 0 : 420,
+    );
   }, [toggleRef]);
 
   const closeMenu = useCallback(() => {
     if (layoutRef.current !== 'menu-expanded') return;
-    updateLayout('compact');
     restoreToggleFocus();
+    updateLayout('compact');
   }, [restoreToggleFocus, updateLayout]);
 
   useLayoutEffect(() => {
@@ -112,47 +130,67 @@ export function useAdaptiveHeader({ headerRef, menuRef, toggleRef }: AdaptiveHea
     pendingFlipRef.current = null;
     const opening = layout === 'menu-expanded';
     const menuItems = menuRef.current?.querySelectorAll('a, button') ?? [];
-
-    if (opening) {
-      gsap.fromTo(
-        header,
-        { scaleX: 0.96, scaleY: 1.03 },
-        { scaleX: 1, scaleY: 1, duration: 0.07, ease: 'power2.out', overwrite: true },
-      );
-    }
-
-    Flip.from(flipState, {
+    const motionContent = header.querySelector<HTMLElement>('[data-header-motion-content]');
+    const indicator = header.querySelector<HTMLElement>('[data-header-active-indicator]');
+    const flip = Flip.from(flipState, {
       targets: header,
       duration: opening ? 0.42 : 0.36,
-      delay: opening ? 0.07 : 0,
       ease: 'power3.inOut',
       absolute: true,
       nested: true,
+      paused: true,
       prune: true,
     });
+    const timeline = gsap.timeline();
+    const finish = () => {
+      clearMotionStyles(header);
+      if (motionTimelineRef.current === timeline) motionTimelineRef.current = null;
+    };
+    timeline.eventCallback('onComplete', finish);
+    timeline.eventCallback('onInterrupt', finish);
+    motionTimelineRef.current = timeline;
 
     if (opening) {
-      gsap.fromTo(
+      if (motionContent) {
+        timeline.fromTo(
+          motionContent,
+          { scaleX: 0.96, scaleY: 1.03 },
+          { scaleX: 1, scaleY: 1, duration: 0.07, ease: 'power2.out' },
+          0,
+        );
+      }
+      timeline.add(flip, 0.07);
+      timeline.fromTo(
         menuItems,
         { opacity: 0, y: 4 },
-        { opacity: 1, y: 0, duration: 0.22, stagger: 0.03, delay: 0.16, ease: 'power2.out' },
+        { opacity: 1, y: 0, duration: 0.22, stagger: 0.03, ease: 'power2.out' },
+        0.16,
       );
+      if (indicator) {
+        timeline.fromTo(
+          indicator,
+          { scaleX: 0.72 },
+          { scaleX: 1, duration: 0.07, ease: 'power2.out' },
+          0.49,
+        );
+      }
+    } else {
+      timeline.add(flip, 0);
     }
+
+    return () => {
+      timeline.kill();
+      finish();
+    };
   }, [headerRef, layout, menuRef]);
 
   useLayoutEffect(() => {
-    const indicator = headerRef.current?.querySelector<HTMLElement>(
-      '[data-header-active-indicator]',
-    );
-    if (!indicator || !motionReadyRef.current || reducedMotionRef.current) return;
+    if (layout !== 'menu-expanded') return;
 
-    gsap.killTweensOf(indicator);
-    gsap.fromTo(
-      indicator,
-      { scaleX: 0.72 },
-      { scaleX: 1, duration: 0.07, ease: 'power2.out', overwrite: true },
-    );
-  }, [activeSectionId, headerRef]);
+    const currentLink = menuRef.current?.querySelector<HTMLElement>('a[aria-current="location"]');
+    const closeButton = menuRef.current?.querySelector<HTMLElement>('[data-header-close]');
+    (currentLink ?? closeButton)?.focus({ preventScroll: true });
+  }, [layout, menuRef]);
 
   useEffect(() => {
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -169,10 +207,11 @@ export function useAdaptiveHeader({ headerRef, menuRef, toggleRef }: AdaptiveHea
     const syncMotionPreference = () => {
       reducedMotionRef.current = reducedMotion.matches;
       if (reducedMotion.matches && headerRef.current) {
+        motionTimelineRef.current?.kill();
+        motionTimelineRef.current = null;
         gsap.killTweensOf([headerRef.current, ...headerRef.current.querySelectorAll('*')]);
         Flip.killFlipsOf(headerRef.current);
-        gsap.set(headerRef.current.querySelectorAll('*'), { clearProps: 'transform,opacity' });
-        gsap.set(headerRef.current, { clearProps: 'transform,opacity' });
+        clearMotionStyles(headerRef.current);
       }
     };
     const syncHeroVisibility = () => {
@@ -235,14 +274,30 @@ export function useAdaptiveHeader({ headerRef, menuRef, toggleRef }: AdaptiveHea
     if (layout !== 'menu-expanded') return undefined;
 
     openScrollYRef.current = window.scrollY;
+    let suppressFocusScroll = false;
     const handlePointerDown = (event: PointerEvent) => {
       if (headerRef.current?.contains(event.target as Node)) return;
       closeMenu();
     };
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') closeMenu();
+      if (event.key === 'Escape') {
+        closeMenu();
+        return;
+      }
+      if (event.key !== 'Tab') return;
+
+      const scrollYBeforeFocus = window.scrollY;
+      suppressFocusScroll = true;
+      window.requestAnimationFrame(() => {
+        if (headerRef.current?.contains(document.activeElement)) {
+          window.scrollTo({ top: scrollYBeforeFocus, behavior: 'instant' });
+          openScrollYRef.current = scrollYBeforeFocus;
+        }
+        suppressFocusScroll = false;
+      });
     };
     const handleScroll = () => {
+      if (suppressFocusScroll) return;
       if (Math.abs(window.scrollY - openScrollYRef.current) >= 24) closeMenu();
     };
 
@@ -263,6 +318,7 @@ export function useAdaptiveHeader({ headerRef, menuRef, toggleRef }: AdaptiveHea
       return;
     }
 
+    focusReturnPendingRef.current = false;
     openScrollYRef.current = window.scrollY;
     setOpenedSectionId(activeSectionIdRef.current);
     updateLayout('menu-expanded');
@@ -283,9 +339,10 @@ export function useAdaptiveHeader({ headerRef, menuRef, toggleRef }: AdaptiveHea
       }
 
       event.preventDefault();
-      if (layoutRef.current === 'menu-expanded') {
-        updateLayout('compact');
+      const closingMenu = layoutRef.current === 'menu-expanded';
+      if (closingMenu) {
         restoreToggleFocus();
+        updateLayout('compact');
       }
 
       window.requestAnimationFrame(() => {

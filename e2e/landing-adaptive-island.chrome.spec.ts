@@ -18,9 +18,16 @@ function compactButton(page: Page) {
 
 async function expectCompactLabel(button: Locator, label: string, expanded: boolean) {
   await expect(button.getByText(label, { exact: true })).toBeVisible();
-  await expect(button).toHaveAccessibleName(
-    `주요 메뉴 ${expanded ? '닫기' : '열기'} · 현재 위치 ${label}`,
-  );
+  const accessibleLabel = `주요 메뉴 ${expanded ? '닫기' : '열기'} · 현재 위치 ${label}`;
+
+  if (expanded) {
+    await expect(button).toHaveAttribute('aria-label', accessibleLabel);
+    await expect(button).toHaveAttribute('aria-hidden', 'true');
+    await expect(button).toHaveAttribute('tabindex', '-1');
+    return;
+  }
+
+  await expect(button).toHaveAccessibleName(accessibleLabel);
 }
 
 async function scrollSectionIntoView(page: Page, sectionId: string) {
@@ -98,6 +105,23 @@ async function sampleReducedMotionFrames(page: Page) {
   });
 }
 
+async function readHeaderGeometry(page: Page) {
+  return header(page).evaluate((element) => {
+    const rect = element.getBoundingClientRect();
+    const transform = getComputedStyle(element).transform;
+    const matrix = transform === 'none' ? new DOMMatrix() : new DOMMatrix(transform);
+    const round = (value: number) => Math.round(value * 1_000) / 1_000;
+
+    return {
+      height: round(rect.height),
+      inlineTransform: element.style.transform,
+      scaleX: round(Math.hypot(matrix.a, matrix.b)),
+      scaleY: round(Math.hypot(matrix.c, matrix.d)),
+      width: round(rect.width),
+    };
+  });
+}
+
 test.beforeEach(async ({ page }) => {
   await page.setViewportSize(desktopViewport);
 });
@@ -141,6 +165,113 @@ test('opens the Compact menu with click, Enter, and Space', async ({ page }) => 
     await page.keyboard.press('Escape');
     await expectCompactMenuClosed(page, button, '서비스');
   }
+});
+
+test('settles exact desktop geometry and clears transforms after interrupted reverse input', async ({
+  page,
+}) => {
+  await page.goto('/');
+  await enterCompactLayout(page);
+
+  const button = compactButton(page);
+  await button.click();
+  await page.waitForTimeout(800);
+  expect(await readHeaderGeometry(page)).toEqual({
+    height: 68,
+    inlineTransform: '',
+    scaleX: 1,
+    scaleY: 1,
+    width: 820,
+  });
+
+  await page.keyboard.press('Escape');
+  await expectCompactMenuClosed(page, button, '서비스');
+  await button.press('Enter');
+  await page.waitForTimeout(90);
+  await page.keyboard.press('Escape');
+  await page.waitForTimeout(500);
+
+  await expectCompactMenuClosed(page, button, '서비스');
+  expect(await readHeaderGeometry(page)).toEqual({
+    height: 58,
+    inlineTransform: '',
+    scaleX: 1,
+    scaleY: 1,
+    width: 220,
+  });
+});
+
+test('removes hidden Header controls from keyboard order and moves focus into the opened menu', async ({
+  page,
+}) => {
+  await page.setViewportSize(mobileViewport);
+  await page.goto('/');
+  await expect(header(page)).toHaveAttribute('data-header-layout', 'compact');
+
+  const logo = header(page).getByRole('link', { name: 'FUTUR home', includeHidden: true });
+  const button = compactButton(page);
+  const nav = header(page).locator('nav[aria-label="주요 메뉴"]');
+  const faqLink = nav.locator('a[href="#faq"]');
+  const closeButton = nav.locator('[data-header-close]');
+
+  await expect(logo).toHaveAttribute('aria-hidden', 'true');
+  await expect(logo).toHaveAttribute('tabindex', '-1');
+  await button.focus();
+  await button.press('Enter');
+  await expect(closeButton).toBeFocused();
+  await expect(button).toHaveAttribute('tabindex', '-1');
+  await expect(closeButton).toHaveAttribute('aria-hidden', 'false');
+  await page.keyboard.press('Shift+Tab');
+  await expect(header(page)).toHaveAttribute('data-header-layout', 'menu-expanded');
+  await expect(faqLink).toBeFocused();
+
+  await page.keyboard.press('Escape');
+  await expectCompactMenuClosed(page, button, 'FUTUR.');
+  await page.keyboard.press('Tab');
+  expect(
+    await header(page).evaluate((element) => {
+      const active = document.activeElement;
+      return active ? element.contains(active) : false;
+    }),
+  ).toBe(false);
+});
+
+test('runs and settles the active indicator follow-through inside the open timeline', async ({
+  page,
+}) => {
+  await page.goto('/');
+  await enterCompactLayout(page);
+
+  const button = compactButton(page);
+  const samplePromise = page.evaluate(async () => {
+    const root = document.querySelector<HTMLElement>('[data-landing-nav]');
+    if (!root) return [];
+
+    while (root.dataset.headerLayout !== 'menu-expanded') {
+      await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+    }
+
+    const samples: Array<{ inlineTransform: string; scaleX: number }> = [];
+    const startedAt = performance.now();
+    while (performance.now() - startedAt < 700) {
+      const indicator = root.querySelector<HTMLElement>('[data-header-active-indicator]');
+      if (indicator) {
+        const transform = getComputedStyle(indicator).transform;
+        const matrix = transform === 'none' ? new DOMMatrix() : new DOMMatrix(transform);
+        samples.push({
+          inlineTransform: indicator.style.transform,
+          scaleX: Math.round(Math.hypot(matrix.a, matrix.b) * 1_000) / 1_000,
+        });
+      }
+      await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+    }
+    return samples;
+  });
+
+  await button.click();
+  const samples = await samplePromise;
+  expect(samples.some(({ scaleX }) => scaleX >= 0.7 && scaleX < 0.99)).toBe(true);
+  expect(samples.at(-1)).toEqual({ inlineTransform: '', scaleX: 1 });
 });
 
 test('tracks section navigation and maps operations to process', async ({ page }) => {
@@ -199,6 +330,7 @@ test('closes the expanded menu and returns focus for every dismissal path', asyn
     })
     .click();
   await expectCompactMenuClosed(page, button, '기술');
+  await scrollSectionIntoView(page, 'stack');
 
   button = await openCompactMenu(page, '기술');
   await page.mouse.click(20, desktopViewport.height - 20);
@@ -208,14 +340,19 @@ test('closes the expanded menu and returns focus for every dismissal path', asyn
   await page.keyboard.press('Escape');
   await expectCompactMenuClosed(page, button, '기술');
 
-  button = await openCompactMenu(page, '기술');
+  await page.goto('/');
+  await enterCompactLayout(page);
+  button = await openCompactMenu(page, '서비스');
   const openedAt = await page.evaluate(() => window.scrollY);
   await page.evaluate((top) => window.scrollTo({ top, behavior: 'instant' }), openedAt + 23);
   await expect(header(page)).toHaveAttribute('data-header-layout', 'menu-expanded');
   await expect(button).toHaveAttribute('aria-expanded', 'true');
-  await expectCompactLabel(button, '기술', true);
+  await expectCompactLabel(button, '서비스', true);
   await page.evaluate((top) => window.scrollTo({ top, behavior: 'instant' }), openedAt + 24);
-  await expectCompactMenuClosed(page, button, '기술');
+  await expect(header(page)).toHaveAttribute('data-header-layout', 'compact');
+  await expect(button).toHaveAttribute('aria-expanded', 'false');
+  await expect(button).toHaveAccessibleName(/주요 메뉴 열기/);
+  await expect(button).toBeFocused();
 });
 
 test('uses a contained 3+2 menu grid from the mobile Hero', async ({ page }) => {
@@ -320,6 +457,22 @@ test('keeps five navigation destinations and core content available without Java
   await expect(links).toHaveCount(5);
   await expect(links).toHaveText(menuLabels);
   for (const link of await links.all()) await expect(link).toBeVisible();
+
+  const headerBox = await header(page).boundingBox();
+  expect(headerBox).not.toBeNull();
+  expect(headerBox?.height).toBeGreaterThanOrEqual(150);
+  expect(headerBox?.height).toBeLessThanOrEqual(166);
+  const linkBoxes = await links.evaluateAll((elements) =>
+    elements.map((element) => element.getBoundingClientRect().toJSON()),
+  );
+  for (const box of linkBoxes) {
+    expect(box.left).toBeGreaterThanOrEqual(headerBox?.x ?? 0);
+    expect(box.right).toBeLessThanOrEqual((headerBox?.x ?? 0) + (headerBox?.width ?? 0));
+    expect(box.top).toBeGreaterThanOrEqual(headerBox?.y ?? 0);
+    expect(box.bottom).toBeLessThanOrEqual((headerBox?.y ?? 0) + (headerBox?.height ?? 0));
+  }
+  await expect(compactButton(page)).toBeHidden();
+  await expect(header(page).getByRole('button', { name: '주요 메뉴 닫기' })).toBeHidden();
 
   await expect(
     page.getByRole('heading', { level: 1, name: 'BUILT FOR WHAT’S NEXT.' }),

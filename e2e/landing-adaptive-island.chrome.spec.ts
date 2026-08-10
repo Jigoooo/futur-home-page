@@ -236,21 +236,64 @@ test('applies semantic glass tint, spotlight, cursor contrast, and resilient fal
     );
   }
 
-  await page.emulateMedia({ contrast: 'more' });
-  await expect(glass).toHaveCSS('background-color', 'rgba(248, 250, 255, 0.94)');
-
   expect(
-    await page.evaluate(() =>
-      Array.from(document.styleSheets).some((sheet) =>
-        Array.from(sheet.cssRules).some(
-          (rule) =>
+    await page.evaluate(() => {
+      const nav = document.querySelector<HTMLElement>('[data-landing-nav]');
+      const glass = nav?.querySelector<HTMLElement>('[data-header-glass]');
+      if (!nav || !glass) return null;
+
+      const fallback = Array.from(document.styleSheets)
+        .flatMap((sheet) => Array.from(sheet.cssRules))
+        .find(
+          (rule): rule is CSSSupportsRule =>
             rule instanceof CSSSupportsRule &&
             rule.conditionText.includes('backdrop-filter') &&
             rule.conditionText.includes('not'),
-        ),
-      ),
-    ),
-  ).toBe(true);
+        );
+      if (!fallback) return null;
+
+      const forcedFallback = document.createElement('style');
+      forcedFallback.dataset.headerFallbackEmulation = 'true';
+      forcedFallback.textContent = Array.from(fallback.cssRules, (rule) => rule.cssText).join('\n');
+      document.head.append(forcedFallback);
+
+      const originalTone = nav.dataset.headerGlassTone;
+      const computedByTone = Object.fromEntries(
+        ['dark', 'light'].map((tone) => {
+          nav.dataset.headerGlassTone = tone;
+          const styles = getComputedStyle(glass);
+          return [
+            tone,
+            {
+              backdropFilter: styles.backdropFilter,
+              backgroundColor: styles.backgroundColor,
+              webkitBackdropFilter:
+                styles.getPropertyValue('-webkit-backdrop-filter') || styles.backdropFilter,
+            },
+          ];
+        }),
+      );
+
+      if (originalTone) nav.dataset.headerGlassTone = originalTone;
+      else delete nav.dataset.headerGlassTone;
+      forcedFallback.remove();
+      return computedByTone;
+    }),
+  ).toEqual({
+    dark: {
+      backdropFilter: 'none',
+      backgroundColor: 'rgba(248, 250, 255, 0.94)',
+      webkitBackdropFilter: 'none',
+    },
+    light: {
+      backdropFilter: 'none',
+      backgroundColor: 'rgba(248, 250, 255, 0.94)',
+      webkitBackdropFilter: 'none',
+    },
+  });
+
+  await page.emulateMedia({ contrast: 'more' });
+  await expect(glass).toHaveCSS('background-color', 'rgba(248, 250, 255, 0.94)');
 
   const coarsePage = await browser.newPage({ hasTouch: true, viewport: mobileViewport });
   await coarsePage.goto('/');

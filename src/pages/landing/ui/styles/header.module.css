@@ -333,8 +333,11 @@
 }
 
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-  .glassShell {
+  .glassShell,
+  .nav[data-header-glass-tone='light'] .glassShell {
     background: rgba(248, 250, 255, 0.94);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
   }
 
   .glassShell::after {

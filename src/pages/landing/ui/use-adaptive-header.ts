@@ -85,6 +85,9 @@ export function useAdaptiveHeader({ headerRef, menuRef, toggleRef }: AdaptiveHea
   const focusReturnFrameRef = useRef(0);
   const focusReturnGenerationRef = useRef(0);
   const focusReturnTokenRef = useRef<number | null>(null);
+  const heroFocusFrameRef = useRef(0);
+  const heroFocusGenerationRef = useRef(0);
+  const heroFocusTokenRef = useRef<number | null>(null);
   const pendingFlipRef = useRef<ReturnType<typeof Flip.getState> | null>(null);
   const motionTimelineRef = useRef<gsap.core.Timeline | null>(null);
 
@@ -99,22 +102,42 @@ export function useAdaptiveHeader({ headerRef, menuRef, toggleRef }: AdaptiveHea
     focusReturnTokenRef.current = focusReturnGenerationRef.current;
   }, []);
 
+  const cancelHeroFocusTransfer = useCallback(() => {
+    heroFocusGenerationRef.current += 1;
+    heroFocusTokenRef.current = null;
+    window.cancelAnimationFrame(heroFocusFrameRef.current);
+  }, []);
+
+  const scheduleHeroFocusTransfer = useCallback(() => {
+    heroFocusGenerationRef.current += 1;
+    heroFocusTokenRef.current = heroFocusGenerationRef.current;
+  }, []);
+
   const updateLayout = useCallback(
     (nextLayout: HeaderLayout) => {
       if (layoutRef.current === nextLayout) return;
 
       const header = headerRef.current;
+      const previousLayout = layoutRef.current;
       if (nextLayout !== 'compact') {
         cancelToggleFocusReturn();
         heroControlFocusedRef.current = false;
       }
+      if (nextLayout !== 'hero-expanded') cancelHeroFocusTransfer();
       if (
         nextLayout === 'compact' &&
-        layoutRef.current === 'hero-expanded' &&
+        previousLayout === 'hero-expanded' &&
         heroControlFocusedRef.current
       ) {
         scheduleToggleFocusReturn();
         heroControlFocusedRef.current = false;
+      }
+      if (
+        nextLayout === 'hero-expanded' &&
+        previousLayout === 'compact' &&
+        document.activeElement === toggleRef.current
+      ) {
+        scheduleHeroFocusTransfer();
       }
 
       if (header && motionReadyRef.current && !reducedMotionRef.current) {
@@ -129,7 +152,14 @@ export function useAdaptiveHeader({ headerRef, menuRef, toggleRef }: AdaptiveHea
       layoutRef.current = nextLayout;
       setLayout(nextLayout);
     },
-    [cancelToggleFocusReturn, headerRef, scheduleToggleFocusReturn],
+    [
+      cancelHeroFocusTransfer,
+      cancelToggleFocusReturn,
+      headerRef,
+      scheduleHeroFocusTransfer,
+      scheduleToggleFocusReturn,
+      toggleRef,
+    ],
   );
 
   const restoreToggleFocus = scheduleToggleFocusReturn;
@@ -224,6 +254,29 @@ export function useAdaptiveHeader({ headerRef, menuRef, toggleRef }: AdaptiveHea
   }, [layout, toggleRef]);
 
   useLayoutEffect(() => {
+    const heroFocusToken = heroFocusTokenRef.current;
+    if (layout !== 'hero-expanded' || heroFocusToken === null) return;
+
+    window.cancelAnimationFrame(heroFocusFrameRef.current);
+    heroFocusFrameRef.current = window.requestAnimationFrame(() => {
+      if (
+        heroFocusTokenRef.current !== heroFocusToken ||
+        heroFocusGenerationRef.current !== heroFocusToken ||
+        layoutRef.current !== 'hero-expanded'
+      ) {
+        return;
+      }
+
+      heroFocusTokenRef.current = null;
+      const logo = headerRef.current?.querySelector<HTMLElement>('a[aria-label="FUTUR home"]');
+      const firstNavigationLink = menuRef.current?.querySelector<HTMLElement>('a');
+      (logo ?? firstNavigationLink)?.focus({ preventScroll: true });
+    });
+
+    return () => window.cancelAnimationFrame(heroFocusFrameRef.current);
+  }, [headerRef, layout, menuRef]);
+
+  useLayoutEffect(() => {
     if (layout !== 'menu-expanded') return;
 
     const currentLink = menuRef.current?.querySelector<HTMLElement>('a[aria-current="location"]');
@@ -267,18 +320,21 @@ export function useAdaptiveHeader({ headerRef, menuRef, toggleRef }: AdaptiveHea
         target !== toggleRef.current,
       );
       if (target instanceof Node && !header?.contains(target)) cancelToggleFocusReturn();
+      if (target !== toggleRef.current) cancelHeroFocusTransfer();
     };
     const releaseHeaderFocus = (event: FocusEvent) => {
       const nextTarget = event.relatedTarget;
       if (!(nextTarget instanceof Node) || headerRef.current?.contains(nextTarget)) return;
       heroControlFocusedRef.current = false;
       cancelToggleFocusReturn();
+      cancelHeroFocusTransfer();
     };
     const releaseHeaderPointer = (event: PointerEvent) => {
       const target = event.target;
       if (!(target instanceof Node) || headerRef.current?.contains(target)) return;
       heroControlFocusedRef.current = false;
       cancelToggleFocusReturn();
+      cancelHeroFocusTransfer();
     };
 
     const observer =
@@ -319,7 +375,7 @@ export function useAdaptiveHeader({ headerRef, menuRef, toggleRef }: AdaptiveHea
       document.removeEventListener('pointerdown', releaseHeaderPointer);
       window.removeEventListener('scroll', syncHeroVisibility);
     };
-  }, [cancelToggleFocusReturn, headerRef, toggleRef, updateLayout]);
+  }, [cancelHeroFocusTransfer, cancelToggleFocusReturn, headerRef, toggleRef, updateLayout]);
 
   useEffect(() => {
     let frameId = 0;

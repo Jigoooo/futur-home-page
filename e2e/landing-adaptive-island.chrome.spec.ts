@@ -80,6 +80,26 @@ async function expectFocusRestoredOnCompactCommit(page: Page, button: Locator) {
   await expect(button).toHaveAttribute('aria-expanded', 'false');
 }
 
+async function returnToHeroLayout(page: Page) {
+  await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
+  await expect(header(page)).toHaveAttribute('data-header-layout', 'hero-expanded');
+}
+
+async function expectFocusTransferredToVisibleHeroControl(page: Page) {
+  await page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => resolve())));
+  expect(
+    await header(page).evaluate((element) => {
+      const active = document.activeElement;
+      const logo = element.querySelector('a[aria-label="FUTUR home"]');
+      const firstNavigationLink = element.querySelector('nav[aria-label="주요 메뉴"] a');
+      return {
+        focusedVisibleHeroControl: active === logo || active === firstNavigationLink,
+        focusedHiddenToggle: active === element.querySelector('[data-header-toggle]'),
+      };
+    }),
+  ).toEqual({ focusedVisibleHeroControl: true, focusedHiddenToggle: false });
+}
+
 async function holdAnimationFrames(page: Page) {
   await page.evaluate(() => {
     const originalRequestAnimationFrame = window.requestAnimationFrame.bind(window);
@@ -486,6 +506,62 @@ test('restores toggle focus when a base transition hides focused Hero controls',
   await expect(servicesLink).toBeFocused();
   await scrollSectionIntoView(page, 'services');
   await expectFocusRestoredOnCompactCommit(page, button);
+});
+
+test('moves focused Compact toggle to a visible Hero control including after Escape close', async ({
+  page,
+}) => {
+  await page.goto('/');
+  await enterCompactLayout(page);
+  const button = compactButton(page);
+
+  await button.focus();
+  await expect(button).toBeFocused();
+  await returnToHeroLayout(page);
+  await expectFocusTransferredToVisibleHeroControl(page);
+
+  await enterCompactLayout(page);
+  await openCompactMenu(page, '서비스');
+  await page.keyboard.press('Escape');
+  await expectCompactMenuClosed(page, button, '서비스');
+  await returnToHeroLayout(page);
+  await expectFocusTransferredToVisibleHeroControl(page);
+});
+
+test('cancels a Hero focus transfer on rapid reverse or outside ownership', async ({ page }) => {
+  await page.goto('/');
+  await enterCompactLayout(page);
+  const button = compactButton(page);
+  await button.focus();
+  await expect(button).toBeFocused();
+  await holdAnimationFrames(page);
+  const outsideOwner = page.locator('#hero-focus-owner');
+  await page.evaluate(() => {
+    const owner = document.createElement('button');
+    owner.id = 'hero-focus-owner';
+    owner.textContent = 'Outside Hero focus owner';
+    owner.style.position = 'fixed';
+    owner.style.inset = '0 auto auto 0';
+    document.body.append(owner);
+  });
+
+  await returnToHeroLayout(page);
+  await scrollSectionIntoView(page, 'services');
+  await expect(header(page)).toHaveAttribute('data-header-layout', 'compact');
+  await outsideOwner.click();
+  await expect(outsideOwner).toBeFocused();
+  await restoreAnimationFrames(page);
+  await page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => resolve())));
+  await expect(outsideOwner).toBeFocused();
+
+  await button.focus();
+  await holdAnimationFrames(page);
+  await returnToHeroLayout(page);
+  await outsideOwner.click();
+  await expect(outsideOwner).toBeFocused();
+  await restoreAnimationFrames(page);
+  await page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => resolve())));
+  await expect(outsideOwner).toBeFocused();
 });
 
 test('does not reuse an interrupted compact focus return after ownership moves outside', async ({

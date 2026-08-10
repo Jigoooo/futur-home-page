@@ -132,7 +132,7 @@ Expected: PASS with no `#responsibility` references.
 - [ ] **Step 5: Commit**
 
 ```bash
-git add e2e/landing-cinematic-editorial.chrome.spec.ts e2e/a11y/landing.static.a11y.spec.ts src/pages/landing/ui/landing-page.tsx src/pages/landing/config/navigation.ts src/pages/landing/config/index.ts src/pages/landing/model/types.ts src/pages/landing/config/responsibility.ts src/pages/landing/ui/responsibility-section.tsx src/pages/landing/ui/styles/responsibility.module.css
+git add e2e/landing-cinematic-editorial.chrome.spec.ts e2e/a11y/landing.static.a11y.spec.ts src/pages/landing/ui/landing-page.tsx src/pages/landing/config/navigation.ts src/pages/landing/config/index.ts src/pages/landing/model/types.ts
 git commit -m "refactor(landing): 책임 주체 섹션과 탐색 경로 제거"
 ```
 
@@ -289,7 +289,9 @@ test('loads scene motion lazily and exposes a reduced final state', async ({ bro
     'data-landing-scene-motion',
     'ready',
   );
-  await expect(reducedPage.locator('[data-quality-stage]')).toHaveCSS('opacity', '1');
+  await expect(
+    reducedPage.getByRole('heading', { level: 1, name: 'BUILT FOR WHAT’S NEXT.' }),
+  ).toBeVisible();
   await reducedPage.close();
 });
 ```

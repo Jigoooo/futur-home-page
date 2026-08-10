@@ -24,6 +24,9 @@ test('initial load and primary interactions emit no runtime errors', async ({ pa
   await page.waitForTimeout(350);
   await animatedButton.dispatchEvent('pointerout', { pointerType: 'mouse' });
   await page.waitForTimeout(350);
+  const headerToggle = page.locator('[data-header-toggle]');
+  await headerToggle.click();
+  await expect(headerToggle).toHaveAttribute('aria-expanded', 'true');
   await page
     .getByRole('navigation', { name: '주요 메뉴' })
     .getByRole('link', { name: '서비스' })

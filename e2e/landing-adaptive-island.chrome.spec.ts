@@ -24,6 +24,7 @@ async function expectCompactLabel(button: Locator, label: string, expanded: bool
 }
 
 async function scrollSectionIntoView(page: Page, sectionId: string) {
+  await expect(header(page)).toHaveAttribute('data-header-hydrated', 'true');
   await page.locator(`#${sectionId}`).evaluate((element) => {
     element.scrollIntoView({ block: 'center', behavior: 'instant' });
   });

@@ -27,6 +27,74 @@ test('renders the approved full-screen particle hero with restrained typography'
   await expect(hero.getByRole('link', { name: '프로젝트 문의하기' })).toHaveCount(1);
 });
 
+test('renders only the controller-verified Korean copy while preserving fixed contracts', async ({
+  page,
+}) => {
+  await page.goto('/');
+
+  const expectedCopy = [
+    [
+      '#hero',
+      '화면에 보이는 경험부터 코드와 데이터, 배포 뒤 운영까지 함께 봅니다. 다음 변화에도 흔들리지 않을 디지털 제품을 만듭니다.',
+    ],
+    ['#services', '화면 경험, 코드와 데이터 구조, 배포 후 운영을 따로 떼어 보지 않습니다.'],
+    ['#services', '반복 업무와 관리 기준을 정리하고, 필요한 화면과 데이터 구조를 만듭니다.'],
+    ['#services', '배포 뒤 생기는 오류를 살피고 기능 개선과 운영 점검을 이어갑니다.'],
+    [
+      '#review',
+      '목적과 범위를 먼저 맞춥니다. 실제 흐름과 운영 조건을 살피고, 선택한 방향과 근거를 기록합니다.',
+    ],
+    ['#review', '해결할 문제를 먼저 확인하고, 이번 작업에서 다룰 범위를 나눕니다.'],
+    ['#review', '정상 동작과 함께 실패·복구, 운영 중 살펴야 할 조건까지 검토합니다.'],
+    ['#review', '선택한 방향과 제외한 범위, 판단 근거를 기록해 다음 결정에 활용합니다.'],
+    [
+      '#process',
+      '필요한 범위와 기준부터 맞춥니다. 설계·구현·검토에서 확인한 내용은 다음 단계에 반영합니다.',
+    ],
+    ['#process', '현재 상황, 만들고 싶은 결과, 주요 사용자를 확인합니다.'],
+    ['#process', '주요 사용 흐름을 살피고 발견한 문제를 수정합니다.'],
+    ['#process', '배포 조건을 확인한 뒤 서비스를 배포하고, 운영 단계의 변경을 관리합니다.'],
+    ['#faq', '문의 전에 많이 확인하는 내용을 모았습니다.'],
+    [
+      '#faq',
+      '문의 양식에서 현재 단계와 필요한 영역을 선택한 뒤, 알고 있는 내용을 적어 보내주세요. 세부 범위는 보내주신 내용을 보고 확인합니다.',
+    ],
+    [
+      '#faq',
+      '요청 범위와 일정, 외부 연동, 운영 조건을 확인한 뒤 협의합니다. 문의 양식에 예산 범위를 남겨주시면 검토할 때 참고합니다.',
+    ],
+    [
+      '#faq',
+      'NDA가 필요하면 문의 내용에 적어주세요. 자료를 전달하고 보관하는 방식은 프로젝트 조건과 적용 범위를 확인해 협의합니다.',
+    ],
+    [
+      '#faq',
+      '범위와 연동 조건, 검토 절차에 따라 달라집니다. 문의 내용을 확인하고 일정 산정에 필요한 항목을 정리합니다.',
+    ],
+  ] as const;
+
+  for (const [section, copy] of expectedCopy) {
+    await expect(page.locator(section).getByText(copy, { exact: true })).toHaveCount(1);
+  }
+
+  await expect(
+    page.getByRole('heading', { level: 1, name: 'BUILT FOR WHAT’S NEXT.' }),
+  ).toBeVisible();
+  await expect(page.locator('#contact').getByText('프로젝트 문의', { exact: true })).toBeVisible();
+  await expect(
+    page.locator('#contact').getByRole('heading', {
+      name: '만들거나 개선하려는 제품을 알려주세요.',
+    }),
+  ).toBeVisible();
+  await expect(
+    page
+      .locator('#contact')
+      .getByText('현재 상황과 필요한 범위를 적어주시면 확인 후 연락드리겠습니다.', {
+        exact: true,
+      }),
+  ).toBeVisible();
+});
+
 test('preserves in-view reveal targets and tablet navigation', async ({ page }) => {
   await page.setViewportSize({ width: 1024, height: 720 });
   await page.goto('/');

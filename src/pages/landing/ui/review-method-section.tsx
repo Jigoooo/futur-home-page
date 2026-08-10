@@ -18,7 +18,7 @@ export function ReviewMethodSection() {
             검토는 취향이 아니라 기준으로 진행합니다.
           </h2>
           <p className={styles.description}>
-            목적과 범위를 먼저 맞춘 뒤 실제 흐름과 운영 조건을 따라 확인하고 결정의 근거를
+            목적과 범위를 먼저 맞춥니다. 실제 흐름과 운영 조건을 살피고, 선택한 방향과 근거를
             기록합니다.
           </p>
         </header>

@@ -29,8 +29,8 @@ export function HeroSection() {
             lineAttribute='data-hero-headline-row'
           />
           <p>
-            보이는 경험부터 코드와 데이터, 배포 이후의 운영까지. 다음 변화를 견딜 수 있는 디지털
-            제품을 함께 만듭니다.
+            화면에 보이는 경험부터 코드와 데이터, 배포 뒤 운영까지 함께 봅니다. 다음 변화에도
+            흔들리지 않을 디지털 제품을 만듭니다.
           </p>
           <div className={styles.heroActions}>
             <Button href='#contact' data-cursor-contrast='dark'>

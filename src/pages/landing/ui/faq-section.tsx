@@ -36,7 +36,7 @@ export function FaqSection() {
             trigger='in-view'
             accessibleLabel='자주 묻는 질문.'
           />
-          <p className={sharedStyles.sectionDesc}>문의 전에 자주 묻는 내용을 정리했습니다.</p>
+          <p className={sharedStyles.sectionDesc}>문의 전에 많이 확인하는 내용을 모았습니다.</p>
         </div>
         <div className={styles.list}>
           {faqItems.map((item, index) => {

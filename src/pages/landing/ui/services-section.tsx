@@ -27,7 +27,7 @@ export function ServicesSection() {
               accessibleLabel='필요한 영역을 연결해 하나의 제품으로 만듭니다.'
             />
             <p className={cx(sharedStyles.sectionDesc, styles.serviceDesc)}>
-              화면에 보이는 경험부터 코드와 데이터 구조, 배포 후 운영까지 함께 다룹니다.
+              화면 경험, 코드와 데이터 구조, 배포 후 운영을 따로 떼어 보지 않습니다.
             </p>
           </div>
         </div>

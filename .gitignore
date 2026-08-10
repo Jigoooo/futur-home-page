@@ -43,7 +43,9 @@ graphify-out/
 .playwright-mcp/
 .omc/
 .omx/
+.superpowers/
 .review-screens/
+_workspace/
 
 # Database leftovers from the source app are intentionally out of scope.
 *.db

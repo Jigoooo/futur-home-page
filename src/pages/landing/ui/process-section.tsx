@@ -24,7 +24,8 @@ export function ProcessSection() {
               accessibleLabel='확인하고 정리하고 검토하며 진행합니다.'
             />
             <p className={cx(sharedStyles.sectionDesc, styles.processDesc)}>
-              필요한 범위와 기준을 먼저 맞추고 설계·구현·검토 결과를 다음 단계에 반영합니다.
+              필요한 범위와 기준부터 맞춥니다. 설계·구현·검토에서 확인한 내용은 다음 단계에
+              반영합니다.
             </p>
           </div>
         </div>

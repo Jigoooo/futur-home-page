@@ -84,12 +84,71 @@ function createServiceTimeline(page: HTMLElement): SceneCleanup {
   };
 }
 
-function createReviewTimeline(_page: HTMLElement): SceneCleanup {
-  return noOp;
+function createReviewTimeline(page: HTMLElement): SceneCleanup {
+  const stage = page.querySelector<HTMLElement>('[data-review-stage]');
+  const mask = page.querySelector<HTMLElement>('[data-review-mask]');
+  const groups = page.querySelectorAll<HTMLElement>('[data-review-group]');
+
+  if (!stage || !mask || groups.length !== 4) return noOp;
+
+  const timeline = gsap.timeline({
+    scrollTrigger: { trigger: stage, start: 'top 78%', once: true },
+  });
+  timeline
+    .fromTo(
+      mask,
+      { clipPath: 'circle(0% at 76% 20%)' },
+      { clipPath: 'circle(92% at 76% 20%)', duration: 0.82, ease: 'power3.out' },
+    )
+    .from(
+      groups,
+      {
+        clipPath: 'inset(0 100% 0 0)',
+        duration: 0.44,
+        stagger: 0.07,
+        ease: 'power3.out',
+      },
+      '-=0.4',
+    );
+
+  return () => {
+    timeline.scrollTrigger?.kill();
+    timeline.kill();
+  };
 }
 
-function createProcessTimeline(_page: HTMLElement): SceneCleanup {
-  return noOp;
+function createProcessTimeline(page: HTMLElement): SceneCleanup {
+  const section = page.querySelector<HTMLElement>('#process');
+  const path = page.querySelector<SVGPathElement>('[data-process-path]');
+  const marker = page.querySelector<SVGCircleElement>('[data-process-marker]');
+
+  if (!section || !path || !marker) return noOp;
+
+  const pathLength = path.getTotalLength();
+  const progress = { value: 0 };
+  const scrollTrigger = { trigger: section, start: 'top 72%', end: 'bottom 62%', scrub: 0.6 };
+  const stroke = gsap.fromTo(
+    path,
+    { strokeDasharray: 1, strokeDashoffset: 1 },
+    { strokeDashoffset: 0, ease: 'none', scrollTrigger },
+  );
+  const markerMotion = gsap.to(progress, {
+    value: 1,
+    ease: 'none',
+    scrollTrigger,
+    onUpdate: () => {
+      const point = path.getPointAtLength(pathLength * progress.value);
+      marker.setAttribute('cx', String(point.x));
+      marker.setAttribute('cy', String(point.y));
+    },
+  });
+
+  return () => {
+    stroke.scrollTrigger?.kill();
+    markerMotion.scrollTrigger?.kill();
+    stroke.kill();
+    markerMotion.kill();
+  };
 }
 
 function createContactTimeline(_page: HTMLElement): SceneCleanup {

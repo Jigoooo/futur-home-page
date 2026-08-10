@@ -215,3 +215,23 @@ test('uses a service-specific inline reveal instead of a generic row fade-up', a
   expect(motionSource).not.toMatch(/\.from\(rows, \{[^}]*\by:/s);
   expect(motionSource).not.toMatch(/\.from\(rows, \{[^}]*\bopacity:/s);
 });
+
+test('uses a curved review mask and a semantic process path', async ({ page }) => {
+  await page.goto('/');
+
+  await expect(page.locator('[data-review-stage]')).toHaveCount(1);
+  await expect(page.locator('[data-review-mask]')).toHaveCount(1);
+  await expect(page.locator('[data-review-group]')).toHaveCount(4);
+
+  const path = page.locator('svg [data-process-path]');
+  await expect(path).toHaveCount(1);
+  await expect(page.locator('[data-process-marker]')).toHaveCount(1);
+  await expect(page.locator('ol [data-process-step]')).toHaveCount(5);
+  expect(
+    await page
+      .locator('#review, #process')
+      .evaluateAll((sections) =>
+        sections.every((section) => getComputedStyle(section).scrollSnapAlign !== 'start'),
+      ),
+  ).toBe(true);
+});

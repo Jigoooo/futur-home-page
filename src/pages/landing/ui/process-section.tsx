@@ -7,42 +7,49 @@ import sharedStyles from './styles/shared.module.css';
 export function ProcessSection() {
   return (
     <section
-      className={cx(sharedStyles.sectionBlock, sharedStyles.bgSoft, styles.processSection)}
+      className={cx(sharedStyles.sectionBlock, styles.processSection)}
       id='process'
+      data-landing-section
+      data-cursor-contrast='dark'
     >
       <div className={sharedStyles.container}>
-        <div className={cx(styles.processLayout, sharedStyles.gridLayout)}>
-          <div
-            className={cx(sharedStyles.stickyLead, sharedStyles.reveal, sharedStyles.revealLeft)}
-            data-landing-reveal='left'
-          >
+        <div className={styles.processLead}>
+          <div className={styles.leadCopy}>
             <EditorialTextReveal
               as='h2'
-              className={sharedStyles.sectionTitle}
-              lines={['가볍게 시작하고,', '명확하게 진행합니다.']}
+              className={cx(sharedStyles.sectionTitle, styles.processTitle)}
+              lines={['확인하고 정리하고', '검토하며 진행합니다.']}
               split='lines'
               trigger='in-view'
-              accessibleLabel='가볍게 시작하고, 명확하게 진행합니다.'
+              accessibleLabel='확인하고 정리하고 검토하며 진행합니다.'
             />
-            <p className={sharedStyles.sectionDesc}>
-              처음부터 모든 것을 확정하기보다, 필요한 범위를 정리하고 우선순위에 따라 단계적으로
-              진행합니다.
+            <p className={cx(sharedStyles.sectionDesc, styles.processDesc)}>
+              필요한 범위와 기준을 먼저 맞추고 설계·구현·검토 결과를 다음 단계에 반영합니다.
             </p>
           </div>
-          <div
-            className={cx(styles.timeline, sharedStyles.reveal, sharedStyles.revealRight)}
-            data-landing-reveal='timeline'
-          >
+        </div>
+
+        <div className={styles.processScene}>
+          <svg className={styles.pathVisual} viewBox='0 0 900 520' aria-hidden='true'>
+            <path
+              className={styles.path}
+              data-process-path
+              pathLength='1'
+              d='M20 480C190 340 260 420 370 285C500 125 630 285 880 34'
+            />
+            <circle className={styles.markerVisual} data-process-marker cx='20' cy='480' r='12' />
+          </svg>
+          <ol className={styles.processList}>
             {processSteps.map((step) => (
-              <div key={step.index} className={styles.step}>
-                <div className={styles.stepNo}>{step.index}</div>
-                <div className={styles.stepCard}>
-                  <h3>{step.title}</h3>
-                  <p>{step.description}</p>
-                </div>
-              </div>
+              <li key={step.index} className={styles.step} data-process-step>
+                <span className={styles.stepNo} aria-hidden='true'>
+                  {step.index}
+                </span>
+                <h3>{step.title}</h3>
+                <p>{step.description}</p>
+              </li>
             ))}
-          </div>
+          </ol>
         </div>
       </div>
     </section>

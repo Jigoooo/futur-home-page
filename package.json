@@ -9,6 +9,7 @@
     "start": "node .output/server/index.mjs",
     "lint": "eslint src",
     "lint:fix": "eslint src --fix",
+    "assets:project-records": "node scripts/generate-project-record-images.mjs",
     "preview": "vite preview --port 3010",
     "test:e2e": "playwright test",
     "test:e2e:headed": "playwright test --headed",

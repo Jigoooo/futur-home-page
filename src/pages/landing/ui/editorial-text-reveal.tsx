@@ -36,6 +36,7 @@ export function EditorialTextReveal({
       aria-label={accessibleLabel}
       data-editorial-text
       data-editorial-trigger={trigger}
+      {...(trigger === 'in-view' ? { 'data-landing-reveal': 'editorial' } : {})}
     >
       <span className={styles.visual} aria-hidden='true'>
         {lines.map((line, lineIndex) => {

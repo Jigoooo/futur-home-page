@@ -94,7 +94,7 @@
   flex: 0 0 auto;
 }
 
-@media (max-width: 1120px) {
+@media (max-width: 900px) {
   .navMenu {
     display: none;
   }

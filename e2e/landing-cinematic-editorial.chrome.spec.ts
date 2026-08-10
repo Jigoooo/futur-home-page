@@ -23,6 +23,20 @@ test('renders the approved full-screen particle hero with restrained typography'
   await expect(hero.getByRole('link', { name: '프로젝트 문의하기' })).toHaveCount(1);
 });
 
+test('preserves in-view reveal targets and tablet navigation', async ({ page }) => {
+  await page.setViewportSize({ width: 1024, height: 720 });
+  await page.goto('/');
+
+  expect(
+    await page
+      .locator('[data-editorial-trigger="in-view"]')
+      .evaluateAll((elements) =>
+        elements.every((element) => element.dataset.landingReveal === 'editorial'),
+      ),
+  ).toBe(true);
+  await expect(page.getByRole('navigation', { name: '주요 메뉴' })).toBeVisible();
+});
+
 test('uses the approved cinematic editorial information architecture', async ({ page }) => {
   await page.goto('/');
 

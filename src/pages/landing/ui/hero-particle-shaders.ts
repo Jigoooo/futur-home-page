@@ -14,13 +14,16 @@ mat3 rotateY(float angle) {
   return mat3(cosine, 0.0, sine, 0.0, 1.0, 0.0, -sine, 0.0, cosine);
 }
 
-vec3 wovenCanopy(vec2 uv, float time) {
-  vec2 grid = uv * 2.0 - 1.0;
-  float broadFold = sin(grid.x * PI * 1.15 + time * 0.08) * 0.18;
-  float crossFold = cos(grid.y * PI * 1.6 - time * 0.06) * 0.1;
-  float weave = sin((grid.x + grid.y) * PI * 2.2) * 0.055;
-  float y = grid.y * 1.36 + sin(grid.x * PI) * 0.11;
-  return vec3(grid.x * 2.62, y, broadFold + crossFold + weave);
+vec3 braidedFlow(vec2 uv, float time) {
+  float lane = min(floor(uv.y * 3.0), 2.0);
+  float across = (fract(uv.y * 3.0) - 0.5) * 2.0;
+  float laneOffset = lane - 1.0;
+  float phase = lane * TAU / 3.0;
+  float x = (uv.x * 2.0 - 1.0) * 2.62;
+  float crossing = laneOffset * cos(uv.x * PI) * 0.86;
+  float y = crossing + sin(uv.x * TAU + phase) * 0.1 + across * 0.28;
+  float z = sin(uv.x * TAU + phase + time * 0.1) * 0.44 + across * 0.09;
+  return vec3(x, y, z);
 }
 
 vec3 asymmetricKnot(vec2 uv, float time) {
@@ -49,11 +52,20 @@ vec3 doubleLoop(vec2 uv, float time) {
   return center * 0.78 + vec3(tube * cos(u), tube, tube * sin(u));
 }
 
+vec3 fitSurfaceToFrame(int index, vec3 position) {
+  if (index == 0) return position;
+  if (index == 1) return position * vec3(2.05, 1.85, 1.2);
+  if (index == 2) return position * vec3(1.62, 1.68, 1.12);
+  return position * vec3(2.08, 1.82, 1.22);
+}
+
 vec3 sampleSurface(int index, vec2 uv, float time) {
-  if (index == 0) return wovenCanopy(uv, time);
-  if (index == 1) return asymmetricKnot(uv, time);
-  if (index == 2) return waveSaddle(uv, time);
-  return doubleLoop(uv, time);
+  vec3 position;
+  if (index == 0) position = braidedFlow(uv, time);
+  else if (index == 1) position = asymmetricKnot(uv, time);
+  else if (index == 2) position = waveSaddle(uv, time);
+  else position = doubleLoop(uv, time);
+  return fitSurfaceToFrame(index, position);
 }
 
 vec3 morphSurface(int fromIndex, int toIndex, vec2 uv, float time, float morph) {
@@ -78,6 +90,7 @@ export const HERO_POINTER_RESPONSE = {
   radialImpulse: 0.0035,
   radiusMax: 0.105,
   radiusMin: 0.055,
+  seedFlight: 0.28,
   surfaceLift: 0.035,
   tangentImpulse: 0.0005,
 } as const;
@@ -184,6 +197,8 @@ void main() {
   vec2 screenUv = projected * 0.5 + 0.5;
   vec2 contactField = texture(uDisplacementTexture, screenUv).rg;
   float contact = smoothstep(0.002, 0.022, length(contactField));
+  vec2 contactOffset = clamp(contactField * 0.72, vec2(-0.035), vec2(0.035));
+  projected += contactOffset;
 
   float depth = clamp(0.5 + surface.z * 0.42, 0.0, 1.0);
   gl_Position = vec4(projected, mix(0.45, -0.45, depth), 1.0);
@@ -232,26 +247,35 @@ precision highp float;
 
 layout(location = 0) in vec2 aUv;
 layout(location = 1) in float aSeed;
+layout(location = 2) in vec3 aDirection;
 uniform float uAspect;
 uniform float uDpr;
 uniform float uMorph;
 uniform float uTime;
 uniform float uPointerEnergy;
 uniform vec2 uPointer;
+uniform sampler2D uDisplacementTexture;
 uniform int uFromSurface;
 uniform int uToSurface;
 
 out float vEmitterAlpha;
+out float vEmitterAngle;
 
 ${SURFACE_GLSL}
 
 void main() {
   vec3 surface = morphSurface(uFromSurface, uToSurface, aUv, uTime, uMorph);
   vec2 baseProjected = projectSurface(surface, uAspect);
+  vec2 baseScreenUv = baseProjected * 0.5 + 0.5;
+  vec2 contactField = texture(uDisplacementTexture, baseScreenUv).rg;
+  float trailContact = smoothstep(0.0015, 0.018, length(contactField));
   vec2 pointerDelta = baseProjected - uPointer;
   pointerDelta.x *= uAspect;
-  float pointerInfluence = smoothstep(0.48, 0.02, length(pointerDelta)) * uPointerEnergy;
-  float phase = fract(uTime * 0.86 + aSeed);
+  float pointerInfluence = max(
+    smoothstep(0.42, 0.02, length(pointerDelta)) * uPointerEnergy,
+    trailContact
+  );
+  float phase = fract(uTime * 0.34 + aSeed);
   float pulse = pow(sin(phase * PI), 2.0);
   vec3 surfaceU = morphSurface(
     uFromSurface,
@@ -270,12 +294,17 @@ void main() {
   vec3 surfaceNormal = normalize(cross(surfaceU - surface, surfaceV - surface));
   if (surfaceNormal.z < 0.0) surfaceNormal *= -1.0;
   float lift = pulse * pointerInfluence * ${HERO_POINTER_RESPONSE.surfaceLift};
-  vec3 emitted = surface + surfaceNormal * lift;
+  float seedFlight = pow(phase, 0.78) * pointerInfluence * ${HERO_POINTER_RESPONSE.seedFlight};
+  vec3 flightDirection = normalize(surfaceNormal * 0.78 + aDirection * 0.42);
+  vec3 drift = vec3(aDirection.y, -aDirection.x, aDirection.z * 0.25) * sin(phase * PI) * 0.045;
+  vec3 emitted = surface + surfaceNormal * lift + flightDirection * seedFlight + drift;
   vec2 projected = projectSurface(emitted, uAspect);
+  vec2 projectedDirection = projectSurface(surface + flightDirection * 0.08, uAspect) - baseProjected;
 
   gl_Position = vec4(projected, 0.0, 1.0);
-  gl_PointSize = mix(1.05, 2.15, pulse) * uDpr;
-  vEmitterAlpha = pulse * pointerInfluence;
+  gl_PointSize = mix(4.2, 2.5, phase) * uDpr;
+  vEmitterAlpha = (1.0 - smoothstep(0.72, 1.0, phase)) * pointerInfluence;
+  vEmitterAngle = atan(projectedDirection.y, projectedDirection.x);
 }
 `;
 
@@ -283,13 +312,21 @@ export const EMITTER_FRAGMENT_SHADER = `#version 300 es
 precision highp float;
 
 in float vEmitterAlpha;
+in float vEmitterAngle;
 out vec4 outColor;
 
 void main() {
-  float disc = smoothstep(0.5, 0.08, length(gl_PointCoord - 0.5));
-  float alpha = disc * vEmitterAlpha * 0.64;
+  vec2 point = gl_PointCoord - 0.5;
+  float sine = sin(-vEmitterAngle);
+  float cosine = cos(-vEmitterAngle);
+  point = mat2(cosine, -sine, sine, cosine) * point;
+  float seedHead = smoothstep(0.16, 0.025, length(point - vec2(0.19, 0.0)));
+  float seedStem = smoothstep(0.045, 0.012, abs(point.y)) *
+    smoothstep(-0.34, -0.06, point.x) * (1.0 - smoothstep(0.08, 0.3, point.x));
+  float seedTuft = smoothstep(0.23, 0.06, length(point + vec2(0.14, 0.0))) * 0.48;
+  float alpha = max(seedHead, max(seedStem, seedTuft)) * vEmitterAlpha * 0.78;
   if (alpha <= 0.01) discard;
-  vec3 color = vec3(0.58, 0.88, 0.86);
+  vec3 color = vec3(0.72, 0.94, 0.9);
   outColor = vec4(color * alpha, alpha);
 }
 `;

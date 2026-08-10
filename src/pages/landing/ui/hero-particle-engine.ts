@@ -95,9 +95,9 @@ function halton(index: number, base: number) {
 }
 
 function getParticleTier(width: number): ParticleTier {
-  if (width < 720) return { main: 16_000, emit: 0, dpr: 1.2 };
-  if (width < 1_180) return { main: 32_000, emit: 1_500, dpr: 1.35 };
-  return { main: 55_000, emit: 3_000, dpr: 1.5 };
+  if (width < 720) return { main: 18_000, emit: 0, dpr: 1.2 };
+  if (width < 1_024) return { main: 44_000, emit: 2_200, dpr: 1.5 };
+  return { main: 70_000, emit: 4_000, dpr: 2 };
 }
 
 function createParticleData(mainCount: number, emitCount: number) {
@@ -249,6 +249,7 @@ export function createHeroParticleEngine(canvas: HTMLCanvasElement): HeroParticl
   };
   const emitterUniforms = {
     aspect: gl.getUniformLocation(programs.emitter, 'uAspect'),
+    displacementTexture: gl.getUniformLocation(programs.emitter, 'uDisplacementTexture'),
     dpr: gl.getUniformLocation(programs.emitter, 'uDpr'),
     fromSurface: gl.getUniformLocation(programs.emitter, 'uFromSurface'),
     morph: gl.getUniformLocation(programs.emitter, 'uMorph'),
@@ -387,6 +388,9 @@ export function createHeroParticleEngine(canvas: HTMLCanvasElement): HeroParticl
     if (!emitterVertexArray || tier.emit === 0) return;
     gl.useProgram(programs.emitter);
     gl.bindVertexArray(emitterVertexArray);
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, displacementRead.texture);
+    gl.uniform1i(emitterUniforms.displacementTexture, 0);
     gl.uniform1f(emitterUniforms.aspect, canvas.width / Math.max(canvas.height, 1));
     gl.uniform1f(emitterUniforms.dpr, pixelRatio);
     gl.uniform1i(emitterUniforms.fromSurface, fromSurface);
@@ -427,13 +431,16 @@ export function createHeroParticleEngine(canvas: HTMLCanvasElement): HeroParticl
   canvas.dataset.particleDensity = 'active';
   canvas.dataset.particleDepth = 'far-middle-near';
   canvas.dataset.particleContact = `trail-${POINTER_TRAIL_SIZE}`;
-  canvas.dataset.particleDisplacement = 'none';
+  canvas.dataset.particleDisplacement = 'feedback-touch';
   canvas.dataset.particleEmitter = tier.emit > 0 ? 'active' : 'disabled';
-  canvas.dataset.particleInitialShape = 'woven-canopy';
+  canvas.dataset.particleEmitterCount = String(tier.emit);
+  canvas.dataset.particleEmitterStyle = 'dandelion-seeds';
+  canvas.dataset.particleInitialShape = 'braided-flow';
+  canvas.dataset.particleSurfaceScale = 'expanded';
   canvas.dataset.particleSurface = '0-1';
   canvas.dataset.pointerImpulse = String(HERO_POINTER_RESPONSE.radialImpulse);
   canvas.dataset.pointerLift = String(HERO_POINTER_RESPONSE.surfaceLift);
-  canvas.dataset.pointerResponse = 'surface-contact';
+  canvas.dataset.pointerResponse = 'dandelion-emitter';
   canvas.dataset.pointerSamples = '0';
   resize();
 

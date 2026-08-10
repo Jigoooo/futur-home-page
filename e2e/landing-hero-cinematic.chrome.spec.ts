@@ -2,6 +2,7 @@ import { expect, test } from '@playwright/test';
 
 import {
   DENSITY_VERTEX_SHADER,
+  EMITTER_FRAGMENT_SHADER,
   EMITTER_VERTEX_SHADER,
   HERO_POINTER_RESPONSE,
   MAIN_VERTEX_SHADER,
@@ -102,17 +103,48 @@ test('runs the dense parametric particle pipeline on desktop', async ({ page }) 
   await expect(hero).toHaveCSS('background-color', 'rgb(6, 21, 43)');
   await expect(canvas).toHaveCSS('opacity', '1');
   await expect(canvas).toHaveAttribute('data-particle-density', 'active');
-  await expect(canvas).toHaveAttribute('data-particle-displacement', 'none');
+  await expect(canvas).toHaveAttribute('data-particle-displacement', 'feedback-touch');
   await expect(canvas).toHaveAttribute('data-particle-contact', 'trail-24');
   await expect(canvas).toHaveAttribute('data-particle-emitter', 'active');
-  await expect(canvas).toHaveAttribute('data-particle-initial-shape', 'woven-canopy');
+  await expect(canvas).toHaveAttribute('data-particle-emitter-count', '4000');
+  await expect(canvas).toHaveAttribute('data-particle-emitter-style', 'dandelion-seeds');
+  await expect(canvas).toHaveAttribute('data-particle-initial-shape', 'braided-flow');
+  await expect(canvas).toHaveAttribute('data-particle-surface-scale', 'expanded');
   await expect(canvas).toHaveAttribute(
     'data-pointer-lift',
     String(HERO_POINTER_RESPONSE.surfaceLift),
   );
 
   const particleCount = Number(await canvas.getAttribute('data-particle-count'));
-  expect(particleCount).toBeGreaterThanOrEqual(50_000);
+  expect(particleCount).toBeGreaterThanOrEqual(68_000);
+});
+
+test('uses bounded particle tiers outside desktop', async ({ browser }) => {
+  const compactDesktopPage = await browser.newPage({ viewport: { width: 1095, height: 996 } });
+  await compactDesktopPage.goto('/');
+  const compactDesktopCanvas = compactDesktopPage.locator('canvas[data-hero-particles]');
+  await expect(compactDesktopCanvas).toHaveAttribute('data-particle-state', 'ready');
+  await expect(compactDesktopCanvas).toHaveAttribute('data-particle-count', '70000');
+  await expect(compactDesktopCanvas).toHaveAttribute('data-particle-emitter-count', '4000');
+  await compactDesktopPage.close();
+
+  const tabletPage = await browser.newPage({ viewport: { width: 900, height: 996 } });
+  await tabletPage.goto('/');
+  const tabletCanvas = tabletPage.locator('canvas[data-hero-particles]');
+  await expect(tabletCanvas).toHaveAttribute('data-particle-state', 'ready');
+  const tabletCount = Number(await tabletCanvas.getAttribute('data-particle-count'));
+  expect(tabletCount).toBeGreaterThanOrEqual(42_000);
+  expect(tabletCount).toBeLessThanOrEqual(46_000);
+  await tabletPage.close();
+
+  const mobilePage = await browser.newPage({ viewport: { width: 390, height: 844 } });
+  await mobilePage.goto('/');
+  const mobileCanvas = mobilePage.locator('canvas[data-hero-particles]');
+  await expect(mobileCanvas).toHaveAttribute('data-particle-state', 'ready');
+  const mobileCount = Number(await mobileCanvas.getAttribute('data-particle-count'));
+  expect(mobileCount).toBeLessThanOrEqual(18_000);
+  await expect(mobileCanvas).toHaveAttribute('data-particle-emitter', 'disabled');
+  await mobilePage.close();
 });
 
 test('morphs surfaces and accumulates a damped contact trail', async ({ page }) => {
@@ -137,13 +169,19 @@ test('morphs surfaces and accumulates a damped contact trail', async ({ page }) 
   await expect(canvas).not.toHaveAttribute('data-particle-surface', initialSurface ?? '');
 });
 
-test('keeps base geometry fixed while contact particles lift from the surface', () => {
+test('keeps the sculptural silhouette while contact particles move and lift locally', () => {
   expect(DENSITY_VERTEX_SHADER).not.toContain('projected +=');
-  expect(MAIN_VERTEX_SHADER).not.toContain('projected +=');
+  expect(MAIN_VERTEX_SHADER).toContain('vec2 contactOffset =');
+  expect(MAIN_VERTEX_SHADER).toContain('projected += contactOffset;');
   expect(MAIN_VERTEX_SHADER).toContain('float contact =');
   expect(MAIN_VERTEX_SHADER).toContain('vContact = contact;');
-  expect(MAIN_VERTEX_SHADER).toContain('vec3 wovenCanopy');
-  expect(EMITTER_VERTEX_SHADER).toContain('surfaceNormal * lift');
+  expect(MAIN_VERTEX_SHADER).toContain('vec3 braidedFlow');
+  expect(MAIN_VERTEX_SHADER).toContain('fitSurfaceToFrame');
+  expect(EMITTER_VERTEX_SHADER).toContain('aDirection');
+  expect(EMITTER_VERTEX_SHADER).toContain('uDisplacementTexture');
+  expect(EMITTER_VERTEX_SHADER).toContain('trailContact');
+  expect(EMITTER_VERTEX_SHADER).toContain('seedFlight');
+  expect(EMITTER_FRAGMENT_SHADER).toContain('seedStem');
   expect(HERO_POINTER_RESPONSE.surfaceLift).toBeGreaterThan(0);
   expect(HERO_POINTER_RESPONSE.surfaceLift).toBeLessThanOrEqual(0.04);
 });
@@ -168,7 +206,7 @@ test('keeps fast pointer movement within the surface-contact profile', async ({ 
   await expect
     .poll(async () => Number(await canvas.getAttribute('data-pointer-samples')))
     .toBeGreaterThan(2);
-  await expect(canvas).toHaveAttribute('data-pointer-response', 'surface-contact');
+  await expect(canvas).toHaveAttribute('data-pointer-response', 'dandelion-emitter');
 
   const impulse = Number(await canvas.getAttribute('data-pointer-impulse'));
   expect(impulse).toBeGreaterThan(0);

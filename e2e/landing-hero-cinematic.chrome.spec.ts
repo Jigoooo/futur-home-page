@@ -5,6 +5,7 @@ import {
   EMITTER_FRAGMENT_SHADER,
   EMITTER_VERTEX_SHADER,
   HERO_POINTER_RESPONSE,
+  MAIN_FRAGMENT_SHADER,
   MAIN_VERTEX_SHADER,
 } from '../src/pages/landing/ui/hero-particle-shaders';
 
@@ -184,6 +185,13 @@ test('keeps the sculptural silhouette while contact particles move and lift loca
   expect(EMITTER_FRAGMENT_SHADER).toContain('seedStem');
   expect(HERO_POINTER_RESPONSE.surfaceLift).toBeGreaterThan(0);
   expect(HERO_POINTER_RESPONSE.surfaceLift).toBeLessThanOrEqual(0.04);
+});
+
+test('keeps far-depth and dispersing particles visible on the navy surface', () => {
+  expect(MAIN_VERTEX_SHADER).toContain('gl_PointSize = mix(0.9, 2.45, depth)');
+  expect(MAIN_FRAGMENT_SHADER).toContain('vec3 farColor = vec3(0.18, 0.42, 0.5);');
+  expect(MAIN_FRAGMENT_SHADER).toContain('mix(0.3, 0.68, vDepth)');
+  expect(EMITTER_FRAGMENT_SHADER).toContain('vEmitterAlpha * 0.9');
 });
 
 test('keeps fast pointer movement within the surface-contact profile', async ({ page }) => {

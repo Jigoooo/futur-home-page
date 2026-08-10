@@ -202,7 +202,7 @@ void main() {
 
   float depth = clamp(0.5 + surface.z * 0.42, 0.0, 1.0);
   gl_Position = vec4(projected, mix(0.45, -0.45, depth), 1.0);
-  gl_PointSize = mix(0.72, 2.5, depth) * mix(1.0, 1.22, contact) * uDpr;
+  gl_PointSize = mix(0.9, 2.45, depth) * mix(1.0, 1.22, contact) * uDpr;
 
   vDepth = depth;
   vContact = contact;
@@ -231,12 +231,12 @@ void main() {
 
   float density = texture(uDensityTexture, vScreenUv).r;
   float densityLight = min(log(1.0 + density * 6.0) * 0.18, 0.7);
-  vec3 farColor = vec3(0.12, 0.35, 0.43);
+  vec3 farColor = vec3(0.18, 0.42, 0.5);
   vec3 nearColor = vec3(0.5, 0.78, 0.8);
   vec3 color = mix(farColor, nearColor, vDepth);
   color = mix(color, vec3(0.74, 0.93, 0.91), densityLight + vSeed * 0.04);
   color = mix(color, vec3(0.82, 0.96, 0.94), vContact * 0.42);
-  float alpha = disc * mix(0.2, 0.72, vDepth) * (0.82 + densityLight * 0.7);
+  float alpha = disc * mix(0.3, 0.68, vDepth) * (0.82 + densityLight * 0.7);
   alpha *= 1.0 + vContact * 0.18;
   outColor = vec4(color * alpha, alpha);
 }
@@ -324,7 +324,7 @@ void main() {
   float seedStem = smoothstep(0.045, 0.012, abs(point.y)) *
     smoothstep(-0.34, -0.06, point.x) * (1.0 - smoothstep(0.08, 0.3, point.x));
   float seedTuft = smoothstep(0.23, 0.06, length(point + vec2(0.14, 0.0))) * 0.48;
-  float alpha = max(seedHead, max(seedStem, seedTuft)) * vEmitterAlpha * 0.78;
+  float alpha = max(seedHead, max(seedStem, seedTuft)) * vEmitterAlpha * 0.9;
   if (alpha <= 0.01) discard;
   vec3 color = vec3(0.72, 0.94, 0.9);
   outColor = vec4(color * alpha, alpha);

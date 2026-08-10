@@ -10,7 +10,7 @@ colors:
 typography:
   family: 'Wanted Sans Variable, Wanted Sans, FUTUR Sans Critical, Apple SD Gothic Neo, Noto Sans KR, system-ui, sans-serif'
   hero: 'clamp(56px, 5.6vw, 80px)'
-  section: 'clamp(40px, 4.3vw, 55px)'
+  section: '50px desktop, clamp(33px, 8vw, 42px) mobile'
   body: '16px–19px'
 radius:
   card: '18px–40px'
@@ -49,10 +49,10 @@ Hero는 charcoal full-bleed surface이고, 다음 서비스 섹션부터 paper �
 `data-classic-surface`는 서비스, 기술, 팀, 프로세스, 운영 원칙, FAQ, 문의에 각각 하나씩 총 7개다. 대표 수치는 다음과 같다.
 
 - 본문 최대 폭: `1180px`
-- 섹션 제목: 데스크톱 최대 `55px`, 모바일 최대 `42px`
+- 공통 섹션 제목: 데스크톱 `50px`, 모바일 최대 `42px`
 - 일반 카드 radius: `18px–40px`
 - 문의 외곽과 폼 surface radius: 데스크톱 `38px–48px`, 모바일 `34px`
-- 데스크톱 grid: 서비스 2×2, 기술 4열, 팀 3열 흐름, 운영 원칙 2×2
+- 데스크톱 grid: 서비스 2×2, 기술 2열, 팀 역할 2열, 운영 원칙 2×2
 - 모바일 grid: 모두 1열이며 문서 가로 overflow를 만들지 않는다.
 
 그림자는 실제 surface 계층을 구분할 때만 사용한다. 모든 내용을 같은 카드로 반복하지 않고, 기술은 그룹 목록, 프로세스는 번호 목록, FAQ는 disclosure, 문의는 실제 form control 구조로 표현한다.
@@ -95,7 +95,8 @@ Hero는 `100vw × 100svh`의 full-bleed charcoal 표면이다. WebGL2 particle c
 커스텀 커서는 2026-08-10의 ring/dot 구현을 유지하며 `data-cursor-contrast`가 선언한 semantic surface로 dark/light tone을 바꾼다. 픽셀 색상을 샘플링하지 않는다.
 
 - fine pointer, viewport 폭 `900px` 초과, 모션 감소가 아닌 조건에서만 활성화한다.
-- Hero와 문의처럼 어두운 표면에서는 밝은 tone, paper 계열 표면에서는 어두운 tone을 사용한다.
+- Hero와 운영 원칙의 dark surface는 `data-cursor-contrast='light'`로 밝은 cursor tone을 사용한다.
+- 문의는 흰 surface이며 section의 `data-cursor-contrast='dark'`로 어두운 cursor tone을 사용한다. paper 계열 본문도 같은 dark tone 계약을 따른다.
 - 링크·버튼은 hot, 입력 surface는 soft 상태를 사용하지만 의미나 상태를 커서만으로 전달하지 않는다.
 - protocol link, window blur, visibility change 뒤에는 mute 상태를 정리하고 복구한다.
 - 비활성 조건에서는 native cursor와 `focus-visible`을 그대로 제공한다.

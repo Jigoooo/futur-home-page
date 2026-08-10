@@ -709,6 +709,7 @@ git commit -m "refactor(landing): 클래식 reveal과 현재 커서 경계 통�
 - Modify: `e2e/landing-anti-slop.chrome.spec.ts`
 - Modify: `e2e/a11y/landing.static.a11y.spec.ts`
 - Modify: `e2e/landing.chrome.spec.ts`
+- Modify: 다른 E2E 파일은 전체 suite가 삭제된 시네마틱 섹션·과거 이름을 참조하는 경우에만 최소 갱신
 - Modify: `DESIGN.md`
 - Modify: `PRODUCT.md` only if section inventory appears there
 
@@ -749,6 +750,8 @@ Expected: no matches.
 - `390×844` first viewport
 - `390×844` full page
 
+캡처는 `.review-screens/classic-restoration/` 아래에 저장하고 커밋하지 않는다. 첫 화면뿐 아니라 full-page 캡처를 직접 열어 시각적으로 확인한다.
+
 확인 항목:
 
 - Hero full-bleed와 particle silhouette가 기존과 동일하다.
@@ -776,6 +779,8 @@ Expected:
 - Build: client, SSR, Nitro, `/`, `/privacy`, `/terms` prerender PASS.
 - Graphify: exit 0.
 - Diff check: no whitespace errors.
+
+전체 suite가 삭제된 `#quality`, `#review`, merge/mask/path 또는 이전 내비게이션 이름 같은 stale expectation으로 실패하면 production을 되돌리지 않는다. 해당 테스트만 현재 승인된 클래식 구조 계약으로 최소 갱신하고, 대상 테스트와 전체 suite를 다시 실행한다.
 
 - [ ] **Step 6: 최종 커밋과 상태 확인**
 

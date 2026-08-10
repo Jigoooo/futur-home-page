@@ -30,7 +30,7 @@ test('renders the approved full-screen particle hero with restrained typography'
   expect(await page.evaluate(() => getComputedStyle(document.body).fontFamily)).toContain(
     'Wanted Sans Variable',
   );
-  await expect(hero.getByRole('link', { name: '프로젝트 문의하기' })).toHaveCount(1);
+  await expect(hero.getByRole('link')).toHaveCount(0);
 });
 
 test('renders the factual classic order without cinematic-only scenes', async ({ page }) => {
@@ -40,7 +40,7 @@ test('renders the factual classic order without cinematic-only scenes', async ({
     await page
       .locator('main > section[data-landing-section]')
       .evaluateAll((sections) => sections.map((section) => section.id)),
-  ).toEqual(['hero', 'services', 'stack', 'team', 'process', 'operations', 'faq', 'contact']);
+  ).toEqual(['hero', 'services', 'stack', 'team', 'process', 'operations', 'faq']);
 
   await expect(page.locator('#services').getByText('웹·앱 개발', { exact: true })).toBeVisible();
   await expect(
@@ -71,21 +71,6 @@ test('keeps Hero copy inside deliberate responsive gutters', async ({ page }) =>
 
   await page.setViewportSize({ width: 390, height: 844 });
   expect((await title.boundingBox())?.x).toBeGreaterThanOrEqual(20);
-});
-
-test('keeps the mobile header inquiry button inside its capsule', async ({ page }) => {
-  await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto('/');
-
-  const headerBox = await page.locator('[data-landing-nav]').boundingBox();
-  const inquiryBox = await page
-    .locator('[data-landing-nav] [data-landing-interactive="button"]')
-    .boundingBox();
-
-  expect(headerBox).not.toBeNull();
-  expect(inquiryBox).not.toBeNull();
-  expect(inquiryBox!.x).toBeGreaterThanOrEqual(headerBox!.x);
-  expect(inquiryBox!.x + inquiryBox!.width).toBeLessThanOrEqual(headerBox!.x + headerBox!.width);
 });
 
 test('reveals the scroll-to-top control only after meaningful page progress', async ({ page }) => {
@@ -144,7 +129,7 @@ test('changes the scroll-to-top threshold state without motion when reduced moti
   await reducedPage.close();
 });
 
-test('keeps classic section and contact titles within the approved scale', async ({ page }) => {
+test('keeps classic section titles within the approved scale', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 720 });
   await page.goto('/');
 
@@ -153,12 +138,6 @@ test('keeps classic section and contact titles within the approved scale', async
       Number.parseFloat(await heading.evaluate((node) => getComputedStyle(node).fontSize)),
     ).toBeLessThanOrEqual(55);
   }
-
-  expect(
-    Number.parseFloat(
-      await page.locator('#contact h2').evaluate((node) => getComputedStyle(node).fontSize),
-    ),
-  ).toBeLessThanOrEqual(48);
 });
 
 test('uses one-shot classic reveal without a scene-motion ready state', async ({
@@ -207,19 +186,6 @@ test('keeps the classic services and process sections within the mobile viewport
   ]);
 });
 
-test('uses the restored classic contact layout and disclosures', async ({ page }) => {
-  await page.goto('/');
-
-  const contact = page.locator('#contact');
-  await expect(
-    contact.getByRole('heading', { name: '새로운 프로젝트를 가볍게 이야기해보세요.' }),
-  ).toBeVisible();
-  await expect(contact.getByRole('heading', { name: '상담 전 확인사항' })).toBeVisible();
-  await expect(contact.getByRole('form', { name: '프로젝트 상담 양식' })).toBeVisible();
-  await expect(contact.getByRole('list', { name: '개인정보 수집·이용 고지' })).toBeVisible();
-  await expect(contact.getByRole('list', { name: '개인정보 국외 이전 고지' })).toBeVisible();
-});
-
 test('adapts the ring and dot cursor to semantic surfaces and recovers after blur', async ({
   browser,
   page,
@@ -253,8 +219,7 @@ test('adapts the ring and dot cursor to semantic surfaces and recovers after blu
   await assertTone(page.locator('#hero'), 'light');
   await assertTone(page.locator('#services'), 'dark');
   await assertTone(page.locator('#operations'), 'light');
-  await assertTone(page.locator('#contact'), 'dark');
-  await assertTone(page.getByRole('link', { name: '메일로 문의' }), 'dark');
+  await assertTone(page.locator('#footer a[href^="mailto:"]').first(), 'dark');
 
   await page.evaluate(() => window.dispatchEvent(new Event('blur')));
   await expect(page.locator('body')).toHaveAttribute('data-landing-cursor-muted', 'true');

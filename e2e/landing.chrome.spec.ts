@@ -17,10 +17,8 @@ test('loads the landing page through Chrome', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'BUILT FOR WHAT’S NEXT.' })).toBeVisible();
   await expect(page.locator('canvas[data-hero-particles]')).toHaveCount(1);
 
-  await page.getByRole('link', { name: /프로젝트 문의하기/ }).click();
-
-  await expect(page.locator('#contact')).toBeInViewport();
-  await expect(page.getByRole('form', { name: '프로젝트 상담 양식' })).toBeVisible();
+  await expect(page.locator('#contact')).toHaveCount(0);
+  await expect(page.locator('#footer a[href^="mailto:"]').first()).toBeVisible();
 });
 
 test('animates header navigation scroll to sections', async ({ page }) => {

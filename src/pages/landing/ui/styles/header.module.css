@@ -104,22 +104,10 @@
   .logo {
     font-size: 22px;
   }
-
-  .ctaButton {
-    min-height: 42px;
-    padding: 0 16px;
-    font-size: 13px;
-  }
 }
 
 @media (max-width: 560px) {
   .nav {
     width: calc(100% - 20px);
-  }
-
-  .ctaButton {
-    width: auto;
-    min-width: 106px;
-    padding: 0 14px;
   }
 }

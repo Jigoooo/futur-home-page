@@ -111,19 +111,6 @@
   animation: heroSupportIn 300ms var(--ease-out) 270ms both;
 }
 
-.heroActions {
-  display: flex;
-  align-items: center;
-  animation: heroSupportIn 250ms var(--ease-out) 360ms both;
-}
-
-.heroActions > a:first-child {
-  --btn-bg: var(--paper);
-  --btn-color: var(--charcoal);
-  --btn-border: var(--paper);
-  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.2);
-}
-
 @media (max-width: 720px) {
   .heroInner {
     align-items: flex-end;
@@ -156,8 +143,7 @@
   }
 
   .title [data-editorial-unit],
-  .heroCopy p,
-  .heroActions {
+  .heroCopy p {
     opacity: 1;
     transform: none;
     animation: heroOpacityIn 150ms ease-out both;

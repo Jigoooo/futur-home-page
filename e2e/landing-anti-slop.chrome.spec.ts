@@ -8,7 +8,6 @@ const SECTION_ORDER = [
   'process',
   'operations',
   'faq',
-  'contact',
   'footer',
 ] as const;
 
@@ -53,9 +52,7 @@ test('keeps only the evidence-backed landing narrative in the approved order', a
   }
 });
 
-test('uses the approved navigation anchors and one inquiry-focused hero action', async ({
-  page,
-}) => {
+test('uses only the approved navigation anchors and removes the Hero action', async ({ page }) => {
   await page.goto('/');
 
   const nav = page.getByRole('navigation', { name: '주요 메뉴' });
@@ -63,9 +60,8 @@ test('uses the approved navigation anchors and one inquiry-focused hero action',
     .locator('a')
     .evaluateAll((links) => links.map((link) => (link as HTMLAnchorElement).getAttribute('href')));
 
-  expect(hrefs).toEqual(['#services', '#stack', '#team', '#process', '#faq', '#contact']);
+  expect(hrefs).toEqual(['#services', '#stack', '#team', '#process', '#faq']);
 
   const hero = page.locator('#hero');
-  await expect(hero.getByRole('link', { name: '프로젝트 문의하기' })).toBeVisible();
-  await expect(hero.getByRole('link')).toHaveCount(1);
+  await expect(hero.getByRole('link')).toHaveCount(0);
 });

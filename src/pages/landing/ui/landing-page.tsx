@@ -1,7 +1,6 @@
 import { ChevronUp } from 'lucide-react';
 import { lazy, Suspense, useEffect, useRef, useState, type RefObject } from 'react';
 
-import { ContactSection } from './contact-section';
 import { FaqSection } from './faq-section';
 import { FooterSection } from './footer-section';
 import { HeaderSection } from './header-section';
@@ -101,7 +100,6 @@ export function LandingPage() {
         <ProcessSection />
         <OperationsPolicySection />
         <FaqSection />
-        <ContactSection />
         <FooterSection />
         <LandingScrollbar />
         <button

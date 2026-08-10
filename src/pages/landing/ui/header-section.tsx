@@ -1,8 +1,6 @@
-import { ArrowRight } from 'lucide-react';
 import { type MouseEvent, useEffect, useState } from 'react';
 
 import { navigationItems } from '../config';
-import { Button } from './button';
 import { scrollToHashTarget } from '../lib/scroll-to-page-top';
 import styles from './styles/header.module.css';
 
@@ -78,17 +76,6 @@ export function HeaderSection() {
           </a>
         ))}
       </nav>
-      <Button
-        href='#contact'
-        className={styles.ctaButton}
-        data-cursor-contrast='light'
-        onClick={handleHashLinkClick}
-      >
-        <span data-landing-label>문의하기</span>
-        <span data-landing-arrow>
-          <ArrowRight size={14} strokeWidth={2.2} />
-        </span>
-      </Button>
     </header>
   );
 }

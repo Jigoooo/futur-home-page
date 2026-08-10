@@ -140,54 +140,6 @@
   line-height: 1.9;
 }
 
-.cardLink {
-  position: relative;
-  display: inline-flex;
-  align-self: flex-start;
-  align-items: center;
-  gap: 9px;
-  margin-top: auto;
-  padding-top: 28px;
-  color: #101d43;
-  font-size: 14px;
-  font-weight: 950;
-  transition:
-    color 0.25s ease,
-    transform 0.25s var(--spring);
-}
-
-.cardLink::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 24px;
-  bottom: -8px;
-  height: 1px;
-  background: currentColor;
-  opacity: 0.45;
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform 0.26s ease;
-}
-
-.cardLink i {
-  font-style: normal;
-  transition: transform 0.3s var(--spring);
-}
-
-.serviceCard:hover .cardLink {
-  transform: translateX(2px);
-  color: var(--accent);
-}
-
-.serviceCard:hover .cardLink::before {
-  transform: scaleX(1);
-}
-
-.serviceCard:hover .cardLink i {
-  transform: translateX(7px);
-}
-
 @media (max-width: 1180px) {
   .serviceLayout {
     grid-template-columns: 1fr;
@@ -213,13 +165,7 @@
     opacity: 0;
   }
 
-  .serviceCard:hover .serviceIcon,
-  .serviceCard:hover .cardLink,
-  .serviceCard:hover .cardLink i {
+  .serviceCard:hover .serviceIcon {
     transform: none;
-  }
-
-  .serviceCard:hover .cardLink::before {
-    transform: scaleX(0);
   }
 }

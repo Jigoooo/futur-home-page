@@ -19,7 +19,7 @@ test('keeps classic content visible without JavaScript', async ({ browser }) => 
 
   await page.goto('/');
 
-  for (const selector of ['#services', '#team', '#contact']) {
+  for (const selector of ['#services', '#team', '#faq']) {
     const target = page.locator(`${selector} [data-landing-reveal]`).first();
 
     await expect(target).toBeVisible();
@@ -56,25 +56,11 @@ test('serves the classic landing content without a JavaScript visibility gate', 
   const noScriptPage = await browser.newPage({ javaScriptEnabled: false });
   await noScriptPage.goto('/');
   await expect(noScriptPage.getByRole('heading', { level: 1, name: HERO_LABEL })).toBeVisible();
-  await expect(noScriptPage.getByRole('link', { name: /프로젝트 문의하기/ })).toBeVisible();
+  await expect(noScriptPage.locator('[data-landing-hero] a')).toHaveCount(0);
   await expect(noScriptPage.locator('#services')).toBeVisible();
   await expect(noScriptPage.locator('#team')).toBeVisible();
-  await expect(noScriptPage.locator('#contact')).toBeVisible();
+  await expect(noScriptPage.locator('#footer')).toBeVisible();
   await noScriptPage.close();
-});
-
-test('retains contact disclosures', async ({ page }) => {
-  await page.goto('/');
-
-  const form = page.getByRole('form', { name: '프로젝트 상담 양식' });
-  await expect(
-    form.getByRole('checkbox', { name: /개인정보 수집·이용에 동의합니다/ }),
-  ).toBeVisible();
-  await expect(form.getByRole('list', { name: '개인정보 수집·이용 고지' })).toBeVisible();
-  await expect(
-    form.getByRole('checkbox', { name: /개인정보 국외 이전에 동의합니다/ }),
-  ).toBeVisible();
-  await expect(form.getByRole('list', { name: '개인정보 국외 이전 고지' })).toBeVisible();
 });
 
 test('limits staggered entrance motion to the hero and keeps classic section containers visible', async ({
@@ -102,7 +88,7 @@ test('limits staggered entrance motion to the hero and keeps classic section con
   expect(heroMotion.every(({ filter }) => filter === 'none')).toBe(true);
 
   const sections = page.locator('[data-landing-section]:not([data-landing-hero])');
-  await expect(sections).toHaveCount(8);
+  await expect(sections).toHaveCount(7);
   const visibility = await sections.evaluateAll((elements) =>
     elements.map((element) => {
       const style = getComputedStyle(element);
@@ -153,6 +139,6 @@ test.describe('reduced motion', () => {
     expect(
       motion.every(({ animationName }) => /(?:editorial|hero)OpacityIn/.test(animationName)),
     ).toBe(true);
-    await expect(page.locator('#contact')).toBeVisible();
+    await expect(page.locator('#footer')).toBeVisible();
   });
 });

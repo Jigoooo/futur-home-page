@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 
 async function waitForLandingHydration(page: import('@playwright/test').Page) {
   await page.waitForFunction(() => {
-    const button = document.querySelector('[data-landing-interactive="button"]');
+    const button = document.querySelector('[data-landing-interactive="round"]');
 
     return button && Object.keys(button).some((key) => key.startsWith('__reactProps$'));
   });
@@ -18,10 +18,8 @@ test('initial load and primary interactions emit no runtime errors', async ({ pa
 
   await page.goto('/');
   await waitForLandingHydration(page);
-  const animatedButton = page
-    .locator('[data-landing-interactive="button"]')
-    .filter({ has: page.locator('[data-landing-label]') })
-    .first();
+  const animatedButton = page.locator('#footer [data-landing-interactive="round"]');
+  await animatedButton.scrollIntoViewIfNeeded();
   await animatedButton.dispatchEvent('pointerover', { pointerType: 'mouse' });
   await page.waitForTimeout(350);
   await animatedButton.dispatchEvent('pointerout', { pointerType: 'mouse' });
@@ -30,7 +28,7 @@ test('initial load and primary interactions emit no runtime errors', async ({ pa
     .getByRole('navigation', { name: '주요 메뉴' })
     .getByRole('link', { name: '서비스' })
     .click();
-  await page.locator('#services').getByRole('link').first().hover();
+  await page.locator('#faq button').first().hover();
   await page.mouse.move(0, 0);
 
   expect(errors).toEqual([]);

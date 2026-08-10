@@ -6,5 +6,4 @@ export const navigationItems: NavItem[] = [
   { label: '팀', href: '#team' },
   { label: '프로세스', href: '#process' },
   { label: 'FAQ', href: '#faq' },
-  { label: '문의', href: '#contact' },
 ];

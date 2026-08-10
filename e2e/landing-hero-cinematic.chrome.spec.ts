@@ -32,8 +32,7 @@ test('serves the hero copy and particle canvas immediately from SSR', async ({
   await expect(page.locator('[data-hero-media]')).toHaveCount(0);
   await expect(page.locator('canvas[data-hero-particles]')).toHaveCount(1);
   await expect(page.locator('[data-hero-particle-layer]')).toHaveAttribute('aria-hidden', 'true');
-  await expect(page.getByRole('link', { name: /프로젝트 문의하기/ })).toBeVisible();
-  await expect(page.locator('[data-landing-hero] a')).toHaveCount(1);
+  await expect(page.locator('[data-landing-hero] a')).toHaveCount(0);
 
   const noScriptPage = await browser.newPage({ javaScriptEnabled: false });
   await noScriptPage.goto('/');
@@ -288,7 +287,7 @@ test('keeps the hero reveal within 650ms and retains two explicit rows on mobile
     })),
   );
   expect(new Set(rows.map(({ top }) => top)).size, JSON.stringify(rows)).toBe(2);
-  await expect(page.getByRole('link', { name: /프로젝트 문의하기/ })).toBeInViewport();
+  await expect(page.locator('[data-landing-hero] a')).toHaveCount(0);
   await expect(page.locator('[data-landing-hero]')).not.toHaveCSS('overflow-x', 'visible');
 });
 

@@ -103,8 +103,8 @@ test('keeps the current hero and restores the factual classic order', async ({ p
   await expect(page.getByRole('heading', { level: 1 })).toContainText('BUILT FOR WHAT’S NEXT.');
   expect(
     await page
-      .locator('[data-landing-section]')
-      .evaluateAll((nodes) => nodes.map((node) => node.getAttribute('data-landing-section'))),
+      .locator('main > section[data-landing-section]')
+      .evaluateAll((nodes) => nodes.map((node) => node.id)),
   ).toEqual(orderedSections);
   await expect(page.getByRole('link', { name: '팀' })).toHaveAttribute('href', '#team');
 });

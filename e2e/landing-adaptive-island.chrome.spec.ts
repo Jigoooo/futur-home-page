@@ -438,10 +438,12 @@ test('restores toggle focus when a base transition hides focused Hero controls',
   page,
 }) => {
   await page.goto('/');
+  await expect(header(page)).toHaveAttribute('data-header-hydrated', 'true');
   const button = compactButton(page);
   const logo = header(page).getByRole('link', { name: 'FUTUR home' });
 
   await logo.focus();
+  await expect(logo).toBeFocused();
   await page.setViewportSize(mobileViewport);
   await expectFocusRestoredOnCompactCommit(page, button);
 
@@ -451,6 +453,7 @@ test('restores toggle focus when a base transition hides focused Hero controls',
     .getByRole('navigation', { name: '주요 메뉴' })
     .getByRole('link', { name: '서비스', exact: true });
   await servicesLink.focus();
+  await expect(servicesLink).toBeFocused();
   await scrollSectionIntoView(page, 'services');
   await expectFocusRestoredOnCompactCommit(page, button);
 });

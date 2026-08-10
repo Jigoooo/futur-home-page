@@ -81,6 +81,7 @@ export function useAdaptiveHeader({ headerRef, menuRef, toggleRef }: AdaptiveHea
   const openScrollYRef = useRef(0);
   const motionReadyRef = useRef(false);
   const reducedMotionRef = useRef(false);
+  const heroControlFocusedRef = useRef(false);
   const focusReturnFrameRef = useRef(0);
   const focusReturnPendingRef = useRef(false);
   const pendingFlipRef = useRef<ReturnType<typeof Flip.getState> | null>(null);
@@ -95,11 +96,11 @@ export function useAdaptiveHeader({ headerRef, menuRef, toggleRef }: AdaptiveHea
       if (
         nextLayout === 'compact' &&
         layoutRef.current === 'hero-expanded' &&
-        activeElement &&
-        header?.contains(activeElement) &&
-        activeElement !== toggleRef.current
+        (heroControlFocusedRef.current ||
+          (activeElement && header?.contains(activeElement) && activeElement !== toggleRef.current))
       ) {
         focusReturnPendingRef.current = true;
+        heroControlFocusedRef.current = false;
       }
 
       if (header && motionReadyRef.current && !reducedMotionRef.current) {
@@ -237,6 +238,15 @@ export function useAdaptiveHeader({ headerRef, menuRef, toggleRef }: AdaptiveHea
       heroVisible = window.scrollY <= 48;
       syncBaseLayout();
     };
+    const trackHeaderFocus = (event: FocusEvent) => {
+      const target = event.target;
+      heroControlFocusedRef.current = Boolean(
+        layoutRef.current === 'hero-expanded' &&
+        target instanceof Node &&
+        headerRef.current?.contains(target) &&
+        target !== toggleRef.current,
+      );
+    };
 
     const observer =
       sentinel && 'IntersectionObserver' in window
@@ -246,6 +256,7 @@ export function useAdaptiveHeader({ headerRef, menuRef, toggleRef }: AdaptiveHea
     observer?.observe(sentinel as HTMLElement);
     compactViewport.addEventListener('change', syncBaseLayout);
     reducedMotion.addEventListener('change', syncMotionPreference);
+    document.addEventListener('focusin', trackHeaderFocus);
     window.addEventListener('scroll', syncHeroVisibility, { passive: true });
     syncHeroVisibility();
     let motionReadyFrame = 0;
@@ -262,9 +273,10 @@ export function useAdaptiveHeader({ headerRef, menuRef, toggleRef }: AdaptiveHea
       observer?.disconnect();
       compactViewport.removeEventListener('change', syncBaseLayout);
       reducedMotion.removeEventListener('change', syncMotionPreference);
+      document.removeEventListener('focusin', trackHeaderFocus);
       window.removeEventListener('scroll', syncHeroVisibility);
     };
-  }, [headerRef, updateLayout]);
+  }, [headerRef, toggleRef, updateLayout]);
 
   useEffect(() => {
     let frameId = 0;

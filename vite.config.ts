@@ -32,7 +32,23 @@ const config = defineConfig(({ mode }) => {
         : undefined,
     },
     plugins: [
-      tanstackStart(),
+      tanstackStart({
+        server: {
+          build: {
+            inlineCss: true,
+          },
+        },
+        pages: [
+          { path: '/', prerender: { enabled: true } },
+          { path: '/privacy', prerender: { enabled: true } },
+          { path: '/terms', prerender: { enabled: true } },
+        ],
+        prerender: {
+          enabled: true,
+          autoStaticPathsDiscovery: false,
+          crawlLinks: false,
+        },
+      }),
       nitro(),
       react(),
       babel({

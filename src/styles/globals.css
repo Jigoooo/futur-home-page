@@ -1,11 +1,11 @@
 @charset "utf-8";
 
 @font-face {
-  font-family: 'Pretendard';
-  font-weight: 45 920;
+  font-family: 'FUTUR Sans Critical';
+  font-weight: 45 930;
   font-style: normal;
   font-display: optional;
-  src: url('/fonts/PretendardVariable.woff2') format('woff2-variations');
+  src: url('/fonts/PretendardVariable.critical.woff2') format('woff2-variations');
 }
 
 *,
@@ -15,12 +15,8 @@
 }
 
 html {
-  --landing-canvas-background:
-    radial-gradient(1100px 620px at 92% 8%, rgba(227, 238, 255, 0.62), rgba(227, 238, 255, 0) 76%),
-    radial-gradient(760px 440px at 6% 14%, rgba(242, 247, 255, 0.78), rgba(242, 247, 255, 0) 72%),
-    linear-gradient(180deg, #fbfcff 0%, #ffffff 46%, #fbfcff 100%);
+  --landing-canvas-background: #ffffff;
   background: var(--landing-canvas-background);
-  background-attachment: fixed;
   scroll-behavior: smooth;
   scrollbar-width: none;
   font-synthesis: none;
@@ -39,9 +35,8 @@ body {
   margin: 0;
   color: var(--ink);
   background: var(--landing-canvas-background);
-  background-attachment: fixed;
   font-family:
-    Pretendard,
+    'FUTUR Sans Critical',
     'Apple SD Gothic Neo',
     'Noto Sans KR',
     system-ui,
@@ -49,7 +44,7 @@ body {
     BlinkMacSystemFont,
     sans-serif;
   letter-spacing: 0;
-  text-rendering: geometricprecision;
+  text-rendering: optimizelegibility;
   -webkit-font-smoothing: antialiased;
   word-break: keep-all;
   overflow-wrap: break-word;

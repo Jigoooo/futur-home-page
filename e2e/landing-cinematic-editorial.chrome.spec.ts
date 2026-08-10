@@ -100,6 +100,7 @@ test('renders only the controller-verified Korean copy while preserving fixed co
         exact: true,
       }),
   ).toBeVisible();
+  await expect(page.locator('[data-cursor-text], [data-editorial-chapter]')).toHaveCount(0);
 });
 
 test('preserves in-view reveal targets and tablet navigation', async ({ page }) => {
@@ -167,6 +168,17 @@ test('reveals the scroll-to-top control only after meaningful page progress', as
   await expect(scrollTop).not.toBeDisabled();
   await expect(scrollTop).toHaveAttribute('tabindex', '0');
   await expect(scrollTop).toBeVisible();
+  expect(
+    await scrollTop.evaluate((node) => {
+      const style = getComputedStyle(node);
+      const properties = style.transitionProperty.split(',').map((value) => value.trim());
+      const durations = style.transitionDuration.split(',').map((value) => value.trim());
+
+      return properties.some(
+        (property, index) => property === 'transform' && durations[index] === '0.28s',
+      );
+    }),
+  ).toBe(true);
 
   const scrollYBeforeClick = await page.evaluate(() => window.scrollY);
   await scrollTop.click();
@@ -578,6 +590,16 @@ test('adapts the ring and dot cursor to semantic surfaces and recovers after blu
   await page.evaluate(() => window.dispatchEvent(new Event('pageshow')));
   await expect(page.locator('body')).not.toHaveAttribute('data-landing-cursor-muted', 'true');
   await expect(page.locator('body')).toHaveAttribute('data-landing-cursor-ready', 'true');
+
+  await page.setViewportSize({ width: 900, height: 720 });
+  await expect(page.locator('html')).toHaveCSS('cursor', 'auto');
+  await expect(ring).toHaveCSS('display', 'none');
+  await expect(dot).toHaveCSS('display', 'none');
+
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await expect(page.locator('html')).toHaveCSS('cursor', 'none');
+  await expect(ring).not.toHaveCSS('display', 'none');
+  await expect(dot).not.toHaveCSS('display', 'none');
 
   const coarsePage = await browser.newPage({ hasTouch: true });
   await coarsePage.setViewportSize({ width: 390, height: 844 });

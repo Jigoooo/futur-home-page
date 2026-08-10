@@ -71,6 +71,12 @@
 }
 
 @media (max-width: 900px), (pointer: coarse), (prefers-reduced-motion: reduce) {
+  :global(html[data-landing-cursor-enabled='true']),
+  :global(html[data-landing-cursor-enabled='true'] body),
+  :global(html[data-landing-cursor-enabled='true'] *) {
+    cursor: auto !important;
+  }
+
   .cursorAura,
   .cursorDot {
     display: none !important;

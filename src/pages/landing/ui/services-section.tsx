@@ -13,7 +13,6 @@ export function ServicesSection() {
       id='services'
       data-landing-section
       data-cursor-contrast='dark'
-      data-editorial-chapter='services'
     >
       <div className={sharedStyles.container}>
         <div className={styles.serviceLead}>

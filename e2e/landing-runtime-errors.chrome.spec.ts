@@ -35,3 +35,45 @@ test('initial load and primary interactions emit no runtime errors', async ({ pa
 
   expect(errors).toEqual([]);
 });
+
+test('initial hydration emits no React attribute mismatch warning', async ({ page }) => {
+  const hydrationWarnings: string[] = [];
+
+  await page.route('**/', async (route) => {
+    const response = await route.fetch();
+    const body = (await response.text()).replace(/<html([^>]*)>/, '<html$1 style="">');
+    await route.fulfill({ response, body });
+  });
+
+  page.on('console', (message) => {
+    const text = message.text();
+    if (/hydrated.*attributes.*didn't match/is.test(text)) hydrationWarnings.push(text);
+  });
+
+  await page.goto('/');
+  await waitForLandingHydration(page);
+  await page.waitForTimeout(100);
+
+  expect(hydrationWarnings).toEqual([]);
+});
+
+test('root hydration suppression does not hide descendant mismatches', async ({ page }) => {
+  const hydrationWarnings: string[] = [];
+
+  await page.route('**/', async (route) => {
+    const response = await route.fetch();
+    const body = (await response.text()).replace(/<body([^>]*)>/, '<body$1 style="">');
+    await route.fulfill({ response, body });
+  });
+  page.on('console', (message) => {
+    const text = message.text();
+    if (/hydrated.*attributes.*didn't match/is.test(text)) hydrationWarnings.push(text);
+  });
+
+  await page.goto('/');
+  await waitForLandingHydration(page);
+  await page.waitForTimeout(100);
+
+  expect(hydrationWarnings).toHaveLength(1);
+  expect(hydrationWarnings[0]).toContain('<body');
+});

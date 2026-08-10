@@ -126,7 +126,6 @@
   padding-left: clamp(42px, 7vw, 106px);
 }
 
-.serviceRow[data-service-active='true'],
 .serviceRow:focus-within {
   opacity: 1;
 }
@@ -260,8 +259,7 @@
     transition: none;
   }
 
-  .serviceRow,
-  .serviceRow[data-service-active='true'] {
+  .serviceRow {
     opacity: 1;
     transition: none;
   }

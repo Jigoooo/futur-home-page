@@ -7,22 +7,14 @@ type ButtonVariant = 'primary' | 'blue' | 'ghost';
 
 type ButtonProps = ComponentPropsWithoutRef<'a'> & {
   variant?: ButtonVariant;
-  cursorText?: string;
 };
 
-export function Button({
-  variant = 'primary',
-  cursorText,
-  className = '',
-  children,
-  ...props
-}: ButtonProps) {
+export function Button({ variant = 'primary', className = '', children, ...props }: ButtonProps) {
   return (
     <a
       className={cx(styles.button, styles[variant], className)}
       data-landing-interactive='button'
       data-landing-spotlight='button'
-      data-cursor-text={cursorText}
       {...props}
     >
       {children}

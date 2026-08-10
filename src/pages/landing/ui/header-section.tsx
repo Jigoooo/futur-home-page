@@ -81,7 +81,6 @@ export function HeaderSection() {
       <Button
         href='#contact'
         className={styles.ctaButton}
-        cursorText='문의'
         data-cursor-contrast='dark'
         onClick={handleHashLinkClick}
       >

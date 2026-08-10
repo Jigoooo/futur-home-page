@@ -1,6 +1,8 @@
 import { expect, test, type Page } from '@playwright/test';
+import { randomUUID } from 'node:crypto';
 
 async function completeContactForm(page: Page, email: string) {
+  await page.setExtraHTTPHeaders({ 'x-contact-e2e-requester': randomUUID() });
   const form = page.getByRole('form', { name: '프로젝트 상담 양식' });
 
   await page.waitForFunction(() => {
@@ -8,16 +10,20 @@ async function completeContactForm(page: Page, email: string) {
     return contactForm && Object.keys(contactForm).some((key) => key.startsWith('__reactProps$'));
   });
 
-  await form.getByLabel('웹·앱 개발').check({ force: true });
+  const service = form.getByLabel('웹·앱 개발');
+  await service.locator('..').click();
+  await expect(service).toBeChecked();
   await form.getByLabel('담당자명').fill('홍길동');
   await form.getByLabel('이메일').fill(email);
   await form
     .getByLabel('문의 내용')
     .fill('회사 소개 페이지 개편과 상담 문의 전달 기능을 함께 의뢰하고 싶습니다.');
-  await form.getByLabel('개인정보 수집·이용에 동의합니다.').check({ force: true });
+  const collectionConsent = form.getByLabel('개인정보 수집·이용에 동의합니다.');
+  await collectionConsent.locator('..').click();
+  await expect(collectionConsent).toBeChecked();
   const overseasConsent = form.getByLabel('개인정보 국외 이전에 동의합니다.');
-  await expect(overseasConsent).toBeVisible();
-  await overseasConsent.check({ force: true });
+  await overseasConsent.locator('..').click();
+  await expect(overseasConsent).toBeChecked();
   await page.waitForTimeout(3_100);
 
   return form;

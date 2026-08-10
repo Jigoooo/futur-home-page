@@ -20,7 +20,7 @@
   box-shadow: 0 14px 34px rgba(28, 50, 94, 0.12);
   transition:
     opacity 0.2s var(--ease-out),
-    transform 0.28s var(--spring),
+    transform 0.28s var(--ease-out),
     visibility 0.2s,
     background 0.28s ease,
     color 0.28s ease;

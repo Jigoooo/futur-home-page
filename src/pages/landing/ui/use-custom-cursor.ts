@@ -3,19 +3,18 @@ import { useEffect, type RefObject } from 'react';
 interface UseCustomCursorParams {
   auraRef: RefObject<HTMLDivElement | null>;
   dotRef: RefObject<HTMLDivElement | null>;
-  labelRef: RefObject<HTMLSpanElement | null>;
 }
 
-export function useCustomCursor({ auraRef, dotRef, labelRef }: UseCustomCursorParams) {
+export function useCustomCursor({ auraRef, dotRef }: UseCustomCursorParams) {
   useEffect(() => {
     const aura = auraRef.current;
     const dot = dotRef.current;
-    const label = labelRef.current;
 
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const finePointer = window.matchMedia('(pointer: fine)').matches;
+    const compactViewport = window.matchMedia('(max-width: 900px)').matches;
 
-    if (!aura || !dot || !label || reduceMotion || !finePointer) return undefined;
+    if (!aura || !dot || reduceMotion || !finePointer || compactViewport) return undefined;
 
     document.documentElement.dataset.landingCursorEnabled = 'true';
 
@@ -42,8 +41,13 @@ export function useCustomCursor({ auraRef, dotRef, labelRef }: UseCustomCursorPa
       delete document.body.dataset.landingCursorMuted;
       delete document.body.dataset.landingCursorHot;
       delete document.body.dataset.landingCursorSoft;
-      label.textContent = '';
       document.body.dataset.landingCursorReady = 'true';
+    };
+
+    const updateContrast = (x: number, y: number) => {
+      const target = document.elementFromPoint(x, y);
+      const surface = target?.closest<HTMLElement>('[data-cursor-contrast]');
+      document.body.dataset.landingCursorContrast = surface?.dataset.cursorContrast || 'dark';
     };
 
     const handleMove = (event: PointerEvent | MouseEvent) => {
@@ -51,16 +55,14 @@ export function useCustomCursor({ auraRef, dotRef, labelRef }: UseCustomCursorPa
       mouseY = event.clientY;
       delete document.body.dataset.landingCursorMuted;
       document.body.dataset.landingCursorReady = 'true';
+      updateContrast(mouseX, mouseY);
     };
 
-    const handlePointerEnter = (event: Event) => {
-      const target = event.currentTarget as HTMLElement;
-      label.textContent = target.dataset.cursorText || '';
+    const handlePointerEnter = () => {
       document.body.dataset.landingCursorHot = 'true';
     };
 
     const handlePointerLeave = () => {
-      label.textContent = '';
       delete document.body.dataset.landingCursorHot;
     };
 
@@ -74,7 +76,6 @@ export function useCustomCursor({ auraRef, dotRef, labelRef }: UseCustomCursorPa
     const resetCursorState = ({ mute = false, duration = 0 } = {}) => {
       delete document.body.dataset.landingCursorHot;
       delete document.body.dataset.landingCursorSoft;
-      label.textContent = '';
 
       if (!mute) return;
 
@@ -96,7 +97,9 @@ export function useCustomCursor({ auraRef, dotRef, labelRef }: UseCustomCursorPa
     const handleProtocolLink = () => resetCursorState({ mute: true, duration: 380 });
     const handleClickablePointerDown = () => resetCursorState();
 
-    const hotTargets = Array.from(document.querySelectorAll<HTMLElement>('[data-cursor-text]'));
+    const hotTargets = Array.from(
+      document.querySelectorAll<HTMLElement>('a,button,label,[data-landing-interactive]'),
+    );
     const softTargets = Array.from(
       document.querySelectorAll<HTMLElement>('input,textarea,[data-landing-cursor-soft]'),
     );
@@ -143,6 +146,7 @@ export function useCustomCursor({ auraRef, dotRef, labelRef }: UseCustomCursorPa
       delete document.body.dataset.landingCursorHot;
       delete document.body.dataset.landingCursorSoft;
       delete document.body.dataset.landingCursorMuted;
+      delete document.body.dataset.landingCursorContrast;
 
       hotTargets.forEach((target) => {
         target.removeEventListener('pointerenter', handlePointerEnter);
@@ -167,5 +171,5 @@ export function useCustomCursor({ auraRef, dotRef, labelRef }: UseCustomCursorPa
       document.removeEventListener('pointerup', handlePointerUp);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [auraRef, dotRef, labelRef]);
+  }, [auraRef, dotRef]);
 }

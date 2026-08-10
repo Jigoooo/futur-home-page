@@ -33,7 +33,7 @@ export function HeroSection() {
             제품을 함께 만듭니다.
           </p>
           <div className={styles.heroActions}>
-            <Button href='#contact' cursorText='START' data-cursor-contrast='dark'>
+            <Button href='#contact' data-cursor-contrast='dark'>
               <span data-landing-label>프로젝트 문의하기</span>
               <span data-landing-arrow>
                 <ArrowRight size={14} strokeWidth={2.2} />

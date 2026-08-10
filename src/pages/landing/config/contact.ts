@@ -1,4 +1,4 @@
-import type { BriefStage, ContactCheckItem, ContactChip, SelectOption } from '../model/types';
+import type { BriefStage, ContactCheckItem, SelectOption } from '../model/types';
 
 export const briefStages = [
   {
@@ -23,9 +23,9 @@ export const briefStages = [
 
 export const timelineOptions = [
   { value: '협의 후 결정', label: '협의 후 결정' },
-  { value: '1개월 이내', label: '1개월 이내' },
-  { value: '1~3개월', label: '1~3개월' },
-  { value: '3개월 이상', label: '3개월 이상' },
+  { value: '가능한 시점이 정해짐', label: '가능한 시점이 정해짐' },
+  { value: '내부 일정 확인 중', label: '내부 일정 확인 중' },
+  { value: '아직 정하지 않음', label: '아직 정하지 않음' },
 ] as const satisfies readonly SelectOption[];
 
 export const budgetOptions = [
@@ -34,12 +34,6 @@ export const budgetOptions = [
   { value: '500~1,000만원', label: '500~1,000만원' },
   { value: '1,000만원 이상', label: '1,000만원 이상' },
 ] as const satisfies readonly SelectOption[];
-
-export const contactChips: ContactChip[] = [
-  { label: '기획서 없이 문의 가능', icon: 'calendar' },
-  { label: '빠른 범위 검토', icon: 'clock' },
-  { label: '운영까지 고려한 제안', icon: 'shield' },
-];
 
 export const contactServices = [
   { value: '웹·앱 개발', title: '웹·앱 개발', description: '랜딩·관리자·모바일 화면' },

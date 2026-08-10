@@ -151,8 +151,37 @@ function createProcessTimeline(page: HTMLElement): SceneCleanup {
   };
 }
 
-function createContactTimeline(_page: HTMLElement): SceneCleanup {
-  return noOp;
+function createContactTimeline(page: HTMLElement): SceneCleanup {
+  const surface = page.querySelector<HTMLElement>('[data-contact-surface]');
+  const groups = surface?.querySelectorAll<HTMLElement>('[data-contact-motion-group]');
+
+  if (!surface || !groups || groups.length === 0) return noOp;
+
+  const timeline = gsap.timeline({
+    scrollTrigger: { trigger: surface, start: 'top 78%', once: true },
+  });
+
+  timeline
+    .fromTo(
+      surface,
+      { clipPath: 'ellipse(28% 18% at 78% 14%)' },
+      { clipPath: 'ellipse(150% 132% at 54% 48%)', duration: 0.82, ease: 'power3.out' },
+    )
+    .from(
+      groups,
+      {
+        clipPath: 'inset(0 0 100% 0 round 16px)',
+        duration: 0.46,
+        stagger: 0.05,
+        ease: 'power3.out',
+      },
+      '-=0.38',
+    );
+
+  return () => {
+    timeline.scrollTrigger?.kill();
+    timeline.kill();
+  };
 }
 
 export function useLandingSceneMotion(pageRef: PageRef) {

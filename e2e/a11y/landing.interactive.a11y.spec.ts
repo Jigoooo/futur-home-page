@@ -44,18 +44,6 @@ test.describe('/ 랜딩 페이지 인터랙티브 상태 a11y', () => {
     await runA11yScan(page, { include: '#faq' });
   });
 
-  test('CaseStories — 각 탭 전환마다 스캔', async ({ page }) => {
-    await page.goto('/');
-    await page.locator('#cases').scrollIntoViewIfNeeded();
-    const tabs = page.locator('#cases [role="tab"]');
-    const n = await tabs.count();
-    for (let i = 0; i < n; i++) {
-      await tabs.nth(i).click();
-      await page.waitForTimeout(50);
-      await runA11yScan(page, { include: '#cases' });
-    }
-  });
-
   test('Contact 폼 invalid 상태 (aria-invalid="true" + role=alert)', async ({ page }) => {
     await page.goto('/');
     await page.waitForLoadState('networkidle');

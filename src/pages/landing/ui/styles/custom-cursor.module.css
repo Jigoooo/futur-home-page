@@ -1,5 +1,6 @@
 .cursorAura,
 .cursorDot {
+  --cursor-color: rgba(32, 37, 35, 0.94);
   position: fixed;
   left: 0;
   top: 0;
@@ -11,44 +12,34 @@
 }
 
 .cursorAura {
-  width: 42px;
-  height: 42px;
-  border: 1px solid rgba(47, 107, 255, 0.38);
+  width: 24px;
+  height: 24px;
+  border: 1px solid var(--cursor-color);
   border-radius: 999px;
-  background: radial-gradient(circle, rgba(47, 107, 255, 0.1), rgba(47, 107, 255, 0) 65%);
-  box-shadow: 0 0 38px rgba(47, 107, 255, 0.14);
+  background: transparent;
+  box-shadow: none;
   transition:
-    width 0.26s var(--spring),
-    height 0.26s var(--spring),
-    border-color 0.26s ease,
-    background 0.26s ease,
-    opacity 0.2s ease;
+    width 180ms var(--ease-out),
+    height 180ms var(--ease-out),
+    border-color 140ms ease,
+    opacity 140ms ease;
 }
 
 .cursorDot {
   z-index: 1001;
-  width: 7px;
-  height: 7px;
+  width: 4px;
+  height: 4px;
   border-radius: 999px;
-  background: var(--blue);
-  box-shadow: 0 0 18px rgba(47, 107, 255, 0.44);
-  transition: opacity 0.2s ease;
+  background: var(--cursor-color);
+  box-shadow: none;
+  transition:
+    background-color 140ms ease,
+    opacity 140ms ease;
 }
 
-.cursorAura span {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%) scale(0.86);
-  opacity: 0;
-  color: #ffffff;
-  font-size: 10px;
-  font-weight: 1000;
-  letter-spacing: 0.065em;
-  white-space: nowrap;
-  transition:
-    opacity 0.16s ease,
-    transform 0.18s var(--spring);
+:global(body[data-landing-cursor-contrast='light']) .cursorAura,
+:global(body[data-landing-cursor-contrast='light']) .cursorDot {
+  --cursor-color: rgba(248, 247, 243, 0.96);
 }
 
 :global(body[data-landing-cursor-ready='true']:not([data-landing-cursor-muted='true'])) .cursorAura,
@@ -57,28 +48,18 @@
 }
 
 :global(body[data-landing-cursor-hot='true']) .cursorAura {
-  width: 82px;
-  height: 82px;
-  border-color: rgba(7, 24, 63, 0.96);
-  background: rgba(7, 24, 63, 0.9);
-  box-shadow: 0 18px 48px rgba(7, 24, 63, 0.18);
-}
-
-:global(body[data-landing-cursor-hot='true']) .cursorAura span {
-  opacity: 1;
-  transform: translate(-50%, -50%) scale(1);
-}
-
-:global(body[data-landing-cursor-hot='true']) .cursorDot,
-:global(body[data-landing-cursor-muted='true']) .cursorAura,
-:global(body[data-landing-cursor-muted='true']) .cursorDot {
-  opacity: 0 !important;
+  width: 34px;
+  height: 34px;
 }
 
 :global(body[data-landing-cursor-soft='true']) .cursorAura {
-  width: 58px;
-  height: 58px;
-  background: rgba(47, 107, 255, 0.12);
+  width: 30px;
+  height: 30px;
+}
+
+:global(body[data-landing-cursor-muted='true']) .cursorAura,
+:global(body[data-landing-cursor-muted='true']) .cursorDot {
+  opacity: 0 !important;
 }
 
 @media (pointer: fine) {

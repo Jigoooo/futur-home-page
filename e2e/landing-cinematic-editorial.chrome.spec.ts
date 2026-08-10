@@ -302,3 +302,52 @@ test('keeps Review and Process scenes within the mobile viewport', async ({ page
     { id: 'process', fits: true },
   ]);
 });
+
+test('uses the approved inquiry copy in one rounded dark contact surface', async ({ page }) => {
+  await page.goto('/');
+
+  const contact = page.locator('#contact');
+  await expect(contact.getByText('프로젝트 문의', { exact: true })).toBeVisible();
+  await expect(
+    contact.getByRole('heading', { name: '만들거나 개선하려는 제품을 알려주세요.' }),
+  ).toBeVisible();
+  await expect(
+    contact.getByText('현재 상황과 필요한 범위를 적어주시면 확인 후 연락드리겠습니다.', {
+      exact: true,
+    }),
+  ).toBeVisible();
+  await expect(contact.getByText('START A PROJECT', { exact: true })).toHaveCount(0);
+  await expect(contact.getByText('프로젝트 이야기를 들려주세요.', { exact: true })).toHaveCount(0);
+
+  const surface = contact.locator('[data-contact-surface]');
+  await expect(surface).toHaveCount(1);
+  expect(
+    Number.parseFloat(await surface.evaluate((node) => getComputedStyle(node).borderRadius)),
+  ).toBeGreaterThanOrEqual(40);
+  await expect(surface.locator('[data-contact-group]')).toHaveCount(5);
+  expect(
+    Number.parseFloat(
+      await contact
+        .locator('[data-contact-stage-grid] [data-landing-surface]')
+        .first()
+        .evaluate((node) => getComputedStyle(node).borderRadius),
+    ),
+  ).toBeLessThanOrEqual(18);
+});
+
+test('uses semantic nested cursor tones for the contact surface and its CTA', async ({ page }) => {
+  await page.goto('/');
+
+  const contact = page.locator('#contact');
+  await expect(contact).toHaveAttribute('data-cursor-contrast', 'light');
+  await expect(contact.locator('[data-contact-surface]')).toHaveAttribute(
+    'data-cursor-contrast',
+    'light',
+  );
+  await expect(contact.getByRole('link', { name: '메일로 문의' })).toHaveAttribute(
+    'data-cursor-contrast',
+    'dark',
+  );
+
+  await expect(contact.locator('[data-landing-contact-form]')).toBeVisible();
+});

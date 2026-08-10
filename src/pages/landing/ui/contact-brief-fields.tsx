@@ -35,16 +35,21 @@ export function ContactBriefFields({
   onServicesChange,
 }: ContactBriefFieldsProps) {
   return (
-    <fieldset className={formStyles.formSection}>
+    <fieldset className={formStyles.formSection} data-contact-group data-contact-motion-group>
       <div className={formStyles.formSectionHead}>
-        <h3>상담 전에 필요한 내용을 가볍게 정리합니다.</h3>
+        <h3>상담에 필요한 내용을 먼저 정리합니다.</h3>
       </div>
 
       <div className={formStyles.briefGroup}>
-        <div className={formStyles.groupLabel}>
+        <div className={formStyles.groupLabel} data-contact-group-label>
           현재 단계 <small>하나 선택</small>
         </div>
-        <div className={formStyles.stageGrid} role='radiogroup' aria-label='현재 프로젝트 단계'>
+        <div
+          className={formStyles.stageGrid}
+          role='radiogroup'
+          aria-label='현재 프로젝트 단계'
+          data-contact-stage-grid
+        >
           {briefStages.map((item) => (
             <label
               key={item.value}
@@ -69,7 +74,7 @@ export function ContactBriefFields({
       </div>
 
       <div className={formStyles.briefGroup}>
-        <div className={formStyles.groupLabel}>
+        <div className={formStyles.groupLabel} data-contact-group-label>
           <span>
             필요한 서비스 <span className={formStyles.required}>*</span>
           </span>

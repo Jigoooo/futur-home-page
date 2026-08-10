@@ -20,12 +20,14 @@ export function FaqSection() {
   };
 
   return (
-    <section className={cx(sharedStyles.sectionBlock, styles.faqSection)} id='faq'>
+    <section
+      className={cx(sharedStyles.sectionBlock, styles.faqSection)}
+      id='faq'
+      data-landing-section
+      data-cursor-contrast='dark'
+    >
       <div className={sharedStyles.container}>
-        <div
-          className={cx(styles.head, sharedStyles.reveal, sharedStyles.revealUp)}
-          data-landing-reveal='up'
-        >
+        <div className={styles.head}>
           <EditorialTextReveal
             as='h2'
             className={cx(sharedStyles.sectionTitle, styles.title)}
@@ -34,14 +36,9 @@ export function FaqSection() {
             trigger='in-view'
             accessibleLabel='자주 묻는 질문.'
           />
-          <p className={sharedStyles.sectionDesc}>
-            문의 전에 가장 많이 물어보시는 내용을 정리했습니다.
-          </p>
+          <p className={sharedStyles.sectionDesc}>문의 전에 자주 묻는 내용을 정리했습니다.</p>
         </div>
-        <div
-          className={cx(styles.list, sharedStyles.reveal, sharedStyles.revealUp)}
-          data-landing-reveal='up'
-        >
+        <div className={styles.list}>
           {faqItems.map((item, index) => {
             const isOpen = openSet.has(index);
             const buttonId = `faq-button-${index}`;
@@ -56,6 +53,7 @@ export function FaqSection() {
                   aria-controls={panelId}
                   onClick={() => toggle(index)}
                 >
+                  <span className={styles.index}>{String(index + 1).padStart(2, '0')}</span>
                   <span className={styles.question}>{item.question}</span>
                   <span className={styles.toggle} aria-hidden='true'>
                     <ChevronDown size={16} strokeWidth={1.8} />

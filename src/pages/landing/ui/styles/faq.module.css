@@ -1,114 +1,96 @@
 .faqSection {
-  --section-accent: var(--sky);
-  padding-block: clamp(110px, 9vw, 160px);
+  --section-accent: #253632;
+  padding-block: clamp(132px, 11vw, 190px);
+  background: var(--paper-cool);
 }
 
 .head {
-  max-width: 760px;
-  margin-bottom: 44px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 0.58fr);
+  align-items: end;
+  gap: 48px;
+  margin-bottom: clamp(58px, 7vw, 94px);
+  padding-top: 18px;
+  border-top: 1px solid rgba(25, 43, 39, 0.32);
 }
 
 .title {
-  font-size: clamp(34px, 4.4vw, 46px);
-  line-height: 1.18;
+  color: #18211f;
+  font-size: clamp(42px, 5vw, 68px);
+  line-height: 1.02;
+  letter-spacing: -0.04em;
+}
+
+.head p {
+  margin: 0 0 6px;
+  color: #596660;
+  font-size: 15px;
+  line-height: 1.8;
 }
 
 .list {
-  display: grid;
-  gap: 12px;
+  border-top: 1px solid rgba(25, 43, 39, 0.5);
 }
 
 .item {
-  padding: 4px 28px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-md);
-  background: #ffffff;
-  box-shadow: var(--shadow-soft);
-  transition:
-    border-color 0.24s ease,
-    box-shadow 0.24s ease;
-}
-
-.itemOpen {
-  border-color: #d6e2f6;
-  box-shadow: 0 22px 50px rgba(41, 63, 111, 0.07);
+  border-bottom: 1px solid rgba(25, 43, 39, 0.25);
 }
 
 .summary {
-  display: flex;
+  display: grid;
+  grid-template-columns: 58px minmax(0, 1fr) 36px;
   align-items: center;
-  justify-content: space-between;
-  gap: 16px;
+  gap: 20px;
   width: 100%;
-  padding: 22px 0;
+  min-height: 104px;
+  padding: 26px 0;
   border: 0;
   background: transparent;
-  cursor: pointer;
-  color: var(--navy);
+  color: #1a2421;
   font: inherit;
-  font-size: 17px;
-  font-weight: 800;
-  line-height: 1.5;
-  letter-spacing: -0.01em;
   text-align: left;
+  cursor: pointer;
 }
 
 .summary:focus-visible {
-  outline: 2px solid #8cb2ff;
-  outline-offset: 4px;
-  border-radius: 12px;
+  outline: 2px solid #314f48;
+  outline-offset: 5px;
+}
+
+.index {
+  align-self: start;
+  padding-top: 5px;
+  color: #4a5952;
+  font-size: 11px;
+  font-weight: 780;
+  letter-spacing: 0.12em;
 }
 
 .question {
-  display: inline-flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.question::before {
-  content: 'Q';
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 999px;
-  background: #eef5ff;
-  border: 1px solid #dee9fb;
-  color: var(--blue);
-  font-size: 13px;
-  font-weight: 900;
-  flex-shrink: 0;
+  font-size: clamp(18px, 2vw, 24px);
+  font-weight: 680;
+  line-height: 1.42;
+  letter-spacing: -0.025em;
 }
 
 .toggle {
   display: grid;
   place-items: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 999px;
-  border: 1px solid var(--line);
-  background: #ffffff;
-  color: var(--navy);
-  transition:
-    transform 0.36s var(--spring),
-    background 0.24s ease,
-    border-color 0.24s ease,
-    color 0.24s ease;
-  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-left: 1px solid rgba(25, 43, 39, 0.32);
+  color: #263d37;
+  transition: transform 260ms var(--ease-out);
 }
 
 .itemOpen .toggle {
   transform: rotate(-180deg);
-  background: #eef5ff;
-  border-color: #d6e2f6;
-  color: var(--blue);
 }
 
 .panel {
   display: grid;
   grid-template-rows: 0fr;
-  transition: grid-template-rows 0.36s var(--spring);
+  transition: grid-template-rows 300ms var(--ease-out);
 }
 
 .itemOpen .panel {
@@ -120,18 +102,17 @@
 }
 
 .answer {
+  max-width: 760px;
   margin: 0;
-  padding: 0 0 24px;
-  padding-left: 40px;
-  color: var(--muted);
+  padding: 0 44px 36px 78px;
+  color: #52615b;
   font-size: 15px;
-  font-weight: 500;
-  line-height: 1.8;
+  line-height: 1.85;
   opacity: 0;
   transform: translate3d(0, -4px, 0);
   transition:
-    opacity 0.32s ease 0.06s,
-    transform 0.32s var(--spring) 0.06s;
+    opacity 240ms ease 40ms,
+    transform 240ms var(--ease-out) 40ms;
 }
 
 .itemOpen .answer {
@@ -139,23 +120,37 @@
   transform: translate3d(0, 0, 0);
 }
 
-@media (max-width: 560px) {
-  .item {
-    padding: 4px 20px;
+@media (max-width: 760px) {
+  .head {
+    grid-template-columns: 1fr;
+    gap: 22px;
   }
 
   .summary {
-    font-size: 15px;
-    padding: 20px 0;
+    grid-template-columns: 36px minmax(0, 1fr) 28px;
+    gap: 12px;
+    min-height: 88px;
+  }
+
+  .answer {
+    padding-left: 48px;
+    padding-right: 28px;
+  }
+}
+
+@media (max-width: 560px) {
+  .faqSection {
+    padding-block: 104px 118px;
+  }
+
+  .question {
+    font-size: 17px;
   }
 
   .answer {
     padding-left: 0;
+    padding-right: 0;
     font-size: 14px;
-  }
-
-  .question {
-    align-items: flex-start;
   }
 }
 

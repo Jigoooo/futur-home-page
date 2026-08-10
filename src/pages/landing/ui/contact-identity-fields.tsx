@@ -22,7 +22,7 @@ interface ContactIdentityFieldsProps {
 
 export function ContactIdentityFields({ errors, onFieldChange }: ContactIdentityFieldsProps) {
   return (
-    <fieldset className={formStyles.formSection}>
+    <fieldset className={formStyles.formSection} data-contact-group data-contact-motion-group>
       <div className={formStyles.formGrid}>
         <label className={formStyles.formControl}>
           <span className={formStyles.formLabel}>회사명</span>

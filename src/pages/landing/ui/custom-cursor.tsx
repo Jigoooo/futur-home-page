@@ -6,16 +6,18 @@ import { useCustomCursor } from './use-custom-cursor';
 export function CustomCursor() {
   const auraRef = useRef<HTMLDivElement>(null);
   const dotRef = useRef<HTMLDivElement>(null);
-  const labelRef = useRef<HTMLSpanElement>(null);
 
-  useCustomCursor({ auraRef, dotRef, labelRef });
+  useCustomCursor({ auraRef, dotRef });
 
   return (
     <>
-      <div ref={auraRef} className={styles.cursorAura} aria-hidden='true'>
-        <span ref={labelRef} />
-      </div>
-      <div ref={dotRef} className={styles.cursorDot} aria-hidden='true' />
+      <div
+        ref={auraRef}
+        className={styles.cursorAura}
+        data-landing-cursor-ring
+        aria-hidden='true'
+      />
+      <div ref={dotRef} className={styles.cursorDot} data-landing-cursor-dot aria-hidden='true' />
     </>
   );
 }

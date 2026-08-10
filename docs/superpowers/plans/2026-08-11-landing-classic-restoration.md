@@ -49,11 +49,9 @@
 - `src/pages/landing/config/review-method.ts`
 - `src/pages/landing/ui/quality-standard-section.tsx`
 - `src/pages/landing/ui/review-method-section.tsx`
-- `src/pages/landing/ui/editorial-text-reveal.tsx`
 - `src/pages/landing/ui/use-landing-scene-motion.ts`
 - `src/pages/landing/ui/styles/quality-standard.module.css`
 - `src/pages/landing/ui/styles/review-method.module.css`
-- `src/pages/landing/ui/styles/editorial-text-reveal.module.css`
 
 ---
 
@@ -74,7 +72,7 @@
 - Modify: `src/pages/landing/ui/{services,process,landing-page}.tsx`
 - Modify: `src/pages/landing/ui/styles/{services,process}.module.css`
 - Modify: `src/pages/landing/ui/icons.tsx`
-- Delete: 시네마틱 본문 전용 파일 8개
+- Delete: 시네마틱 본문 전용 파일 6개
 
 **Interfaces:**
 
@@ -339,13 +337,12 @@ git add e2e/landing-classic-restoration.chrome.spec.ts \
   src/pages/landing/ui/team-section.tsx src/pages/landing/ui/process-section.tsx \
   src/pages/landing/ui/operations-policy-section.tsx src/pages/landing/ui/landing-page.tsx \
   src/pages/landing/ui/quality-standard-section.tsx src/pages/landing/ui/review-method-section.tsx \
-  src/pages/landing/ui/editorial-text-reveal.tsx src/pages/landing/ui/use-landing-scene-motion.ts \
+  src/pages/landing/ui/use-landing-scene-motion.ts \
   src/pages/landing/ui/styles/services.module.css src/pages/landing/ui/styles/stack.module.css \
   src/pages/landing/ui/styles/team.module.css src/pages/landing/ui/styles/process.module.css \
   src/pages/landing/ui/styles/operations-policy.module.css \
   src/pages/landing/ui/styles/quality-standard.module.css \
-  src/pages/landing/ui/styles/review-method.module.css \
-  src/pages/landing/ui/styles/editorial-text-reveal.module.css
+  src/pages/landing/ui/styles/review-method.module.css
 git commit -m "feat(landing): 사실 기반 클래식 페이지 구조 복원"
 ```
 

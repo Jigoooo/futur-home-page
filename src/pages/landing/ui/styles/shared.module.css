@@ -127,22 +127,27 @@
 }
 
 .reveal {
-  opacity: 0;
+  opacity: 1;
+  transform: none;
   transition:
     opacity 0.72s var(--ease),
     transform 0.72s var(--ease);
   will-change: opacity, transform;
 }
 
-.revealUp {
+:global(body[data-landing-ready='true']) .reveal:not([data-landing-visible='true']) {
+  opacity: 0;
+}
+
+:global(body[data-landing-ready='true']) .revealUp:not([data-landing-visible='true']) {
   transform: translate3d(0, 38px, 0);
 }
 
-.revealLeft {
+:global(body[data-landing-ready='true']) .revealLeft:not([data-landing-visible='true']) {
   transform: translateX(-28px);
 }
 
-.revealRight {
+:global(body[data-landing-ready='true']) .revealRight:not([data-landing-visible='true']) {
   transform: translateX(28px);
 }
 
@@ -223,5 +228,6 @@
   .reveal {
     opacity: 1 !important;
     transform: none !important;
+    transition: none !important;
   }
 }

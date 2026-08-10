@@ -10,6 +10,15 @@ export function useInViewReveal() {
 
     document.body.dataset.landingReady = 'true';
 
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      targets.forEach((target) => {
+        target.dataset.landingVisible = 'true';
+      });
+      return () => {
+        delete document.body.dataset.landingReady;
+      };
+    }
+
     if (!('IntersectionObserver' in window)) {
       targets.forEach((target) => {
         target.dataset.landingVisible = 'true';

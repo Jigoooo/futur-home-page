@@ -2,7 +2,30 @@ import { expect, test } from '@playwright/test';
 
 const HERO_LABEL = 'BUILT FOR WHAT’S NEXT.';
 
-test('serves the editorial landing content without a JavaScript visibility gate', async ({
+test('reveals classic sections once without hiding SSR content', async ({ page }) => {
+  await page.goto('/');
+
+  await expect(page.locator('[data-landing-reveal]').first()).toBeVisible();
+  await page.locator('#team').scrollIntoViewIfNeeded();
+  await expect(page.locator('#team [data-landing-reveal]').first()).toHaveAttribute(
+    'data-landing-visible',
+    'true',
+  );
+});
+
+test('keeps classic content visible without JavaScript', async ({ browser }) => {
+  const context = await browser.newContext({ javaScriptEnabled: false });
+  const page = await context.newPage();
+
+  await page.goto('/');
+  await expect(page.locator('#services [data-landing-reveal]').first()).toBeVisible();
+  await expect(page.locator('#team [data-landing-reveal]').first()).toBeVisible();
+  await expect(page.locator('#contact [data-landing-reveal]').first()).toBeVisible();
+
+  await context.close();
+});
+
+test('serves the classic landing content without a JavaScript visibility gate', async ({
   browser,
   page,
   request,
@@ -25,29 +48,14 @@ test('serves the editorial landing content without a JavaScript visibility gate'
   await noScriptPage.goto('/');
   await expect(noScriptPage.getByRole('heading', { level: 1, name: HERO_LABEL })).toBeVisible();
   await expect(noScriptPage.getByRole('link', { name: /프로젝트 문의하기/ })).toBeVisible();
-  await expect(noScriptPage.locator('#quality')).toBeVisible();
+  await expect(noScriptPage.locator('#services')).toBeVisible();
+  await expect(noScriptPage.locator('#team')).toBeVisible();
   await expect(noScriptPage.locator('#contact')).toBeVisible();
   await noScriptPage.close();
 });
 
-test('keeps decorative English kickers out and retains contact disclosures', async ({ page }) => {
+test('retains contact disclosures', async ({ page }) => {
   await page.goto('/');
-
-  for (const kicker of [
-    'Our Services',
-    'Stack',
-    'Project Records',
-    'Our Team',
-    'Process',
-    'Operations',
-    'Review',
-    'FAQ',
-    'Project Brief',
-  ]) {
-    await expect(page.locator('span').filter({ hasText: new RegExp(`^${kicker}$`) })).toHaveCount(
-      0,
-    );
-  }
 
   const form = page.getByRole('form', { name: '프로젝트 상담 양식' });
   await expect(
@@ -60,7 +68,7 @@ test('keeps decorative English kickers out and retains contact disclosures', asy
   await expect(form.getByRole('list', { name: '개인정보 국외 이전 고지' })).toBeVisible();
 });
 
-test('limits staggered entrance motion to the hero and keeps later sections visible', async ({
+test('limits staggered entrance motion to the hero and keeps classic section containers visible', async ({
   page,
 }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
@@ -85,7 +93,7 @@ test('limits staggered entrance motion to the hero and keeps later sections visi
   expect(heroMotion.every(({ filter }) => filter === 'none')).toBe(true);
 
   const sections = page.locator('[data-landing-section]:not([data-landing-hero])');
-  await expect(sections).toHaveCount(7);
+  await expect(sections).toHaveCount(8);
   const visibility = await sections.evaluateAll((elements) =>
     elements.map((element) => {
       const style = getComputedStyle(element);
@@ -99,6 +107,19 @@ test('limits staggered entrance motion to the hero and keeps later sections visi
 
 test.describe('reduced motion', () => {
   test.use({ reducedMotion: 'reduce' });
+
+  test('shows restored sections in their final state', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.goto('/');
+
+    expect(
+      await page.evaluate(() => window.matchMedia('(prefers-reduced-motion: reduce)').matches),
+    ).toBe(true);
+
+    await expect(
+      page.locator('[data-landing-reveal]:not([data-landing-visible="true"])'),
+    ).toHaveCount(0);
+  });
 
   test('uses opacity-only hero fallback and keeps all content available', async ({ page }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' });

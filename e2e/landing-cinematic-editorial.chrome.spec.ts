@@ -112,3 +112,37 @@ test('loads scene motion lazily and preserves the reduced-motion final state', a
 
   await reducedPage.close();
 });
+
+test('uses one rounded solid quality stage instead of ledger rows', async ({ page }) => {
+  await page.goto('/');
+
+  const quality = page.locator('#quality');
+  await expect(quality.locator('[data-quality-stage]')).toHaveCount(1);
+  await expect(quality.locator('[data-quality-orb]')).toHaveCount(2);
+  await expect(quality.locator('[data-quality-copy]')).toHaveCount(1);
+  await expect(quality.locator('article')).toHaveCount(0);
+  expect(
+    Number.parseFloat(
+      await quality
+        .locator('[data-quality-stage]')
+        .evaluate((node) => getComputedStyle(node).borderRadius),
+    ),
+  ).toBeGreaterThanOrEqual(32);
+});
+
+test('keeps the decorative quality stage visible without scene motion for reduced motion', async ({
+  browser,
+}) => {
+  const page = await browser.newPage({ reducedMotion: 'reduce' });
+
+  await page.goto('/');
+
+  await expect(page.locator('[data-landing-page]')).not.toHaveAttribute(
+    'data-landing-scene-motion',
+    'ready',
+  );
+  await expect(page.locator('[data-quality-copy]')).toBeVisible();
+  await expect(page.locator('[data-quality-stage]')).toBeVisible();
+
+  await page.close();
+});

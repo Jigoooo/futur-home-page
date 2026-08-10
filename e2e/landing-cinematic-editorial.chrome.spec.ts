@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { readFile } from 'node:fs/promises';
 
 test('renders the approved full-screen particle hero with restrained typography', async ({
   page,
@@ -177,4 +178,40 @@ test('keeps the completed service merge visible without scene motion for reduced
   await expect(page.locator('[data-service-row]')).toHaveCount(4);
 
   await page.close();
+});
+
+test('keeps the service scene within the mobile viewport', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/');
+
+  const services = page.locator('#services');
+  expect(await services.evaluate((section) => section.scrollWidth <= section.clientWidth)).toBe(
+    true,
+  );
+});
+
+test('renders the completed service scene before JavaScript enhancement', async ({ browser }) => {
+  const context = await browser.newContext({ javaScriptEnabled: false });
+  const page = await context.newPage();
+
+  await page.goto('/');
+
+  await expect(page.locator('[data-service-merge]')).toBeVisible();
+  await expect(page.locator('[data-service-core]')).toBeVisible();
+  await expect(page.locator('[data-service-row]')).toHaveCount(4);
+  await expect(page.locator('[data-service-row]').first()).toHaveCSS('opacity', '1');
+  await expect(page.locator('[data-service-row]').first()).toHaveCSS('clip-path', 'none');
+
+  await context.close();
+});
+
+test('uses a service-specific inline reveal instead of a generic row fade-up', async () => {
+  const motionSource = await readFile(
+    new URL('../src/pages/landing/ui/use-landing-scene-motion.ts', import.meta.url),
+    'utf8',
+  );
+
+  expect(motionSource).toContain('clipPath');
+  expect(motionSource).not.toMatch(/\.from\(rows, \{[^}]*\by:/s);
+  expect(motionSource).not.toMatch(/\.from\(rows, \{[^}]*\bopacity:/s);
 });

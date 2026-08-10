@@ -67,7 +67,16 @@ function createServiceTimeline(page: HTMLElement): SceneCleanup {
       ease: 'power3.out',
     })
     .from(core, { scale: 0.72, opacity: 0, duration: 0.52, ease: 'power3.out' }, '-=0.35')
-    .from(rows, { y: 24, opacity: 0, duration: 0.46, stagger: 0.07, ease: 'power3.out' }, '-=0.32');
+    .from(
+      rows,
+      {
+        clipPath: 'inset(0 100% 0 0)',
+        duration: 0.52,
+        stagger: 0.07,
+        ease: 'power3.out',
+      },
+      '-=0.32',
+    );
 
   return () => {
     timeline.scrollTrigger?.kill();

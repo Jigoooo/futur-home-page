@@ -63,6 +63,34 @@ transition layout-write 회귀를 추가로 잠갔을 때 기존 Flip의 `absolu
 `absolute`를 제거하고 `scale: true` Flip으로 전환한 뒤 inline width/height 기록 0건으로 GREEN이
 됐다.
 
+## Fix round 1/5 — fallback specificity
+
+### RED
+
+실제 `@supports not` CSSOM block의 내부 규칙을 별도 style sheet로 강제 적용해 브라우저가
+dark/light 두 tone의 cascade 결과를 계산하게 했다.
+
+```text
+semantic glass tint focused test: 1 failed
+dark: background 0.94, backdrop blur(18px) 잔류
+light: background 0.66, backdrop blur(18px) 잔류
+exit 1
+```
+
+기존 fallback은 `.glassShell`만 지정해 더 높은 specificity의 light tint를 덮지 못했고 실제 glass
+surface의 backdrop-filter도 해제하지 않았다.
+
+### GREEN
+
+fallback block에서 `.glassShell`과 `.nav[data-header-glass-tone='light'] .glassShell`을 함께
+선택하고 두 selector 모두 0.94 surface와 `backdrop-filter: none`을 적용했다.
+
+```text
+pnpm exec playwright test e2e/landing-adaptive-island.chrome.spec.ts --project=chrome --workers=1 --grep "precise responsive geometry|semantic glass tint"
+2 passed (9.0s)
+exit 0
+```
+
 ## 시각 검증
 
 `.review-screens/` 아래 ignored evidence로 desktop `1280x720`, mobile `390x844`의

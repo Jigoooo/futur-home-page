@@ -1,0 +1,198 @@
+import { expect, test } from '@playwright/test';
+
+const HERO_LABEL = 'FROM COMPLEX WORK TO SERVICES THAT WORK.';
+
+test('serves the hero copy and particle canvas immediately from SSR', async ({
+  browser,
+  page,
+  request,
+}) => {
+  const response = await request.get('/');
+  const html = await response.text();
+
+  expect(response.ok()).toBe(true);
+  expect(html).toContain(HERO_LABEL);
+  expect(html).not.toContain('futur-system-flow-poster.webp');
+  expect(html).not.toContain('futur-system-flow.webm');
+  expect(html).not.toContain('futur-system-flow.mp4');
+  expect(html).not.toContain('<video');
+  expect(html).toContain('data-hero-particles');
+
+  await page.goto('/');
+  await expect(page.getByRole('heading', { level: 1, name: HERO_LABEL })).toBeVisible();
+  await expect(page.locator('[data-hero-media]')).toHaveCount(0);
+  await expect(page.locator('canvas[data-hero-particles]')).toHaveCount(1);
+  await expect(page.locator('[data-hero-particle-layer]')).toHaveAttribute('aria-hidden', 'true');
+  await expect(page.getByRole('link', { name: /프로젝트 문의하기/ })).toBeVisible();
+  await expect(page.getByRole('link', { name: /사례 둘러보기/ })).toBeVisible();
+
+  const noScriptPage = await browser.newPage({ javaScriptEnabled: false });
+  await noScriptPage.goto('/');
+  await expect(noScriptPage.getByRole('heading', { level: 1, name: HERO_LABEL })).toBeVisible();
+  await expect(noScriptPage.locator('[data-hero-media]')).toHaveCount(0);
+  await expect(noScriptPage.locator('canvas[data-hero-particles]')).toHaveCount(1);
+  await expect(noScriptPage.locator('[data-hero-video]')).toHaveCount(0);
+  await noScriptPage.close();
+});
+
+test('does not mount or request hero video and poster assets', async ({ page }) => {
+  const mediaRequests: string[] = [];
+  page.on('request', (request) => {
+    if (/\/media\/hero\/futur-system-flow/.test(request.url())) mediaRequests.push(request.url());
+  });
+
+  await page.goto('/');
+  await page.waitForLoadState('networkidle');
+
+  await expect(page.locator('[data-hero-video], [data-hero-poster]')).toHaveCount(0);
+  expect(mediaRequests).toEqual([]);
+});
+
+test('renders a changing WebGL2 particle field and reacts to pointer movement', async ({
+  page,
+}) => {
+  await page.goto('/');
+
+  const canvas = page.locator('canvas[data-hero-particles]');
+  await expect(canvas).toHaveAttribute('data-particle-state', 'ready');
+
+  const runtime = await canvas.evaluate((element) => {
+    const context = (element as HTMLCanvasElement).getContext('webgl2');
+    return {
+      context: context ? 'webgl2' : 'none',
+      width: (element as HTMLCanvasElement).width,
+      height: (element as HTMLCanvasElement).height,
+    };
+  });
+  expect(runtime.context).toBe('webgl2');
+  expect(runtime.width).toBeGreaterThan(0);
+  expect(runtime.height).toBeGreaterThan(0);
+
+  const before = await canvas.screenshot();
+  await page.waitForTimeout(900);
+  const after = await canvas.screenshot();
+  expect(after.equals(before)).toBe(false);
+
+  const box = await canvas.boundingBox();
+  expect(box).not.toBeNull();
+  if (!box) return;
+
+  await page.mouse.move(box.x + box.width * 0.72, box.y + box.height * 0.42);
+  await expect(canvas).toHaveAttribute('data-pointer-active', 'true');
+
+  await page.evaluate(() => window.scrollTo({ top: window.innerHeight, behavior: 'instant' }));
+  await page.mouse.move(8, 8);
+  await expect(canvas).toHaveAttribute('data-pointer-active', 'false');
+});
+
+test('runs the dense parametric particle pipeline on desktop', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/');
+
+  const hero = page.locator('[data-landing-hero]');
+  const canvas = page.locator('canvas[data-hero-particles]');
+  await expect(canvas).toHaveAttribute('data-particle-state', 'ready');
+  await expect(hero).toHaveCSS('background-color', 'rgb(6, 21, 43)');
+  await expect(canvas).toHaveCSS('opacity', '1');
+  await expect(canvas).toHaveAttribute('data-particle-density', 'active');
+  await expect(canvas).toHaveAttribute('data-particle-displacement', 'trail-24');
+  await expect(canvas).toHaveAttribute('data-particle-emitter', 'active');
+
+  const particleCount = Number(await canvas.getAttribute('data-particle-count'));
+  expect(particleCount).toBeGreaterThanOrEqual(50_000);
+});
+
+test('morphs surfaces and accumulates a damped pointer trail', async ({ page }) => {
+  await page.goto('/');
+
+  const canvas = page.locator('canvas[data-hero-particles]');
+  await expect(canvas).toHaveAttribute('data-particle-state', 'ready');
+
+  const initialSurface = await canvas.getAttribute('data-particle-surface');
+  const box = await canvas.boundingBox();
+  expect(box).not.toBeNull();
+  if (!box) return;
+
+  for (let step = 0; step < 8; step += 1) {
+    await page.mouse.move(box.x + 480 + step * 18, box.y + 330 + Math.sin(step) * 32);
+  }
+
+  await expect
+    .poll(async () => Number(await canvas.getAttribute('data-pointer-samples')))
+    .toBeGreaterThan(2);
+  await page.waitForTimeout(6_500);
+  await expect(canvas).not.toHaveAttribute('data-particle-surface', initialSurface ?? '');
+});
+
+test('does not start the particle renderer for reduced motion or Save-Data', async ({
+  browser,
+}) => {
+  const reducedPage = await browser.newPage({ reducedMotion: 'reduce' });
+  await reducedPage.goto('/');
+  await expect(reducedPage.locator('canvas[data-hero-particles]')).toHaveAttribute(
+    'data-particle-state',
+    'static',
+  );
+  await reducedPage.close();
+
+  const saveDataPage = await browser.newPage();
+  await saveDataPage.addInitScript(() => {
+    Object.defineProperty(navigator, 'connection', {
+      configurable: true,
+      value: { saveData: true },
+    });
+  });
+  await saveDataPage.goto('/');
+  await expect(saveDataPage.locator('canvas[data-hero-particles]')).toHaveAttribute(
+    'data-particle-state',
+    'static',
+  );
+  await saveDataPage.close();
+});
+
+test('keeps the hero reveal within 650ms and uses four visual rows on mobile', async ({ page }) => {
+  await page.goto('/');
+
+  const words = page.locator('[data-landing-hero] [data-editorial-word]');
+  const timings = await words.evaluateAll((elements) =>
+    elements.map((element) => {
+      const style = getComputedStyle(element);
+      return {
+        delay: Number.parseFloat(style.animationDelay) * 1_000,
+        duration: Number.parseFloat(style.animationDuration) * 1_000,
+        filter: style.filter,
+      };
+    }),
+  );
+
+  expect(Math.max(...timings.map(({ delay, duration }) => delay + duration))).toBeLessThanOrEqual(
+    650,
+  );
+  expect(timings.every(({ filter }) => filter === 'none')).toBe(true);
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.waitForTimeout(700);
+  const rows = await words.evaluateAll((elements) =>
+    elements.map((element) => ({
+      text: element.textContent,
+      top: Math.round(element.getBoundingClientRect().top),
+      width: Math.round(element.getBoundingClientRect().width),
+    })),
+  );
+  expect(new Set(rows.map(({ top }) => top)).size, JSON.stringify(rows)).toBe(4);
+  await expect(page.locator('[data-landing-hero]')).not.toHaveCSS('overflow-x', 'visible');
+});
+
+test('transitions the header from the hero surface after the 48px sentinel', async ({ page }) => {
+  await page.goto('/');
+  await page.waitForFunction(() => document.body.dataset.landingReady === 'true');
+
+  const header = page.locator('[data-landing-nav]');
+  await expect(header).toHaveAttribute('data-header-surface', 'hero');
+
+  await page.evaluate(() => window.scrollTo({ top: 96, behavior: 'instant' }));
+  await expect(header).toHaveAttribute('data-header-surface', 'solid');
+
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await expect(header).toHaveAttribute('data-header-surface', 'hero');
+});

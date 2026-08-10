@@ -100,7 +100,9 @@ test('keeps the current hero and restores the factual classic order', async ({ p
   await page.goto('/');
 
   await expect(page.locator('#hero canvas[data-hero-particles]')).toHaveCount(1);
-  await expect(page.getByRole('heading', { level: 1 })).toContainText('BUILT FOR WHAT’S NEXT.');
+  await expect(
+    page.getByRole('heading', { level: 1, name: 'BUILT FOR WHAT’S NEXT.' }),
+  ).toBeVisible();
   expect(
     await page
       .locator('main > section[data-landing-section]')

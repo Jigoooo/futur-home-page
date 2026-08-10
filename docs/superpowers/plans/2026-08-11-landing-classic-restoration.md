@@ -78,7 +78,7 @@
 
 - Produces: `stackGroups: StackGroup[]`, `teamRoles: TeamRole[]`, `operationsPolicies: OperationsPolicy[]`.
 - Produces: `#services`, `#stack`, `#team`, `#process`, `#operations`, `#faq`, `#contact`.
-- Preserves: `#hero`, `data-hero-particle-canvas`, 현재 H1과 cursor mount.
+- Preserves: `#hero`, `data-hero-particles`, 현재 H1과 cursor mount.
 
 - [ ] **Step 1: 하이브리드 페이지 RED 테스트 작성**
 
@@ -99,7 +99,7 @@ const orderedSections = [
 test('keeps the current hero and restores the factual classic order', async ({ page }) => {
   await page.goto('/');
 
-  await expect(page.locator('#hero canvas[data-hero-particle-canvas]')).toHaveCount(1);
+  await expect(page.locator('#hero canvas[data-hero-particles]')).toHaveCount(1);
   await expect(page.getByRole('heading', { level: 1 })).toContainText('BUILT FOR WHAT’S NEXT.');
   expect(
     await page

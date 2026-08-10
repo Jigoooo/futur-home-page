@@ -22,6 +22,11 @@ function formatServices(input: ContactInquiryInput) {
     .join(', ');
 }
 
+function isReservedTestAddress(email: string) {
+  const domain = email.slice(email.lastIndexOf('@') + 1).toLowerCase();
+  return domain === 'example.com' || domain.endsWith('.invalid');
+}
+
 function buildMessage(input: ContactInquiryInput) {
   const fields = [
     ['접수 ID', input.submissionId],
@@ -55,6 +60,8 @@ export async function sendContactInquiryEmail(
       ? { ok: false, code: 'CONFIGURATION' }
       : { ok: true };
   }
+
+  if (isReservedTestAddress(input.email)) return { ok: false, code: 'DELIVERY' };
 
   const apiKey = process.env.RESEND_API_KEY;
   const from = process.env.CONTACT_FROM_EMAIL;

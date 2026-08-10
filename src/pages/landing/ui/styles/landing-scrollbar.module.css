@@ -12,7 +12,7 @@
   transition:
     background 0.18s ease,
     opacity 0.18s ease,
-    width 0.18s var(--spring);
+    width 0.18s var(--ease-out);
 }
 
 .track[data-visible='true'] {
@@ -39,7 +39,7 @@
   cursor: pointer;
   touch-action: none;
   transition:
-    width 0.18s var(--spring),
+    width 0.18s var(--ease-out),
     background 0.18s ease,
     box-shadow 0.18s ease;
 }

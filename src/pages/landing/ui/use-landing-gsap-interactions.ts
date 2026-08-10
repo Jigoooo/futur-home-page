@@ -9,7 +9,6 @@ const SPOTLIGHT_SELECTOR = '[data-landing-spotlight]';
 const SURFACE_SELECTOR = '[data-landing-surface]';
 const LABEL_SELECTOR = '[data-landing-label]';
 const ARROW_SELECTOR = '[data-landing-arrow]';
-const SERVICE_ICON_SELECTOR = '[data-landing-service-icon]';
 
 type PageRef = RefObject<HTMLElement | null>;
 
@@ -35,10 +34,6 @@ function getSurface(control: HTMLElement) {
 
   if (control.dataset.landingInteractive === 'check-tile') {
     return control.querySelector<HTMLElement>(SURFACE_SELECTOR) ?? control;
-  }
-
-  if (control.dataset.landingInteractive === 'card-link') {
-    return control.closest<HTMLElement>('[data-landing-card]') ?? control;
   }
 
   return control;
@@ -123,13 +118,12 @@ function animateFineEnter(control: HTMLElement) {
   const surface = getSurface(control);
   const type = control.dataset.landingInteractive;
   const isButton = type === 'button';
-  const isCardLink = type === 'card-link';
   const isRoundControl = type === 'round';
 
   gsap.killTweensOf(surface);
 
   gsap.to(surface, {
-    y: isCardLink ? -8 : isRoundControl ? -3 : -2,
+    y: isRoundControl ? -3 : -2,
     scale: isButton ? 1.012 : isRoundControl ? 1.035 : 1.008,
     duration: 0.28,
     ease: 'power3.out',
@@ -150,17 +144,6 @@ function animateFineEnter(control: HTMLElement) {
     });
   }
 
-  if (isCardLink) {
-    const icon = surface.querySelector<HTMLElement>(SERVICE_ICON_SELECTOR);
-    const arrow = getArrow(control);
-
-    gsap.to(control, { x: 2, duration: 0.22, ease: 'power3.out', overwrite: true });
-    if (icon) {
-      gsap.to(icon, { y: -5, rotate: -3, scale: 1.04, duration: 0.3, ease: 'back.out(2)' });
-    }
-    if (arrow) gsap.to(arrow, { x: 7, duration: 0.28, ease: 'back.out(2)', overwrite: true });
-  }
-
   animateButtonDetails(control, true);
 }
 
@@ -168,7 +151,6 @@ function animateFineLeave(control: HTMLElement) {
   const surface = getSurface(control);
   const type = control.dataset.landingInteractive;
   const isButton = type === 'button';
-  const isCardLink = type === 'card-link';
 
   gsap.killTweensOf(surface);
 
@@ -192,51 +174,17 @@ function animateFineLeave(control: HTMLElement) {
     });
   }
 
-  if (isCardLink) {
-    const icon = surface.querySelector<HTMLElement>(SERVICE_ICON_SELECTOR);
-    const arrow = getArrow(control);
-
-    gsap.to(control, {
-      x: 0,
-      duration: 0.22,
-      ease: 'power3.out',
-      overwrite: true,
-      clearProps: 'transform',
-    });
-    if (icon) {
-      gsap.to(icon, {
-        y: 0,
-        rotate: 0,
-        scale: 1,
-        duration: 0.28,
-        ease: 'power3.out',
-        overwrite: true,
-        clearProps: 'transform',
-      });
-    }
-    if (arrow) {
-      gsap.to(arrow, {
-        x: 0,
-        duration: 0.22,
-        ease: 'power3.out',
-        overwrite: true,
-        clearProps: 'transform',
-      });
-    }
-  }
-
   animateButtonDetails(control, false);
 }
 
 function animatePressStart(control: HTMLElement) {
   const surface = getSurface(control);
-  const isCardLink = control.dataset.landingInteractive === 'card-link';
   const arrow = getArrow(control);
 
   gsap.killTweensOf(surface);
   gsap.to(surface, {
     y: 1,
-    scale: isCardLink ? 0.992 : 0.972,
+    scale: 0.972,
     duration: 0.08,
     ease: 'power3.out',
     overwrite: true,
@@ -250,12 +198,13 @@ function animatePressStart(control: HTMLElement) {
 function animatePressEnd(control: HTMLElement) {
   const surface = getSurface(control);
   const arrow = getArrow(control);
+  const isButton = control.dataset.landingInteractive === 'button';
 
   gsap.to(surface, {
     y: 0,
     scale: 1,
     duration: 0.22,
-    ease: 'back.out(2)',
+    ease: isButton ? 'back.out(2)' : 'power3.out',
     overwrite: true,
     clearProps: 'transform',
   });
@@ -380,11 +329,7 @@ export function useLandingGsapInteractions(pageRef: PageRef) {
             cleanups.forEach((cleanup) => cleanup());
             gsap.killTweensOf(Array.from(page.querySelectorAll(INTERACTIVE_SELECTOR)));
             gsap.killTweensOf(
-              Array.from(
-                page.querySelectorAll(
-                  `${LABEL_SELECTOR},${ARROW_SELECTOR},${SERVICE_ICON_SELECTOR}`,
-                ),
-              ),
+              Array.from(page.querySelectorAll(`${LABEL_SELECTOR},${ARROW_SELECTOR}`)),
             );
           };
         },

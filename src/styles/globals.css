@@ -15,7 +15,7 @@
 }
 
 html {
-  --landing-canvas-background: #ffffff;
+  --landing-canvas-background: var(--paper);
   background: var(--landing-canvas-background);
   scroll-behavior: smooth;
   scrollbar-width: none;
@@ -44,7 +44,7 @@ body {
 }
 
 body::selection {
-  background: rgba(47, 107, 255, 0.16);
+  background: rgba(92, 141, 197, 0.26);
 }
 
 a {

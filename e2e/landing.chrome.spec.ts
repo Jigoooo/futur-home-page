@@ -15,7 +15,7 @@ test('loads the landing page through Chrome', async ({ page }) => {
 
   await expect(page.getByRole('link', { name: 'FUTUR home' })).toBeVisible();
   await expect(
-    page.getByRole('heading', { name: 'FROM COMPLEX WORK TO SERVICES THAT WORK.' }),
+    page.getByRole('heading', { name: 'VISIBLE EXPERIENCE. SOUND STRUCTURE.' }),
   ).toBeVisible();
   await expect(page.locator('canvas[data-hero-particles]')).toHaveCount(1);
 

@@ -9,17 +9,6 @@
   }
 }
 
-@keyframes editorialLineIn {
-  from {
-    opacity: 0;
-    transform: translate3d(0, 12px, 0);
-  }
-  to {
-    opacity: 1;
-    transform: translate3d(0, 0, 0);
-  }
-}
-
 @keyframes editorialOpacityIn {
   from {
     opacity: 0;
@@ -54,12 +43,7 @@
 }
 
 [data-editorial-trigger='in-view'] .unit {
-  opacity: 0;
-}
-
-[data-editorial-trigger='in-view'][data-landing-visible='true'] .unit {
-  animation: editorialLineIn 480ms var(--ease-out) both;
-  animation-delay: calc(var(--editorial-index) * 60ms);
+  opacity: 1;
 }
 
 @media (scripting: none) {

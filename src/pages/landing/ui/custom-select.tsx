@@ -132,7 +132,7 @@ export function CustomSelect({ label, name, value, options, onChange }: CustomSe
 
   return (
     <div className={styles.formControl}>
-      <span id={labelId} className={styles.formLabel}>
+      <span id={labelId} className={styles.formLabel} data-contact-select-label>
         {label}
       </span>
       <div

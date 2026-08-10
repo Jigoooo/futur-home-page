@@ -235,3 +235,70 @@ test('uses a curved review mask and a semantic process path', async ({ page }) =
       ),
   ).toBe(true);
 });
+
+test('keeps the Review and Process scenes restrained, semantic, and accessible', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await page.goto('/');
+
+  const headings = page.locator('#review h2, #process h2');
+  for (const heading of await headings.all()) {
+    const { fontSize, letterSpacing } = await heading.evaluate((node) => {
+      const style = getComputedStyle(node);
+      return { fontSize: Number.parseFloat(style.fontSize), letterSpacing: style.letterSpacing };
+    });
+    expect(fontSize).toBeLessThanOrEqual(55);
+    expect(Number.parseFloat(letterSpacing)).toBeGreaterThanOrEqual(fontSize * -0.04);
+  }
+
+  await expect(page.locator('[data-review-stage]')).toHaveAttribute('aria-hidden', 'true');
+  await expect(page.locator('[data-review-mask]')).toHaveAttribute('aria-hidden', 'true');
+  await expect(page.locator('svg:has([data-process-path])')).toHaveAttribute('aria-hidden', 'true');
+});
+
+test('keeps Review and Process final content visible without scene motion or JavaScript', async ({
+  browser,
+}) => {
+  const reducedPage = await browser.newPage({ reducedMotion: 'reduce' });
+  await reducedPage.goto('/');
+
+  await expect(reducedPage.locator('[data-landing-page]')).not.toHaveAttribute(
+    'data-landing-scene-motion',
+    'ready',
+  );
+  await expect(reducedPage.locator('[data-review-group]')).toHaveCount(4);
+  await expect(reducedPage.locator('[data-review-group]').first()).toBeVisible();
+  await expect(reducedPage.locator('[data-process-step]')).toHaveCount(5);
+  await expect(reducedPage.locator('[data-process-step]').first()).toBeVisible();
+  await expect(reducedPage.locator('[data-process-path]')).toBeVisible();
+  await reducedPage.close();
+
+  const staticContext = await browser.newContext({ javaScriptEnabled: false });
+  const staticPage = await staticContext.newPage();
+  await staticPage.goto('/');
+
+  await expect(staticPage.locator('[data-review-stage]')).toBeVisible();
+  await expect(staticPage.locator('[data-review-mask]')).toBeVisible();
+  await expect(staticPage.locator('[data-review-group]')).toHaveCount(4);
+  await expect(staticPage.locator('[data-process-path]')).toBeVisible();
+  await expect(staticPage.locator('[data-process-step]')).toHaveCount(5);
+  await staticContext.close();
+});
+
+test('keeps Review and Process scenes within the mobile viewport', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/');
+
+  expect(
+    await page.locator('#review, #process').evaluateAll((sections) =>
+      sections.map((section) => ({
+        id: section.id,
+        fits: section.scrollWidth <= section.clientWidth,
+      })),
+    ),
+  ).toEqual([
+    { id: 'review', fits: true },
+    { id: 'process', fits: true },
+  ]);
+});

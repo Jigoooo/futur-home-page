@@ -25,26 +25,26 @@ export function ReviewMethodSection() {
       </div>
 
       <div className={cx(sharedStyles.container, styles.sceneWrap)}>
-        <div className={styles.stage} data-review-stage>
+        <div className={styles.stage} data-review-stage aria-hidden='true'>
           <div className={styles.mask} data-review-mask aria-hidden='true' />
-          <div className={styles.groups}>
-            {reviewMethodRecords.map((record, index) => (
-              <article key={record.title} className={styles.group} data-review-group>
-                <span className={styles.marker} aria-hidden='true'>
-                  {String(index + 1).padStart(2, '0')}
-                </span>
-                <div className={styles.groupCopy}>
-                  <h3>{record.title}</h3>
-                  <p>{record.description}</p>
-                </div>
-                <ul aria-label={`${record.title} 검토 기준`}>
-                  {record.fields.map((field) => (
-                    <li key={field}>{field}</li>
-                  ))}
-                </ul>
-              </article>
-            ))}
-          </div>
+        </div>
+        <div className={styles.groups}>
+          {reviewMethodRecords.map((record, index) => (
+            <article key={record.title} className={styles.group} data-review-group>
+              <span className={styles.marker} aria-hidden='true'>
+                {String(index + 1).padStart(2, '0')}
+              </span>
+              <div className={styles.groupCopy}>
+                <h3>{record.title}</h3>
+                <p>{record.description}</p>
+              </div>
+              <ul aria-label={`${record.title} 검토 기준`}>
+                {record.fields.map((field) => (
+                  <li key={field}>{field}</li>
+                ))}
+              </ul>
+            </article>
+          ))}
         </div>
       </div>
     </section>

@@ -524,6 +524,7 @@ git commit -m "feat(landing): 클래식 본문과 헤더 스타일 복원"
 **Interfaces:**
 
 - Preserves: FAQ `aria-expanded`/`aria-controls`, Contact server input names, native consent controls, submit state, legal modal triggers.
+- Preserves: `#faq`, `#contact`, `data-landing-section`, semantic cursor contrast marker와 승인된 전체 섹션 순서.
 - Produces: FAQ와 Contact의 `data-classic-surface`; factual Footer columns.
 - Restores: 문의 단계·서비스·일정·예산·담당자·내용·동의 필드와 `12fa1c8`의 클래식 좌우 레이아웃.
 
@@ -555,13 +556,13 @@ test('restores the classic contact composition and native controls', async ({ pa
 
 - [ ] **Step 2: RED 확인**
 
-Run: `pnpm exec playwright test e2e/landing-classic-restoration.chrome.spec.ts --grep "lower surfaces" --workers=1`
+Run: `pnpm exec playwright test e2e/landing-classic-restoration.chrome.spec.ts --grep "classic contact composition" --workers=1`
 
 Expected: classic surface 또는 과거 문의 구성 계약이 없어 FAIL.
 
 - [ ] **Step 3: FAQ 시각 레이어만 복원**
 
-`faq-section.tsx`와 `styles/faq.module.css`는 `git show 12fa1c8:<path>`의 파일 본문 자체에서 시작한다. 현재 FAQ config 카피와 disclosure 접근성 계약을 다시 연결하고 `data-classic-surface`만 추가한다.
+`faq-section.tsx`와 `styles/faq.module.css`는 `git show 12fa1c8:<path>`의 파일 본문 자체에서 시작한다. 현재 FAQ config 카피와 disclosure 접근성 계약을 다시 연결하고 `id`, `data-landing-section`, semantic cursor contrast marker, `data-classic-surface`만 추가한다.
 
 - [ ] **Step 4: 과거 문의 소스를 완전히 복원하고 현재 서버 경계 연결**
 
@@ -586,7 +587,7 @@ const protectedContactNames = [
 
 `contact-section.tsx`, `contact-brief-fields.tsx`, `contact-identity-fields.tsx`, `custom-select.tsx`, `config/contact.ts`, `styles/contact.module.css`, `styles/form-controls.module.css`는 모두 `git show 12fa1c8:<path>`의 파일 본문과 class 구조에서 시작한다. 현재 어두운 시네마틱 문의 wrapper나 현재 필드 배열을 남겨두고 스타일만 바꾸지 않는다.
 
-과거의 단계·필요 서비스·일정·예산·담당자 정보·문의 내용·동의 UI와 좌우 레이아웃을 그대로 복원한 뒤, 현재 `ContactInquiryInput`, pending/success/failure, fallback mail, visible label surface와 native checkbox 연결을 최소 수정으로 다시 이식한다. `평균 회신 24시간`, `빠른 범위 검토`는 삭제하고 확인 가능한 이메일 등만 남긴다. 서버 파일은 수정하지 않는다.
+과거의 단계·필요 서비스·일정·예산·담당자 정보·문의 내용·동의 UI와 좌우 레이아웃을 그대로 복원한 뒤, 현재 `ContactInquiryInput`, pending/success/failure, fallback mail, visible label surface와 native checkbox 연결을 최소 수정으로 다시 이식한다. `id`, `data-landing-section`, semantic cursor contrast marker, `data-classic-surface`도 유지한다. `평균 회신 24시간`, `빠른 범위 검토`는 삭제하고 확인 가능한 이메일 등만 남긴다. 서버 파일은 수정하지 않는다.
 
 - [ ] **Step 5: Footer 정보 구조 복원**
 

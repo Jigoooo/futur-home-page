@@ -1,33 +1,93 @@
 .nav {
+  --landing-compact-header-offset: 92px;
   position: fixed;
   top: 18px;
   left: 50%;
   z-index: 60;
-  width: min(820px, calc(100% - 48px));
+  width: min(1680px, calc(100% - 48px));
   min-width: 0;
-  height: 68px;
+  height: 76px;
   margin: 0;
-  padding: 0 18px 0 22px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  border: 1px solid rgba(220, 230, 244, 0.9);
-  border-radius: 28px;
-  background: rgba(255, 255, 255, 0.94);
-  -webkit-backdrop-filter: blur(24px) saturate(180%);
-  backdrop-filter: blur(24px) saturate(180%);
-  box-shadow: 0 16px 46px rgba(28, 48, 92, 0.08);
+  padding: 0;
   transform: translateX(-50%);
 }
 
 .nav[data-header-hydrated='true'][data-header-layout='compact'] {
   width: 220px;
   height: 58px;
-  padding: 0;
+}
+
+.nav[data-header-layout='menu-expanded'] {
+  width: min(820px, calc(100% - 48px));
+  height: 68px;
+}
+
+.nav[data-header-motion='true'] {
+  will-change: transform;
+}
+
+.nav[data-header-motion='true'] .motionContent {
+  will-change: transform, opacity;
+}
+
+.glassShell {
+  --mx: 50%;
+  --my: 50%;
+  position: relative;
+  isolation: isolate;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  padding: 0 18px 0 22px;
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  border-radius: 28px;
+  background: rgba(248, 250, 255, 0.46);
+  -webkit-backdrop-filter: blur(18px) saturate(145%) contrast(1.04);
+  backdrop-filter: blur(18px) saturate(145%) contrast(1.04);
+  box-shadow:
+    0 18px 48px rgba(9, 22, 52, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.82),
+    inset 0 -1px 0 rgba(115, 135, 174, 0.16);
+}
+
+.nav[data-header-glass-tone='light'] .glassShell {
+  background: rgba(248, 250, 255, 0.66);
+}
+
+.glassShell::before,
+.glassShell::after {
+  position: absolute;
+  z-index: 0;
+  pointer-events: none;
+  content: '';
+}
+
+.glassShell::before {
+  inset: 0;
+  border-radius: inherit;
+  background:
+    linear-gradient(118deg, rgba(255, 255, 255, 0.42), transparent 31%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.2), transparent 46%);
+  opacity: 0.72;
+}
+
+.glassShell::after {
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 58%;
+  border-radius: inherit;
+  background: linear-gradient(180deg, transparent, rgba(255, 255, 255, 0.08));
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  -webkit-mask-image: linear-gradient(to bottom, transparent, rgba(0, 0, 0, 0.9));
+  mask-image: linear-gradient(to bottom, transparent, rgba(0, 0, 0, 0.9));
+  opacity: 0.62;
 }
 
 .motionContent {
   position: relative;
+  z-index: 1;
   width: 100%;
   height: 100%;
   display: flex;
@@ -55,13 +115,29 @@
   height: 100%;
   align-items: center;
   justify-content: space-between;
-  padding: 0 20px;
+  padding: 0 10px 0 20px;
   border: 0;
   border-radius: inherit;
   background: transparent;
   color: var(--navy);
   font-size: 14px;
   font-weight: 900;
+}
+
+.compactGlyph {
+  width: 38px;
+  height: 38px;
+  display: inline-grid;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--navy);
+  color: #ffffff;
+  box-shadow: 0 8px 20px rgba(20, 44, 94, 0.22);
+}
+
+.nav[data-header-hydrated='true'][data-header-layout='compact'] .glassShell {
+  padding: 0;
 }
 
 .nav[data-header-hydrated='true'][data-header-layout='compact'] .compactToggle,
@@ -143,8 +219,9 @@
   justify-content: center;
   border: 0;
   border-radius: 999px;
-  background: rgba(20, 44, 94, 0.07);
-  color: var(--navy);
+  background: var(--navy);
+  color: #ffffff;
+  box-shadow: 0 8px 20px rgba(20, 44, 94, 0.22);
 }
 
 .nav[data-header-layout='menu-expanded'] .closeButton {
@@ -155,24 +232,42 @@
 .navMenu a:focus-visible,
 .closeButton:focus-visible,
 .logo:focus-visible {
-  outline: 3px solid rgba(47, 107, 255, 0.3);
+  outline: 3px solid rgba(47, 107, 255, 0.38);
   outline-offset: 3px;
+}
+
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .glassShell::before {
+    background:
+      radial-gradient(
+        280px circle at var(--mx) var(--my),
+        rgba(255, 255, 255, 0.42),
+        transparent 68%
+      ),
+      linear-gradient(118deg, rgba(255, 255, 255, 0.38), transparent 31%),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.18), transparent 46%);
+  }
 }
 
 @media (max-width: 900px) {
   .nav {
+    --landing-compact-header-offset: 82px;
     top: 10px;
     width: calc(100% - 20px);
     max-width: 720px;
   }
 
   .nav[data-header-hydrated='true'][data-header-layout='compact'] {
-    width: 220px;
+    width: min(220px, calc(100% - 20px));
+    height: 56px;
   }
 
   .nav[data-header-layout='menu-expanded'] {
     width: calc(100% - 20px);
     height: 158px;
+  }
+
+  .nav[data-header-layout='menu-expanded'] .glassShell {
     padding: 18px 16px;
   }
 
@@ -188,13 +283,18 @@
   .menuLinks {
     width: 100%;
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(6, minmax(0, 1fr));
     gap: 10px 6px;
   }
 
   .navMenu a {
     min-width: 0;
+    grid-column: span 2;
     padding-inline: 4px;
+  }
+
+  .navMenu a:nth-child(4) {
+    grid-column: 2 / span 2;
   }
 
   .closeButton {
@@ -207,8 +307,10 @@
 
   .nav[data-header-hydrated='false'] {
     height: 158px;
+  }
+
+  .nav[data-header-hydrated='false'] .glassShell {
     padding: 48px 16px 12px;
-    align-items: stretch;
   }
 
   .nav[data-header-hydrated='false'] .motionContent,
@@ -224,9 +326,31 @@
 
   .nav[data-header-hydrated='false'] .logo {
     position: absolute;
-    top: 16px;
+    top: -32px;
     left: 2px;
     font-size: 20px;
+  }
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .glassShell {
+    background: rgba(248, 250, 255, 0.94);
+  }
+
+  .glassShell::after {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+@media (prefers-contrast: more) {
+  .glassShell,
+  .nav[data-header-glass-tone='light'] .glassShell {
+    border-color: rgba(20, 44, 94, 0.72);
+    background: rgba(248, 250, 255, 0.94);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    box-shadow: 0 10px 30px rgba(9, 22, 52, 0.2);
   }
 }
 

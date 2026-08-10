@@ -140,8 +140,235 @@ async function readHeaderGeometry(page: Page) {
   });
 }
 
+async function readGlassStyle(page: Page) {
+  return header(page)
+    .locator('[data-header-glass]')
+    .evaluate((element) => {
+      const styles = getComputedStyle(element);
+
+      return {
+        backdropFilter: styles.backdropFilter,
+        backgroundColor: styles.backgroundColor,
+        borderRadius: styles.borderRadius,
+        boxShadow: styles.boxShadow,
+      };
+    });
+}
+
 test.beforeEach(async ({ page }) => {
   await page.setViewportSize(desktopViewport);
+});
+
+test('uses precise responsive geometry with a separate single crystal-glass surface', async ({
+  page,
+}) => {
+  await page.goto('/');
+  await expect(header(page)).toHaveAttribute('data-header-layout', 'hero-expanded');
+
+  const glass = header(page).locator('[data-header-glass]');
+  await expect(glass).toHaveCount(1);
+  await expect(header(page)).toHaveCSS('backdrop-filter', 'none');
+  expect(await header(page).evaluate((element) => element.getBoundingClientRect().top)).toBe(18);
+  expect(await readHeaderGeometry(page)).toMatchObject({ height: 76, width: 1232 });
+  expect(await readGlassStyle(page)).toMatchObject({
+    backdropFilter: 'blur(18px) saturate(1.45) contrast(1.04)',
+    backgroundColor: 'rgba(248, 250, 255, 0.46)',
+    borderRadius: '28px',
+  });
+
+  await enterCompactLayout(page);
+  expect(await readHeaderGeometry(page)).toMatchObject({ height: 58, width: 220 });
+  expect(await readGlassStyle(page)).toMatchObject({
+    backgroundColor: 'rgba(248, 250, 255, 0.66)',
+  });
+
+  await openCompactMenu(page, '서비스');
+  await page.waitForTimeout(800);
+  expect(await readHeaderGeometry(page)).toMatchObject({ height: 68, width: 820 });
+
+  await page.setViewportSize(mobileViewport);
+  await page.goto('/?task4-mobile-geometry=1');
+  await expect(header(page)).toHaveAttribute('data-header-layout', 'compact');
+  expect(await header(page).evaluate((element) => element.getBoundingClientRect().top)).toBe(10);
+  expect(await readHeaderGeometry(page)).toMatchObject({ height: 56, width: 220 });
+  await openCompactMenu(page, 'FUTUR.');
+  await page.waitForTimeout(800);
+  expect(await readHeaderGeometry(page)).toMatchObject({ height: 158, width: 370 });
+});
+
+test('applies semantic glass tint, spotlight, cursor contrast, and resilient fallbacks', async ({
+  browser,
+  page,
+}) => {
+  await page.goto('/');
+
+  const glass = header(page).locator('[data-header-glass]');
+  const toggle = compactButton(page);
+  const close = header(page).locator('[data-header-close]');
+  await expect(glass).toHaveAttribute('data-landing-spotlight', 'header');
+  await expect(glass).toHaveAttribute('data-cursor-contrast', 'dark');
+  await expect(toggle).toHaveAttribute('data-cursor-contrast', 'light');
+  await expect(close).toHaveAttribute('data-cursor-contrast', 'light');
+
+  const firstPoint = await glass.boundingBox();
+  expect(firstPoint).not.toBeNull();
+  await page.mouse.move((firstPoint?.x ?? 0) + 28, (firstPoint?.y ?? 0) + 24);
+  await expect(page.locator('html')).toHaveAttribute('data-landing-cursor-enabled', 'true');
+  await page.mouse.move((firstPoint?.x ?? 0) + 28, (firstPoint?.y ?? 0) + 24);
+  await expect
+    .poll(() => glass.evaluate((element) => getComputedStyle(element).getPropertyValue('--mx')))
+    .toContain('28px');
+  const firstMx = await glass.evaluate((element) => element.style.getPropertyValue('--mx'));
+  await page.mouse.move((firstPoint?.x ?? 0) + 180, (firstPoint?.y ?? 0) + 38);
+  await expect
+    .poll(() => glass.evaluate((element) => element.style.getPropertyValue('--mx')))
+    .not.toBe(firstMx);
+
+  for (const sectionId of ['services', 'operations', 'footer'] as const) {
+    await scrollSectionIntoView(page, sectionId);
+    await expect(header(page)).toHaveAttribute(
+      'data-header-glass-tone',
+      sectionId === 'operations' ? 'dark' : 'light',
+    );
+    await expect(glass).toHaveCSS(
+      'background-color',
+      sectionId === 'operations' ? 'rgba(248, 250, 255, 0.46)' : 'rgba(248, 250, 255, 0.66)',
+    );
+  }
+
+  await page.emulateMedia({ contrast: 'more' });
+  await expect(glass).toHaveCSS('background-color', 'rgba(248, 250, 255, 0.94)');
+
+  expect(
+    await page.evaluate(() =>
+      Array.from(document.styleSheets).some((sheet) =>
+        Array.from(sheet.cssRules).some(
+          (rule) =>
+            rule instanceof CSSSupportsRule &&
+            rule.conditionText.includes('backdrop-filter') &&
+            rule.conditionText.includes('not'),
+        ),
+      ),
+    ),
+  ).toBe(true);
+
+  const coarsePage = await browser.newPage({ hasTouch: true, viewport: mobileViewport });
+  await coarsePage.goto('/');
+  const coarseGlass = coarsePage.locator('[data-header-glass]');
+  const coarseMx = await coarseGlass.evaluate((element) => element.style.getPropertyValue('--mx'));
+  await coarsePage.mouse.move(120, 32);
+  await coarsePage.waitForTimeout(100);
+  await expect(coarseGlass).toHaveCSS('--mx', '50%');
+  expect(await coarseGlass.evaluate((element) => element.style.getPropertyValue('--mx'))).toBe(
+    coarseMx,
+  );
+  await coarsePage.close();
+
+  const reducedPage = await browser.newPage({ reducedMotion: 'reduce', viewport: desktopViewport });
+  await reducedPage.goto('/');
+  const reducedGlass = reducedPage.locator('[data-header-glass]');
+  await reducedPage.mouse.move(140, 32);
+  await reducedPage.waitForTimeout(100);
+  await expect(reducedGlass).toHaveCSS('--mx', '50%');
+  expect(await reducedGlass.evaluate((element) => element.style.getPropertyValue('--mx'))).toBe('');
+  await reducedPage.close();
+});
+
+test('uses the compact CSS offset for hash targets and avoids scroll-frame layout writes', async ({
+  browser,
+}) => {
+  for (const viewport of [desktopViewport, mobileViewport]) {
+    const page = await browser.newPage({ reducedMotion: 'reduce', viewport });
+    await page.goto('/');
+    await scrollSectionIntoView(page, 'services');
+    await openCompactMenu(page, '서비스');
+
+    const expectedOffset = viewport.width <= 900 ? 82 : 92;
+    await expect(header(page)).toHaveCSS('--landing-compact-header-offset', `${expectedOffset}px`);
+
+    const writes = await page.evaluate(() => {
+      const recorded: string[] = [];
+      const original = CSSStyleDeclaration.prototype.setProperty;
+      CSSStyleDeclaration.prototype.setProperty = function setProperty(name, value, priority) {
+        if (name === 'width' || name === 'height') recorded.push(`${name}:${value}`);
+        return original.call(this, name, value, priority);
+      };
+      (window as typeof window & { __headerLayoutWrites?: string[] }).__headerLayoutWrites =
+        recorded;
+      return recorded;
+    });
+    expect(writes).toEqual([]);
+
+    await page
+      .getByRole('navigation', { name: '주요 메뉴' })
+      .getByRole('link', { name: '기술', exact: true })
+      .click();
+    await expect
+      .poll(() => page.locator('#stack').evaluate((element) => element.getBoundingClientRect().top))
+      .toBeCloseTo(expectedOffset, 0);
+
+    await page.evaluate(() => {
+      for (let index = 0; index < 12; index += 1) {
+        window.scrollBy({ top: index % 2 === 0 ? 3 : -3, behavior: 'instant' });
+      }
+    });
+    expect(
+      await page.evaluate(
+        () => (window as typeof window & { __headerLayoutWrites?: string[] }).__headerLayoutWrites,
+      ),
+    ).toEqual([]);
+    await page.close();
+  }
+});
+
+test('keeps will-change scoped to active header transitions', async ({ page }) => {
+  await page.goto('/');
+  await enterCompactLayout(page);
+  await expect(header(page)).toHaveCSS('will-change', 'auto');
+
+  await header(page).evaluate((element) => {
+    const layoutWrites: string[] = [];
+    const observer = new MutationObserver((mutations) => {
+      for (const mutation of mutations) {
+        if (!(mutation.target instanceof HTMLElement)) continue;
+        if (mutation.target.style.width) layoutWrites.push(`width:${mutation.target.style.width}`);
+        if (mutation.target.style.height) {
+          layoutWrites.push(`height:${mutation.target.style.height}`);
+        }
+      }
+    });
+    observer.observe(element, { attributes: true, attributeFilter: ['style'], subtree: true });
+    (
+      window as typeof window & {
+        __headerMotionLayoutObserver?: MutationObserver;
+        __headerMotionLayoutWrites?: string[];
+      }
+    ).__headerMotionLayoutObserver = observer;
+    (
+      window as typeof window & {
+        __headerMotionLayoutObserver?: MutationObserver;
+        __headerMotionLayoutWrites?: string[];
+      }
+    ).__headerMotionLayoutWrites = layoutWrites;
+  });
+
+  const button = compactButton(page);
+  await button.click();
+  await expect(header(page)).toHaveAttribute('data-header-motion', 'true');
+  await expect(header(page)).toHaveCSS('will-change', 'transform');
+  await page.waitForTimeout(800);
+  await expect(header(page)).not.toHaveAttribute('data-header-motion');
+  await expect(header(page)).toHaveCSS('will-change', 'auto');
+  expect(
+    await page.evaluate(() => {
+      const state = window as typeof window & {
+        __headerMotionLayoutObserver?: MutationObserver;
+        __headerMotionLayoutWrites?: string[];
+      };
+      state.__headerMotionLayoutObserver?.disconnect();
+      return state.__headerMotionLayoutWrites;
+    }),
+  ).toEqual([]);
 });
 
 test('moves from the desktop Hero header to Compact and Menu Expanded layouts', async ({

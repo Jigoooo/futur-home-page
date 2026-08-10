@@ -32,6 +32,7 @@ const sectionLabels = new Map([
 ]);
 
 function clearMotionStyles(header: HTMLElement) {
+  delete header.dataset.headerMotion;
   gsap.set(header, { clearProps: 'all' });
   gsap.set(header.querySelectorAll('*'), {
     clearProps: 'opacity,transform,transformOrigin',
@@ -121,6 +122,7 @@ export function useAdaptiveHeader({ headerRef, menuRef, toggleRef }: AdaptiveHea
     if (!flipState || !header || reducedMotionRef.current) return;
 
     pendingFlipRef.current = null;
+    header.dataset.headerMotion = 'true';
     const opening = layout === 'menu-expanded';
     const menuItems = menuRef.current?.querySelectorAll('a, button') ?? [];
     const motionContent = header.querySelector<HTMLElement>('[data-header-motion-content]');
@@ -129,10 +131,10 @@ export function useAdaptiveHeader({ headerRef, menuRef, toggleRef }: AdaptiveHea
       targets: header,
       duration: opening ? 0.42 : 0.36,
       ease: 'power3.inOut',
-      absolute: true,
       nested: true,
       paused: true,
       prune: true,
+      scale: true,
     });
     const timeline = gsap.timeline();
     const finish = () => {
@@ -353,8 +355,8 @@ export function useAdaptiveHeader({ headerRef, menuRef, toggleRef }: AdaptiveHea
       }
 
       window.requestAnimationFrame(() => {
-        if (!scrollToHashTarget(url.hash)) return;
         if (window.location.hash !== url.hash) window.history.pushState(null, '', url.hash);
+        window.requestAnimationFrame(() => scrollToHashTarget(url.hash));
       });
     },
     [restoreToggleFocus, updateLayout],
@@ -362,6 +364,8 @@ export function useAdaptiveHeader({ headerRef, menuRef, toggleRef }: AdaptiveHea
 
   const displayedSectionId = layout === 'menu-expanded' ? openedSectionId : activeSectionId;
   const activeSection = sectionLabels.get(displayedSectionId);
+  const glassTone =
+    displayedSectionId === 'hero' || displayedSectionId === 'operations' ? 'dark' : 'light';
 
   return {
     activeHref: activeSection?.href ?? null,
@@ -370,6 +374,7 @@ export function useAdaptiveHeader({ headerRef, menuRef, toggleRef }: AdaptiveHea
     handleNavigation,
     hydrated,
     layout,
+    glassTone,
     toggleMenu,
   };
 }

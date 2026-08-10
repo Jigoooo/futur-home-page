@@ -1,5 +1,3 @@
-const HEADER_SCROLL_GAP = 16;
-
 function getScrollBehavior(): ScrollBehavior {
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
 }
@@ -19,8 +17,11 @@ function getLandingNavOffset() {
 
   if (!nav) return 0;
 
-  const rect = nav.getBoundingClientRect();
-  return Math.max(0, rect.height + rect.top + HEADER_SCROLL_GAP);
+  const offset = Number.parseFloat(
+    getComputedStyle(nav).getPropertyValue('--landing-compact-header-offset'),
+  );
+
+  return Number.isFinite(offset) ? Math.max(0, offset) : 0;
 }
 
 export function scrollToPageTop() {

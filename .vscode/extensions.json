@@ -1,7 +1,0 @@
-{
-  "recommendations": [
-    "deque-systems.vscode-axe-linter",
-    "dbaeumer.vscode-eslint",
-    "esbenp.prettier-vscode"
-  ]
-}

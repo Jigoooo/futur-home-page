@@ -4,6 +4,7 @@ import { CustomSelect } from './custom-select';
 import { Icon } from './icons';
 import { cx } from './lib/cx';
 import formStyles from './styles/form-controls.module.css';
+import sharedStyles from './styles/shared.module.css';
 
 interface ContactBriefFieldsProps {
   stage: string;
@@ -35,21 +36,17 @@ export function ContactBriefFields({
   onServicesChange,
 }: ContactBriefFieldsProps) {
   return (
-    <fieldset className={formStyles.formSection} data-contact-group data-contact-motion-group>
+    <fieldset className={formStyles.formSection}>
       <div className={formStyles.formSectionHead}>
-        <h3>상담에 필요한 내용을 먼저 정리합니다.</h3>
+        <span className={sharedStyles.kicker}>Project Brief</span>
+        <h3>상담 전에 필요한 내용을 가볍게 정리합니다.</h3>
       </div>
 
       <div className={formStyles.briefGroup}>
-        <div className={formStyles.groupLabel} data-contact-group-label>
+        <div className={formStyles.groupLabel}>
           현재 단계 <small>하나 선택</small>
         </div>
-        <div
-          className={formStyles.stageGrid}
-          role='radiogroup'
-          aria-label='현재 프로젝트 단계'
-          data-contact-stage-grid
-        >
+        <div className={formStyles.stageGrid} role='radiogroup' aria-label='현재 프로젝트 단계'>
           {briefStages.map((item) => (
             <label
               key={item.value}
@@ -74,7 +71,7 @@ export function ContactBriefFields({
       </div>
 
       <div className={formStyles.briefGroup}>
-        <div className={formStyles.groupLabel} data-contact-group-label>
+        <div className={formStyles.groupLabel}>
           <span>
             필요한 서비스 <span className={formStyles.required}>*</span>
           </span>

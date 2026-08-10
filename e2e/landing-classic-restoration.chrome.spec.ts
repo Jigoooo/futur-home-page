@@ -52,3 +52,26 @@ test('uses classic surfaces without horizontal overflow', async ({ page }) => {
     ),
   ).toHaveCount(5);
 });
+
+test('restores the classic contact composition and native controls', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/#contact');
+
+  await expect(
+    page.locator('#faq [data-classic-surface], #contact [data-classic-surface]'),
+  ).toHaveCount(2);
+  await expect(page.locator('#contact input[name="stage"]')).toHaveCount(3);
+  await expect(page.locator('#contact input[name="services"]')).toHaveCount(5);
+  await expect(page.locator('#contact input[type="hidden"][name="timeline"]')).toHaveCount(1);
+  await expect(page.locator('#contact input[type="hidden"][name="budget"]')).toHaveCount(1);
+  await expect(page.locator('#contact input[name="name"]')).toHaveCount(1);
+  await expect(page.locator('#contact input[name="company"]')).toHaveCount(1);
+  await expect(page.locator('#contact input[name="email"]')).toHaveCount(1);
+  await expect(page.locator('#contact textarea[name="message"]')).toHaveCount(1);
+
+  for (const name of ['collectionConsent', 'overseasTransferConsent']) {
+    const input = page.locator(`input[name="${name}"]`);
+    await input.locator('..').click();
+    await expect(input).toBeChecked();
+  }
+});

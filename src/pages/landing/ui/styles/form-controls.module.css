@@ -86,7 +86,7 @@
   text-align: left;
   box-shadow: 0 8px 22px rgba(31, 54, 105, 0.035);
   transition:
-    transform 0.28s var(--ease-out),
+    transform 0.28s var(--spring),
     border-color 0.28s ease,
     box-shadow 0.28s ease,
     background 0.28s ease;
@@ -118,7 +118,7 @@
   font-size: 12px;
   font-weight: 1000;
   transition:
-    transform 0.28s var(--ease-out),
+    transform 0.28s var(--spring),
     background 0.28s ease,
     color 0.28s ease;
 }
@@ -186,7 +186,7 @@
   line-height: 1.35;
   text-align: left;
   transition:
-    transform 0.24s var(--ease-out),
+    transform 0.24s var(--spring),
     background 0.24s ease,
     border-color 0.24s ease,
     color 0.24s ease,
@@ -422,7 +422,7 @@
   background: #edf4ff;
   color: #2c62d9;
   transition:
-    transform 0.24s var(--ease-out),
+    transform 0.24s var(--spring),
     background 0.2s ease,
     color 0.2s ease;
 }
@@ -651,7 +651,7 @@
   border-color: var(--error);
   background: #fff;
   box-shadow: 0 0 0 4px var(--error-soft);
-  animation: fieldShake 0.4s var(--ease-out);
+  animation: fieldShake 0.4s var(--spring);
 }
 
 .input.invalid:focus-visible,
@@ -664,7 +664,7 @@
 .consent.invalid .checkUi {
   border-color: var(--error);
   box-shadow: 0 0 0 4px var(--error-soft);
-  animation: fieldShake 0.4s var(--ease-out);
+  animation: fieldShake 0.4s var(--spring);
 }
 
 .fieldError {

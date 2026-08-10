@@ -35,6 +35,11 @@ export const budgetOptions = [
   { value: '1,000만원 이상', label: '1,000만원 이상' },
 ] as const satisfies readonly SelectOption[];
 
+export const contactChips = [
+  { label: '기획서 없이 문의 가능', icon: 'calendar' },
+  { label: '운영까지 고려한 제안', icon: 'shield' },
+] as const;
+
 export const contactServices = [
   { value: '웹·앱 개발', title: '웹·앱 개발', description: '랜딩·관리자·모바일 화면' },
   { value: '업무 시스템', title: '업무 시스템', description: 'ERP·WMS·내부 포털' },

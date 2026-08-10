@@ -2,7 +2,6 @@ import { ChevronDown } from 'lucide-react';
 import { useState } from 'react';
 
 import { faqItems } from '../config';
-import { EditorialTextReveal } from './editorial-text-reveal';
 import { cx } from './lib/cx';
 import styles from './styles/faq.module.css';
 import sharedStyles from './styles/shared.module.css';
@@ -26,19 +25,21 @@ export function FaqSection() {
       data-landing-section
       data-cursor-contrast='dark'
     >
-      <div className={sharedStyles.container}>
-        <div className={styles.head}>
-          <EditorialTextReveal
-            as='h2'
-            className={cx(sharedStyles.sectionTitle, styles.title)}
-            lines={['자주 묻는 질문.']}
-            split='lines'
-            trigger='in-view'
-            accessibleLabel='자주 묻는 질문.'
-          />
-          <p className={sharedStyles.sectionDesc}>문의 전에 많이 확인하는 내용을 모았습니다.</p>
+      <div className={sharedStyles.container} data-classic-surface>
+        <div
+          className={cx(styles.head, sharedStyles.reveal, sharedStyles.revealUp)}
+          data-landing-reveal='up'
+        >
+          <span className={sharedStyles.kicker}>FAQ</span>
+          <h2 className={cx(sharedStyles.sectionTitle, styles.title)}>자주 묻는 질문.</h2>
+          <p className={sharedStyles.sectionDesc}>
+            문의 전에 가장 많이 물어보시는 내용을 정리했습니다.
+          </p>
         </div>
-        <div className={styles.list}>
+        <div
+          className={cx(styles.list, sharedStyles.reveal, sharedStyles.revealUp)}
+          data-landing-reveal='up'
+        >
           {faqItems.map((item, index) => {
             const isOpen = openSet.has(index);
             const buttonId = `faq-button-${index}`;
@@ -53,7 +54,6 @@ export function FaqSection() {
                   aria-controls={panelId}
                   onClick={() => toggle(index)}
                 >
-                  <span className={styles.index}>{String(index + 1).padStart(2, '0')}</span>
                   <span className={styles.question}>{item.question}</span>
                   <span className={styles.toggle} aria-hidden='true'>
                     <ChevronDown size={16} strokeWidth={1.8} />

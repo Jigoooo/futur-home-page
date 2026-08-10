@@ -23,6 +23,7 @@ test('keeps the current hero and restores the factual classic order', async ({ p
       .locator('main > section[data-landing-section]')
       .evaluateAll((nodes) => nodes.map((node) => node.id)),
   ).toEqual(orderedSections);
+  await expect(page.getByRole('link', { name: '서비스' })).toHaveAttribute('href', '#services');
   await expect(page.getByRole('link', { name: '팀' })).toHaveAttribute('href', '#team');
 });
 

@@ -73,12 +73,7 @@ export function HeaderSection() {
       </a>
       <nav className={styles.navMenu} aria-label='주요 메뉴'>
         {navigationItems.map((item) => (
-          <a
-            key={item.href}
-            href={item.href}
-            aria-label={item.href === '#services' ? '제공 영역' : undefined}
-            onClick={handleHashLinkClick}
-          >
+          <a key={item.href} href={item.href} onClick={handleHashLinkClick}>
             {item.label}
           </a>
         ))}

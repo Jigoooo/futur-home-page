@@ -361,6 +361,7 @@ git commit -m "feat(landing): 사실 기반 클래식 페이지 구조 복원"
 - Modify: `src/pages/landing/ui/styles/{stack,team,operations-policy}.module.css`
 - Modify: `src/pages/landing/ui/styles/{shared,header,services,process}.module.css`
 - Modify: `src/pages/landing/ui/header-section.tsx`
+- Modify: `src/pages/landing/ui/{services,stack,team,process,operations-policy}-section.tsx`
 
 **Interfaces:**
 
@@ -443,6 +444,11 @@ Expected: geometry, Hero, runtime, static axe PASS.
 ```bash
 git add e2e/landing-classic-restoration.chrome.spec.ts \
   src/pages/landing/ui/header-section.tsx \
+  src/pages/landing/ui/services-section.tsx \
+  src/pages/landing/ui/stack-section.tsx \
+  src/pages/landing/ui/team-section.tsx \
+  src/pages/landing/ui/process-section.tsx \
+  src/pages/landing/ui/operations-policy-section.tsx \
   src/pages/landing/ui/styles/shared.module.css \
   src/pages/landing/ui/styles/header.module.css \
   src/pages/landing/ui/styles/services.module.css \

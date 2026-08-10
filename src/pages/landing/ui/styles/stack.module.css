@@ -1,0 +1,33 @@
+.stackSection {
+  padding-block: 120px;
+  background: var(--paper-cool, #e9e9e6);
+  color: var(--charcoal, #1d2523);
+}
+
+.head {
+  max-width: 760px;
+  margin-bottom: 56px;
+}
+
+.groups {
+  display: grid;
+  grid-template-columns: 1fr;
+}
+
+.group {
+  padding: 28px 0;
+  border-top: 1px solid color-mix(in srgb, var(--charcoal, #1d2523) 22%, transparent);
+}
+
+.group h3,
+.group ul {
+  margin: 0;
+}
+
+.group ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 16px 0 0;
+  list-style: none;
+}

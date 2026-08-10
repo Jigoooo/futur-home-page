@@ -1,0 +1,47 @@
+.teamSection {
+  padding-block: 120px;
+  background: var(--paper, #f2eee4);
+  color: var(--charcoal, #1d2523);
+}
+
+.head {
+  max-width: 760px;
+  margin-bottom: 56px;
+}
+
+.roleList {
+  display: grid;
+  grid-template-columns: 1fr;
+}
+
+.roleCard {
+  padding: 28px 0;
+  border-top: 1px solid color-mix(in srgb, var(--charcoal, #1d2523) 22%, transparent);
+}
+
+.badge {
+  display: inline-block;
+  margin-bottom: 16px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.roleCard h3,
+.roleCard p,
+.roleCard ul {
+  margin: 0;
+}
+
+.roleCard p {
+  margin-top: 12px;
+  line-height: 1.7;
+}
+
+.roleCard ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 18px 0 0;
+  list-style: none;
+}

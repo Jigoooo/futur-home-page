@@ -1,0 +1,37 @@
+import { expect, test } from '@playwright/test';
+
+const orderedSections = [
+  'hero',
+  'services',
+  'stack',
+  'team',
+  'process',
+  'operations',
+  'faq',
+  'contact',
+];
+
+test('keeps the current hero and restores the factual classic order', async ({ page }) => {
+  await page.goto('/');
+
+  await expect(page.locator('#hero canvas[data-hero-particles]')).toHaveCount(1);
+  await expect(
+    page.getByRole('heading', { level: 1, name: 'BUILT FOR WHAT’S NEXT.' }),
+  ).toBeVisible();
+  expect(
+    await page
+      .locator('main > section[data-landing-section]')
+      .evaluateAll((nodes) => nodes.map((node) => node.id)),
+  ).toEqual(orderedSections);
+  await expect(page.getByRole('link', { name: '팀' })).toHaveAttribute('href', '#team');
+});
+
+test('does not restore unverified proof or cinematic-only scenes', async ({ page }) => {
+  await page.goto('/');
+
+  await expect(page.locator('#trust, #reviews, #cases, #quality, #review')).toHaveCount(0);
+  await expect(
+    page.locator('[data-quality-stage], [data-review-stage], [data-service-merge]'),
+  ).toHaveCount(0);
+  await expect(page.getByText(/24\/7|4시간|30\+|95%\+|자동 NDA|경력 \d+년/)).toHaveCount(0);
+});

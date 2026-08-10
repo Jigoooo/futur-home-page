@@ -15,9 +15,29 @@ export interface BriefStage {
   description: string;
 }
 
-export type IconName = 'check';
+export type IconName = 'check' | 'clock' | 'desktop' | 'link' | 'shield' | 'system';
 
 export interface ServiceItem {
+  title: string;
+  description: string;
+  icon: IconName;
+}
+
+export interface StackGroup {
+  key: 'frontend' | 'interaction' | 'server' | 'quality';
+  title: string;
+  items: string[];
+}
+
+export interface TeamRole {
+  badge: string;
+  title: string;
+  responsibility: string;
+  tags: string[];
+}
+
+export interface OperationsPolicy {
+  icon: IconName;
   title: string;
   description: string;
 }

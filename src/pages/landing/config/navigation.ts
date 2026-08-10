@@ -1,10 +1,10 @@
 import type { NavItem } from '../model/types';
 
 export const navigationItems: NavItem[] = [
-  { label: '품질 기준', href: '#quality' },
-  { label: '제공 영역', href: '#services' },
-  { label: '검토 방식', href: '#review' },
-  { label: '진행 방식', href: '#process' },
+  { label: '서비스', href: '#services' },
+  { label: '기술', href: '#stack' },
+  { label: '팀', href: '#team' },
+  { label: '프로세스', href: '#process' },
   { label: 'FAQ', href: '#faq' },
   { label: '문의', href: '#contact' },
 ];

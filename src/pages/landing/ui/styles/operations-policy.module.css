@@ -1,0 +1,40 @@
+.operationsSection {
+  padding-block: 120px;
+  background: var(--paper-cool, #e9e9e6);
+  color: var(--charcoal, #1d2523);
+}
+
+.head {
+  max-width: 760px;
+  margin-bottom: 56px;
+}
+
+.policyList {
+  display: grid;
+  grid-template-columns: 1fr;
+}
+
+.policyCard {
+  padding: 28px 0;
+  border-top: 1px solid color-mix(in srgb, var(--charcoal, #1d2523) 22%, transparent);
+}
+
+.icon {
+  display: inline-flex;
+  margin-bottom: 18px;
+}
+
+.icon svg {
+  width: 24px;
+  height: 24px;
+}
+
+.policyCard h3,
+.policyCard p {
+  margin: 0;
+}
+
+.policyCard p {
+  margin-top: 12px;
+  line-height: 1.7;
+}

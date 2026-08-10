@@ -69,7 +69,7 @@
 - Create: `src/pages/landing/ui/styles/{stack,team,operations-policy}.module.css`
 - Modify: `src/pages/landing/config/{navigation,services,process,index}.ts`
 - Modify: `src/pages/landing/model/types.ts`
-- Modify: `src/pages/landing/ui/{services,process,landing-page}.tsx`
+- Modify: `src/pages/landing/ui/{services,process,landing-page,landing-enhancements}.tsx`
 - Modify: `src/pages/landing/ui/styles/{services,process}.module.css`
 - Modify: `src/pages/landing/ui/icons.tsx`
 - Delete: 시네마틱 본문 전용 파일 6개
@@ -312,6 +312,8 @@ const ICONS: Record<IconName, LucideIcon> = {
 
 현재 scroll-top threshold, SSR-visible content, lazy enhancement 경계는 유지한다. 시네마틱 본문 전용 파일과 모든 import/export를 삭제한다.
 
+`landing-enhancements.tsx`에서는 `useLandingSceneMotion` import와 호출만 제거하고 `useCustomCursor()`, `useLandingGsapInteractions(pageRef)`, `<CustomCursor />`는 유지한다.
+
 - [ ] **Step 8: GREEN과 dangling reference 확인**
 
 Run:
@@ -336,6 +338,7 @@ git add e2e/landing-classic-restoration.chrome.spec.ts \
   src/pages/landing/ui/services-section.tsx src/pages/landing/ui/stack-section.tsx \
   src/pages/landing/ui/team-section.tsx src/pages/landing/ui/process-section.tsx \
   src/pages/landing/ui/operations-policy-section.tsx src/pages/landing/ui/landing-page.tsx \
+  src/pages/landing/ui/landing-enhancements.tsx \
   src/pages/landing/ui/quality-standard-section.tsx src/pages/landing/ui/review-method-section.tsx \
   src/pages/landing/ui/use-landing-scene-motion.ts \
   src/pages/landing/ui/styles/services.module.css src/pages/landing/ui/styles/stack.module.css \

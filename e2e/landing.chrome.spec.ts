@@ -10,12 +10,14 @@ async function waitForLandingHydration(page: Page) {
   });
 }
 
-test('loads the landing page through Comet', async ({ page }) => {
+test('loads the landing page through Chrome', async ({ page }) => {
   await page.goto('/');
 
   await expect(page.getByRole('link', { name: 'FUTUR home' })).toBeVisible();
-  await expect(page.getByRole('heading', { name: /아이디어를 현실의 서비스로/ })).toBeVisible();
-  await expect(page.getByAltText(/FUTUR 서비스 화면 예시/)).toBeVisible();
+  await expect(
+    page.getByRole('heading', { name: 'FROM COMPLEX WORK TO SERVICES THAT WORK.' }),
+  ).toBeVisible();
+  await expect(page.locator('canvas[data-hero-particles]')).toHaveCount(1);
 
   await page.getByRole('link', { name: /프로젝트 문의하기/ }).click();
 

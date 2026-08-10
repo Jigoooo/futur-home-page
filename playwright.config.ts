@@ -1,16 +1,6 @@
 import { defineConfig, devices } from '@playwright/test';
-import { existsSync } from 'node:fs';
 
 const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? 'http://localhost:3000';
-const useComet = process.env.PLAYWRIGHT_USE_COMET !== '0';
-const cometExecutablePath =
-  process.env.COMET_EXECUTABLE_PATH ?? '/Applications/Comet.app/Contents/MacOS/Comet';
-
-if (useComet && !existsSync(cometExecutablePath)) {
-  throw new Error(
-    `Comet executable was not found at ${cometExecutablePath}. Set COMET_EXECUTABLE_PATH or PLAYWRIGHT_USE_COMET=0.`,
-  );
-}
 
 export default defineConfig({
   testDir: './e2e',
@@ -25,17 +15,11 @@ export default defineConfig({
   },
   projects: [
     {
-      name: 'comet',
-      testMatch: /\.comet\.spec\.ts$/,
+      name: 'chrome',
+      testMatch: /\.chrome\.spec\.ts$/,
       use: {
         ...devices['Desktop Chrome'],
-        ...(useComet
-          ? {
-              launchOptions: {
-                executablePath: cometExecutablePath,
-              },
-            }
-          : {}),
+        channel: 'chrome',
       },
     },
     {
@@ -43,7 +27,7 @@ export default defineConfig({
       testMatch: /\.a11y\.spec\.ts$/,
       use: {
         ...devices['Desktop Chrome'],
-        // a11y 전용 — Comet 미사용 (stock Chromium 으로 axe-core 분석)
+        channel: 'chrome',
       },
     },
   ],

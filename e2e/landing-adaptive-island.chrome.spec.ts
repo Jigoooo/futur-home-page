@@ -80,6 +80,36 @@ async function expectFocusRestoredOnCompactCommit(page: Page, button: Locator) {
   await expect(button).toHaveAttribute('aria-expanded', 'false');
 }
 
+async function holdAnimationFrames(page: Page) {
+  await page.evaluate(() => {
+    const originalRequestAnimationFrame = window.requestAnimationFrame.bind(window);
+    const originalCancelAnimationFrame = window.cancelAnimationFrame.bind(window);
+    const heldFrames = new Map<number, FrameRequestCallback>();
+    let frameId = 1_000_000;
+    const testWindow = window as typeof window & { __restoreHeaderFrames?: () => void };
+
+    window.requestAnimationFrame = (callback) => {
+      frameId += 1;
+      heldFrames.set(frameId, callback);
+      return frameId;
+    };
+    window.cancelAnimationFrame = (id) => heldFrames.delete(id);
+    testWindow.__restoreHeaderFrames = () => {
+      heldFrames.clear();
+      window.requestAnimationFrame = originalRequestAnimationFrame;
+      window.cancelAnimationFrame = originalCancelAnimationFrame;
+      delete testWindow.__restoreHeaderFrames;
+    };
+  });
+}
+
+async function restoreAnimationFrames(page: Page) {
+  await page.evaluate(() => {
+    const testWindow = window as typeof window & { __restoreHeaderFrames?: () => void };
+    testWindow.__restoreHeaderFrames?.();
+  });
+}
+
 async function sampleReducedMotionFrames(page: Page) {
   return header(page).evaluate(async (element) => {
     const menu = element.querySelector('nav[aria-label="주요 메뉴"]');
@@ -456,6 +486,66 @@ test('restores toggle focus when a base transition hides focused Hero controls',
   await expect(servicesLink).toBeFocused();
   await scrollSectionIntoView(page, 'services');
   await expectFocusRestoredOnCompactCommit(page, button);
+});
+
+test('does not reuse an interrupted compact focus return after ownership moves outside', async ({
+  page,
+}) => {
+  await page.goto('/');
+  await expect(header(page)).toHaveAttribute('data-header-hydrated', 'true');
+  const logo = header(page).getByRole('link', { name: 'FUTUR home' });
+  await logo.focus();
+  await expect(logo).toBeFocused();
+  await holdAnimationFrames(page);
+
+  await page.setViewportSize(mobileViewport);
+  await expect(header(page)).toHaveAttribute('data-header-layout', 'compact');
+  await page.setViewportSize(desktopViewport);
+  await expect(header(page)).toHaveAttribute('data-header-layout', 'hero-expanded');
+
+  const outsideOwner = page.locator('#focus-owner');
+  await page.evaluate(() => {
+    const owner = document.createElement('button');
+    owner.id = 'focus-owner';
+    owner.textContent = 'Outside focus owner';
+    owner.style.position = 'fixed';
+    owner.style.inset = '0 auto auto 0';
+    document.body.append(owner);
+  });
+  await outsideOwner.click();
+  await expect(outsideOwner).toBeFocused();
+  await restoreAnimationFrames(page);
+
+  await page.setViewportSize(mobileViewport);
+  await expect(header(page)).toHaveAttribute('data-header-layout', 'compact');
+  await page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => resolve())));
+  await expect(outsideOwner).toBeFocused();
+});
+
+test('does not reuse an interrupted compact focus return after an outside pointer intent', async ({
+  page,
+}) => {
+  await page.goto('/');
+  await expect(header(page)).toHaveAttribute('data-header-hydrated', 'true');
+  const logo = header(page).getByRole('link', { name: 'FUTUR home' });
+  const button = compactButton(page);
+  await logo.focus();
+  await expect(logo).toBeFocused();
+  await holdAnimationFrames(page);
+
+  await page.setViewportSize(mobileViewport);
+  await expect(header(page)).toHaveAttribute('data-header-layout', 'compact');
+  await page.setViewportSize(desktopViewport);
+  await expect(header(page)).toHaveAttribute('data-header-layout', 'hero-expanded');
+  await page.evaluate(() => {
+    document.body.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
+  });
+  await restoreAnimationFrames(page);
+
+  await page.setViewportSize(mobileViewport);
+  await expect(header(page)).toHaveAttribute('data-header-layout', 'compact');
+  await page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => resolve())));
+  await expect(button).not.toBeFocused();
 });
 
 test('exposes the expanded close control as the current-location menu controller', async ({

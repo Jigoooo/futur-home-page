@@ -83,23 +83,37 @@ export function useAdaptiveHeader({ headerRef, menuRef, toggleRef }: AdaptiveHea
   const reducedMotionRef = useRef(false);
   const heroControlFocusedRef = useRef(false);
   const focusReturnFrameRef = useRef(0);
-  const focusReturnPendingRef = useRef(false);
+  const focusReturnGenerationRef = useRef(0);
+  const focusReturnTokenRef = useRef<number | null>(null);
   const pendingFlipRef = useRef<ReturnType<typeof Flip.getState> | null>(null);
   const motionTimelineRef = useRef<gsap.core.Timeline | null>(null);
+
+  const cancelToggleFocusReturn = useCallback(() => {
+    focusReturnGenerationRef.current += 1;
+    focusReturnTokenRef.current = null;
+    window.cancelAnimationFrame(focusReturnFrameRef.current);
+  }, []);
+
+  const scheduleToggleFocusReturn = useCallback(() => {
+    focusReturnGenerationRef.current += 1;
+    focusReturnTokenRef.current = focusReturnGenerationRef.current;
+  }, []);
 
   const updateLayout = useCallback(
     (nextLayout: HeaderLayout) => {
       if (layoutRef.current === nextLayout) return;
 
       const header = headerRef.current;
-      const activeElement = document.activeElement;
+      if (nextLayout !== 'compact') {
+        cancelToggleFocusReturn();
+        heroControlFocusedRef.current = false;
+      }
       if (
         nextLayout === 'compact' &&
         layoutRef.current === 'hero-expanded' &&
-        (heroControlFocusedRef.current ||
-          (activeElement && header?.contains(activeElement) && activeElement !== toggleRef.current))
+        heroControlFocusedRef.current
       ) {
-        focusReturnPendingRef.current = true;
+        scheduleToggleFocusReturn();
         heroControlFocusedRef.current = false;
       }
 
@@ -115,12 +129,10 @@ export function useAdaptiveHeader({ headerRef, menuRef, toggleRef }: AdaptiveHea
       layoutRef.current = nextLayout;
       setLayout(nextLayout);
     },
-    [headerRef, toggleRef],
+    [cancelToggleFocusReturn, headerRef, scheduleToggleFocusReturn],
   );
 
-  const restoreToggleFocus = useCallback(() => {
-    focusReturnPendingRef.current = true;
-  }, []);
+  const restoreToggleFocus = scheduleToggleFocusReturn;
 
   const closeMenu = useCallback(() => {
     if (layoutRef.current !== 'menu-expanded') return;
@@ -192,12 +204,19 @@ export function useAdaptiveHeader({ headerRef, menuRef, toggleRef }: AdaptiveHea
   }, [headerRef, layout, menuRef]);
 
   useLayoutEffect(() => {
-    if (layout !== 'compact' || !focusReturnPendingRef.current) return;
+    const focusReturnToken = focusReturnTokenRef.current;
+    if (layout !== 'compact' || focusReturnToken === null) return;
 
     window.cancelAnimationFrame(focusReturnFrameRef.current);
     focusReturnFrameRef.current = window.requestAnimationFrame(() => {
-      if (!focusReturnPendingRef.current || layoutRef.current !== 'compact') return;
-      focusReturnPendingRef.current = false;
+      if (
+        focusReturnTokenRef.current !== focusReturnToken ||
+        focusReturnGenerationRef.current !== focusReturnToken ||
+        layoutRef.current !== 'compact'
+      ) {
+        return;
+      }
+      focusReturnTokenRef.current = null;
       toggleRef.current?.focus({ preventScroll: true });
     });
 
@@ -240,12 +259,26 @@ export function useAdaptiveHeader({ headerRef, menuRef, toggleRef }: AdaptiveHea
     };
     const trackHeaderFocus = (event: FocusEvent) => {
       const target = event.target;
+      const header = headerRef.current;
       heroControlFocusedRef.current = Boolean(
         layoutRef.current === 'hero-expanded' &&
         target instanceof Node &&
-        headerRef.current?.contains(target) &&
+        header?.contains(target) &&
         target !== toggleRef.current,
       );
+      if (target instanceof Node && !header?.contains(target)) cancelToggleFocusReturn();
+    };
+    const releaseHeaderFocus = (event: FocusEvent) => {
+      const nextTarget = event.relatedTarget;
+      if (!(nextTarget instanceof Node) || headerRef.current?.contains(nextTarget)) return;
+      heroControlFocusedRef.current = false;
+      cancelToggleFocusReturn();
+    };
+    const releaseHeaderPointer = (event: PointerEvent) => {
+      const target = event.target;
+      if (!(target instanceof Node) || headerRef.current?.contains(target)) return;
+      heroControlFocusedRef.current = false;
+      cancelToggleFocusReturn();
     };
 
     const observer =
@@ -257,7 +290,15 @@ export function useAdaptiveHeader({ headerRef, menuRef, toggleRef }: AdaptiveHea
     compactViewport.addEventListener('change', syncBaseLayout);
     reducedMotion.addEventListener('change', syncMotionPreference);
     document.addEventListener('focusin', trackHeaderFocus);
+    document.addEventListener('focusout', releaseHeaderFocus);
+    document.addEventListener('pointerdown', releaseHeaderPointer);
     window.addEventListener('scroll', syncHeroVisibility, { passive: true });
+    heroControlFocusedRef.current = Boolean(
+      layoutRef.current === 'hero-expanded' &&
+      document.activeElement &&
+      headerRef.current?.contains(document.activeElement) &&
+      document.activeElement !== toggleRef.current,
+    );
     syncHeroVisibility();
     let motionReadyFrame = 0;
     const hydrationFrame = window.requestAnimationFrame(() => {
@@ -274,9 +315,11 @@ export function useAdaptiveHeader({ headerRef, menuRef, toggleRef }: AdaptiveHea
       compactViewport.removeEventListener('change', syncBaseLayout);
       reducedMotion.removeEventListener('change', syncMotionPreference);
       document.removeEventListener('focusin', trackHeaderFocus);
+      document.removeEventListener('focusout', releaseHeaderFocus);
+      document.removeEventListener('pointerdown', releaseHeaderPointer);
       window.removeEventListener('scroll', syncHeroVisibility);
     };
-  }, [headerRef, toggleRef, updateLayout]);
+  }, [cancelToggleFocusReturn, headerRef, toggleRef, updateLayout]);
 
   useEffect(() => {
     let frameId = 0;
@@ -349,12 +392,11 @@ export function useAdaptiveHeader({ headerRef, menuRef, toggleRef }: AdaptiveHea
       return;
     }
 
-    focusReturnPendingRef.current = false;
-    window.cancelAnimationFrame(focusReturnFrameRef.current);
+    cancelToggleFocusReturn();
     openScrollYRef.current = window.scrollY;
     setOpenedSectionId(activeSectionIdRef.current);
     updateLayout('menu-expanded');
-  }, [closeMenu, updateLayout]);
+  }, [cancelToggleFocusReturn, closeMenu, updateLayout]);
 
   const handleNavigation = useCallback(
     (event: MouseEvent<HTMLAnchorElement>) => {

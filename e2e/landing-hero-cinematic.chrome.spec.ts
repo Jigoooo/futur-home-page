@@ -1,5 +1,12 @@
 import { expect, test } from '@playwright/test';
 
+import {
+  DENSITY_VERTEX_SHADER,
+  EMITTER_VERTEX_SHADER,
+  HERO_POINTER_RESPONSE,
+  MAIN_VERTEX_SHADER,
+} from '../src/pages/landing/ui/hero-particle-shaders';
+
 const HERO_LABEL = 'FROM COMPLEX WORK TO SERVICES THAT WORK.';
 
 test('serves the hero copy and particle canvas immediately from SSR', async ({
@@ -95,14 +102,20 @@ test('runs the dense parametric particle pipeline on desktop', async ({ page }) 
   await expect(hero).toHaveCSS('background-color', 'rgb(6, 21, 43)');
   await expect(canvas).toHaveCSS('opacity', '1');
   await expect(canvas).toHaveAttribute('data-particle-density', 'active');
-  await expect(canvas).toHaveAttribute('data-particle-displacement', 'trail-24');
+  await expect(canvas).toHaveAttribute('data-particle-displacement', 'none');
+  await expect(canvas).toHaveAttribute('data-particle-contact', 'trail-24');
   await expect(canvas).toHaveAttribute('data-particle-emitter', 'active');
+  await expect(canvas).toHaveAttribute('data-particle-initial-shape', 'woven-canopy');
+  await expect(canvas).toHaveAttribute(
+    'data-pointer-lift',
+    String(HERO_POINTER_RESPONSE.surfaceLift),
+  );
 
   const particleCount = Number(await canvas.getAttribute('data-particle-count'));
   expect(particleCount).toBeGreaterThanOrEqual(50_000);
 });
 
-test('morphs surfaces and accumulates a damped pointer trail', async ({ page }) => {
+test('morphs surfaces and accumulates a damped contact trail', async ({ page }) => {
   await page.goto('/');
 
   const canvas = page.locator('canvas[data-hero-particles]');
@@ -124,7 +137,18 @@ test('morphs surfaces and accumulates a damped pointer trail', async ({ page }) 
   await expect(canvas).not.toHaveAttribute('data-particle-surface', initialSurface ?? '');
 });
 
-test('keeps fast pointer movement within the restrained interaction profile', async ({ page }) => {
+test('keeps base geometry fixed while contact particles lift from the surface', () => {
+  expect(DENSITY_VERTEX_SHADER).not.toContain('projected +=');
+  expect(MAIN_VERTEX_SHADER).not.toContain('projected +=');
+  expect(MAIN_VERTEX_SHADER).toContain('float contact =');
+  expect(MAIN_VERTEX_SHADER).toContain('vContact = contact;');
+  expect(MAIN_VERTEX_SHADER).toContain('vec3 wovenCanopy');
+  expect(EMITTER_VERTEX_SHADER).toContain('surfaceNormal * lift');
+  expect(HERO_POINTER_RESPONSE.surfaceLift).toBeGreaterThan(0);
+  expect(HERO_POINTER_RESPONSE.surfaceLift).toBeLessThanOrEqual(0.04);
+});
+
+test('keeps fast pointer movement within the surface-contact profile', async ({ page }) => {
   await page.goto('/');
 
   const canvas = page.locator('canvas[data-hero-particles]');
@@ -144,7 +168,7 @@ test('keeps fast pointer movement within the restrained interaction profile', as
   await expect
     .poll(async () => Number(await canvas.getAttribute('data-pointer-samples')))
     .toBeGreaterThan(2);
-  await expect(canvas).toHaveAttribute('data-pointer-response', 'restrained');
+  await expect(canvas).toHaveAttribute('data-pointer-response', 'surface-contact');
 
   const impulse = Number(await canvas.getAttribute('data-pointer-impulse'));
   expect(impulse).toBeGreaterThan(0);

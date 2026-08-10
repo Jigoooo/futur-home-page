@@ -426,11 +426,14 @@ export function createHeroParticleEngine(canvas: HTMLCanvasElement): HeroParticl
   canvas.dataset.particleCount = String(tier.main);
   canvas.dataset.particleDensity = 'active';
   canvas.dataset.particleDepth = 'far-middle-near';
-  canvas.dataset.particleDisplacement = `trail-${POINTER_TRAIL_SIZE}`;
+  canvas.dataset.particleContact = `trail-${POINTER_TRAIL_SIZE}`;
+  canvas.dataset.particleDisplacement = 'none';
   canvas.dataset.particleEmitter = tier.emit > 0 ? 'active' : 'disabled';
+  canvas.dataset.particleInitialShape = 'woven-canopy';
   canvas.dataset.particleSurface = '0-1';
   canvas.dataset.pointerImpulse = String(HERO_POINTER_RESPONSE.radialImpulse);
-  canvas.dataset.pointerResponse = 'restrained';
+  canvas.dataset.pointerLift = String(HERO_POINTER_RESPONSE.surfaceLift);
+  canvas.dataset.pointerResponse = 'surface-contact';
   canvas.dataset.pointerSamples = '0';
   resize();
 

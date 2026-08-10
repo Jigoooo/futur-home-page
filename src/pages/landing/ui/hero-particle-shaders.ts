@@ -14,11 +14,13 @@ mat3 rotateY(float angle) {
   return mat3(cosine, 0.0, sine, 0.0, 1.0, 0.0, -sine, 0.0, cosine);
 }
 
-vec3 foldedRibbon(vec2 uv, float time) {
-  float u = (uv.x * 2.0 - 1.0) * PI;
-  float v = (uv.y * 2.0 - 1.0) * 0.42;
-  float fold = sin(u * 2.0 + time * 0.18) * 0.28;
-  return vec3(sin(u) * (0.72 + v), v + fold, cos(u) * (0.48 + v));
+vec3 wovenCanopy(vec2 uv, float time) {
+  vec2 grid = uv * 2.0 - 1.0;
+  float broadFold = sin(grid.x * PI * 1.15 + time * 0.08) * 0.18;
+  float crossFold = cos(grid.y * PI * 1.6 - time * 0.06) * 0.1;
+  float weave = sin((grid.x + grid.y) * PI * 2.2) * 0.055;
+  float y = grid.y * 1.36 + sin(grid.x * PI) * 0.11;
+  return vec3(grid.x * 2.62, y, broadFold + crossFold + weave);
 }
 
 vec3 asymmetricKnot(vec2 uv, float time) {
@@ -48,7 +50,7 @@ vec3 doubleLoop(vec2 uv, float time) {
 }
 
 vec3 sampleSurface(int index, vec2 uv, float time) {
-  if (index == 0) return foldedRibbon(uv, time);
+  if (index == 0) return wovenCanopy(uv, time);
   if (index == 1) return asymmetricKnot(uv, time);
   if (index == 2) return waveSaddle(uv, time);
   return doubleLoop(uv, time);
@@ -76,6 +78,7 @@ export const HERO_POINTER_RESPONSE = {
   radialImpulse: 0.0035,
   radiusMax: 0.105,
   radiusMin: 0.055,
+  surfaceLift: 0.035,
   tangentImpulse: 0.0005,
 } as const;
 
@@ -151,8 +154,6 @@ export const DENSITY_VERTEX_SHADER = `${PARTICLE_VERTEX_HEADER}
 void main() {
   vec3 surface = morphSurface(uFromSurface, uToSurface, aUv, uTime, uMorph);
   vec2 projected = projectSurface(surface, uAspect);
-  vec2 screenUv = projected * 0.5 + 0.5;
-  projected += texture(uDisplacementTexture, screenUv).rg;
   gl_Position = vec4(projected, 0.0, 1.0);
   gl_PointSize = 1.35;
 }
@@ -173,6 +174,7 @@ void main() {
 
 export const MAIN_VERTEX_SHADER = `${PARTICLE_VERTEX_HEADER}
 out float vDepth;
+out float vContact;
 out float vSeed;
 out vec2 vScreenUv;
 
@@ -180,15 +182,17 @@ void main() {
   vec3 surface = morphSurface(uFromSurface, uToSurface, aUv, uTime, uMorph);
   vec2 projected = projectSurface(surface, uAspect);
   vec2 screenUv = projected * 0.5 + 0.5;
-  projected += texture(uDisplacementTexture, screenUv).rg;
+  vec2 contactField = texture(uDisplacementTexture, screenUv).rg;
+  float contact = smoothstep(0.002, 0.022, length(contactField));
 
   float depth = clamp(0.5 + surface.z * 0.42, 0.0, 1.0);
   gl_Position = vec4(projected, mix(0.45, -0.45, depth), 1.0);
-  gl_PointSize = mix(0.72, 2.5, depth) * uDpr;
+  gl_PointSize = mix(0.72, 2.5, depth) * mix(1.0, 1.22, contact) * uDpr;
 
   vDepth = depth;
+  vContact = contact;
   vSeed = aSeed;
-  vScreenUv = projected * 0.5 + 0.5;
+  vScreenUv = screenUv;
 }
 `;
 
@@ -196,6 +200,7 @@ export const MAIN_FRAGMENT_SHADER = `#version 300 es
 precision highp float;
 
 in float vDepth;
+in float vContact;
 in float vSeed;
 in vec2 vScreenUv;
 
@@ -215,7 +220,9 @@ void main() {
   vec3 nearColor = vec3(0.5, 0.78, 0.8);
   vec3 color = mix(farColor, nearColor, vDepth);
   color = mix(color, vec3(0.74, 0.93, 0.91), densityLight + vSeed * 0.04);
+  color = mix(color, vec3(0.82, 0.96, 0.94), vContact * 0.42);
   float alpha = disc * mix(0.2, 0.72, vDepth) * (0.82 + densityLight * 0.7);
+  alpha *= 1.0 + vContact * 0.18;
   outColor = vec4(color * alpha, alpha);
 }
 `;
@@ -225,8 +232,6 @@ precision highp float;
 
 layout(location = 0) in vec2 aUv;
 layout(location = 1) in float aSeed;
-layout(location = 2) in vec3 aDirection;
-
 uniform float uAspect;
 uniform float uDpr;
 uniform float uMorph;
@@ -246,14 +251,31 @@ void main() {
   vec2 pointerDelta = baseProjected - uPointer;
   pointerDelta.x *= uAspect;
   float pointerInfluence = smoothstep(0.48, 0.02, length(pointerDelta)) * uPointerEnergy;
-  float phase = fract(uTime * 0.2 + aSeed);
-  vec3 direction = normalize(surface + aDirection * 0.58 + vec3(0.001));
-  vec3 emitted = surface + direction * phase * 0.62 * pointerInfluence;
+  float phase = fract(uTime * 0.86 + aSeed);
+  float pulse = pow(sin(phase * PI), 2.0);
+  vec3 surfaceU = morphSurface(
+    uFromSurface,
+    uToSurface,
+    aUv + vec2(0.002, 0.0),
+    uTime,
+    uMorph
+  );
+  vec3 surfaceV = morphSurface(
+    uFromSurface,
+    uToSurface,
+    aUv + vec2(0.0, 0.002),
+    uTime,
+    uMorph
+  );
+  vec3 surfaceNormal = normalize(cross(surfaceU - surface, surfaceV - surface));
+  if (surfaceNormal.z < 0.0) surfaceNormal *= -1.0;
+  float lift = pulse * pointerInfluence * ${HERO_POINTER_RESPONSE.surfaceLift};
+  vec3 emitted = surface + surfaceNormal * lift;
   vec2 projected = projectSurface(emitted, uAspect);
 
   gl_Position = vec4(projected, 0.0, 1.0);
-  gl_PointSize = mix(1.4, 0.55, phase) * uDpr;
-  vEmitterAlpha = (1.0 - phase) * (1.0 - phase) * pointerInfluence;
+  gl_PointSize = mix(1.05, 2.15, pulse) * uDpr;
+  vEmitterAlpha = pulse * pointerInfluence;
 }
 `;
 

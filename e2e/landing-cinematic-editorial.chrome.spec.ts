@@ -146,3 +146,35 @@ test('keeps the decorative quality stage visible without scene motion for reduce
 
   await page.close();
 });
+
+test('merges four service layers into one product core without an orbit', async ({ page }) => {
+  await page.goto('/');
+
+  const services = page.locator('#services');
+  await expect(
+    services.getByRole('heading', { name: '필요한 영역을 연결해 하나의 제품으로 만듭니다.' }),
+  ).toBeVisible();
+  await expect(services.locator('[data-service-merge]')).toHaveCount(1);
+  await expect(services.locator('[data-service-layer]')).toHaveCount(4);
+  await expect(services.locator('[data-service-core]')).toHaveCount(1);
+  await expect(services.locator('[data-service-row]')).toHaveCount(4);
+  await expect(services.locator('[data-service-orbit]')).toHaveCount(0);
+});
+
+test('keeps the completed service merge visible without scene motion for reduced motion', async ({
+  browser,
+}) => {
+  const page = await browser.newPage({ reducedMotion: 'reduce' });
+
+  await page.goto('/');
+
+  await expect(page.locator('[data-landing-page]')).not.toHaveAttribute(
+    'data-landing-scene-motion',
+    'ready',
+  );
+  await expect(page.locator('[data-service-merge]')).toBeVisible();
+  await expect(page.locator('[data-service-core]')).toBeVisible();
+  await expect(page.locator('[data-service-row]')).toHaveCount(4);
+
+  await page.close();
+});

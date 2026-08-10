@@ -2,7 +2,6 @@ import { ArrowRight } from 'lucide-react';
 
 import { services } from '../config';
 import { EditorialTextReveal } from './editorial-text-reveal';
-import { Icon } from './icons';
 import { cx } from './lib/cx';
 import styles from './styles/services.module.css';
 import sharedStyles from './styles/shared.module.css';
@@ -12,43 +11,43 @@ export function ServicesSection() {
     <section
       className={cx(sharedStyles.sectionBlock, styles.serviceChapter)}
       id='services'
+      data-landing-section
+      data-cursor-contrast='dark'
       data-editorial-chapter='services'
     >
       <div className={sharedStyles.container}>
-        <div className={cx(styles.serviceLayout, sharedStyles.gridLayout)}>
-          <div className={styles.serviceLead} data-services-sticky>
+        <div className={styles.serviceLead}>
+          <div className={styles.leadCopy}>
             <EditorialTextReveal
               as='h2'
               className={cx(sharedStyles.sectionTitle, styles.serviceTitle)}
-              lines={['비즈니스에 필요한', '개발 과정을', '한 흐름으로.']}
+              lines={['필요한 영역을 연결해', '하나의 제품으로 만듭니다.']}
               split='lines'
               trigger='in-view'
-              accessibleLabel='비즈니스에 필요한 개발 과정을 한 흐름으로.'
+              accessibleLabel='필요한 영역을 연결해 하나의 제품으로 만듭니다.'
             />
             <p className={cx(sharedStyles.sectionDesc, styles.serviceDesc)}>
-              화면만 만드는 것이 아니라, 사용 방식·데이터·운영까지 연결해 실제로 굴러가는 서비스를
-              만듭니다.
+              화면에 보이는 경험부터 코드와 데이터 구조, 배포 후 운영까지 함께 다룹니다.
             </p>
           </div>
+        </div>
+
+        <div className={styles.serviceBody}>
+          <div className={styles.merge} data-service-merge data-scene-target aria-hidden='true'>
+            {['blue', 'slate', 'taupe', 'olive'].map((tone) => (
+              <i key={tone} data-service-layer={tone} />
+            ))}
+            <i data-service-core />
+          </div>
+
           <div className={styles.serviceList}>
-            {services.map((service, index) => (
-              <article
-                key={service.title}
-                className={styles.serviceCard}
-                data-service-row
-                data-service-index={index}
-                data-cursor-text={service.cursorText}
-              >
-                <div className={styles.serviceIcon} data-landing-service-icon>
-                  <Icon name={service.icon} />
-                </div>
+            {services.map((service) => (
+              <article key={service.title} className={styles.serviceRow} data-service-row>
                 <h3>{service.title}</h3>
                 <p>{service.description}</p>
-                <a className={styles.cardLink} href='#contact' data-landing-interactive='card-link'>
-                  자세히 보기{' '}
-                  <i data-landing-arrow>
-                    <ArrowRight size={14} strokeWidth={2.2} />
-                  </i>
+                <a className={styles.serviceLink} href='#contact'>
+                  문의하기
+                  <ArrowRight size={15} strokeWidth={1.8} aria-hidden='true' />
                 </a>
               </article>
             ))}

@@ -13,11 +13,24 @@
   background: #ffffff;
   color: #0b1536;
   font-weight: 1000;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(10px);
+  visibility: hidden;
   box-shadow: 0 14px 34px rgba(28, 50, 94, 0.12);
   transition:
+    opacity 0.2s var(--ease-out),
     transform 0.28s var(--spring),
+    visibility 0.2s,
     background 0.28s ease,
     color 0.28s ease;
+}
+
+.scrollTop[data-scroll-top-visible='true'] {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+  visibility: visible;
 }
 
 .scrollTop:hover {
@@ -36,5 +49,13 @@
 @media (hover: none), (pointer: coarse) {
   .scrollTop:hover {
     transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scrollTop,
+  .scrollTop:hover {
+    transform: none;
+    transition: none;
   }
 }

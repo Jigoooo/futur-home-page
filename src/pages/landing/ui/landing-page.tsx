@@ -63,6 +63,22 @@ function DeferredLandingEnhancements({ pageRef }: { pageRef: RefObject<HTMLEleme
 
 export function LandingPage() {
   const pageRef = useRef<HTMLElement | null>(null);
+  const [isScrollTopVisible, setIsScrollTopVisible] = useState(false);
+
+  useEffect(() => {
+    const updateScrollTopVisibility = () => {
+      setIsScrollTopVisible(window.scrollY >= window.innerHeight * 0.75);
+    };
+
+    updateScrollTopVisibility();
+    window.addEventListener('scroll', updateScrollTopVisibility, { passive: true });
+    window.addEventListener('resize', updateScrollTopVisibility);
+
+    return () => {
+      window.removeEventListener('scroll', updateScrollTopVisibility);
+      window.removeEventListener('resize', updateScrollTopVisibility);
+    };
+  }, []);
 
   useInViewReveal();
   return (
@@ -90,7 +106,11 @@ export function LandingPage() {
           type='button'
           className={scrollTopStyles.scrollTop}
           data-landing-interactive='round'
+          data-scroll-top-visible={isScrollTopVisible ? 'true' : 'false'}
           aria-label='상단으로 이동'
+          aria-hidden={!isScrollTopVisible}
+          disabled={!isScrollTopVisible}
+          tabIndex={isScrollTopVisible ? 0 : -1}
           onClick={scrollToPageTop}
         >
           <ChevronUp size={22} strokeWidth={2.2} />

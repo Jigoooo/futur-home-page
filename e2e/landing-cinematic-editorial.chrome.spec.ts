@@ -1,5 +1,12 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
+
+async function waitForLandingHydration(page: Page) {
+  await page.waitForFunction(() => {
+    const landing = document.querySelector('[data-landing-page]');
+    return landing && Object.keys(landing).some((key) => key.startsWith('__reactProps$'));
+  });
+}
 
 test('renders the approved full-screen particle hero with restrained typography', async ({
   page,
@@ -133,6 +140,62 @@ test('keeps the mobile header inquiry button inside its capsule', async ({ page 
   expect(inquiryBox).not.toBeNull();
   expect(inquiryBox!.x).toBeGreaterThanOrEqual(headerBox!.x);
   expect(inquiryBox!.x + inquiryBox!.width).toBeLessThanOrEqual(headerBox!.x + headerBox!.width);
+});
+
+test('reveals the scroll-to-top control only after meaningful page progress', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await page.goto('/');
+  await waitForLandingHydration(page);
+
+  const scrollTop = page.getByRole('button', { name: '상단으로 이동', includeHidden: true });
+  await expect(scrollTop).toHaveAttribute('aria-hidden', 'true');
+  await expect(scrollTop).toHaveAttribute('tabindex', '-1');
+  await expect(scrollTop).toBeDisabled();
+  expect(
+    await scrollTop.evaluate((node) => {
+      const style = getComputedStyle(node);
+      return {
+        opacity: style.opacity,
+        pointerEvents: style.pointerEvents,
+        visibility: style.visibility,
+      };
+    }),
+  ).toEqual({ opacity: '0', pointerEvents: 'none', visibility: 'hidden' });
+
+  await page.locator('#services').scrollIntoViewIfNeeded();
+  await expect(scrollTop).toHaveAttribute('data-scroll-top-visible', 'true');
+  await expect(scrollTop).not.toBeDisabled();
+  await expect(scrollTop).toHaveAttribute('tabindex', '0');
+  await expect(scrollTop).toBeVisible();
+
+  const scrollYBeforeClick = await page.evaluate(() => window.scrollY);
+  await scrollTop.click();
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBeLessThan(scrollYBeforeClick);
+});
+
+test('changes the scroll-to-top threshold state without motion when reduced motion is active', async ({
+  browser,
+}) => {
+  const reducedPage = await browser.newPage({
+    reducedMotion: 'reduce',
+    viewport: { width: 1280, height: 720 },
+  });
+  await reducedPage.goto('/');
+  await waitForLandingHydration(reducedPage);
+
+  const scrollTop = reducedPage.getByRole('button', {
+    name: '상단으로 이동',
+    includeHidden: true,
+  });
+  await reducedPage.locator('#services').scrollIntoViewIfNeeded();
+  await expect(scrollTop).toHaveAttribute('data-scroll-top-visible', 'true');
+  expect(await scrollTop.evaluate((node) => getComputedStyle(node).transitionProperty)).toBe(
+    'none',
+  );
+
+  await scrollTop.click();
+  expect(await reducedPage.evaluate(() => window.scrollY)).toBe(0);
+  await reducedPage.close();
 });
 
 test('keeps major editorial and contact titles within the approved scale', async ({ page }) => {

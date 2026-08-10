@@ -61,6 +61,24 @@ async function expectCompactMenuClosed(page: Page, button: Locator, label: strin
   await expect(button).toBeFocused();
 }
 
+async function expectFocusRestoredOnCompactCommit(page: Page, button: Locator) {
+  await expect(header(page)).toHaveAttribute('data-header-layout', 'compact');
+  await page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => resolve())));
+
+  expect(
+    await header(page).evaluate((element) => {
+      const active = document.activeElement;
+      return {
+        focusInsideHiddenNav: active
+          ? Boolean(element.querySelector('nav[aria-hidden="true"]')?.contains(active))
+          : false,
+        toggleFocused: active === element.querySelector('[data-header-toggle]'),
+      };
+    }),
+  ).toEqual({ focusInsideHiddenNav: false, toggleFocused: true });
+  await expect(button).toHaveAttribute('aria-expanded', 'false');
+}
+
 async function sampleReducedMotionFrames(page: Page) {
   return header(page).evaluate(async (element) => {
     const menu = element.querySelector('nav[aria-label="주요 메뉴"]');
@@ -353,6 +371,58 @@ test('closes the expanded menu and returns focus for every dismissal path', asyn
   await expect(button).toHaveAttribute('aria-expanded', 'false');
   await expect(button).toHaveAccessibleName(/주요 메뉴 열기/);
   await expect(button).toBeFocused();
+});
+
+test('restores toggle focus by the next frame for every compact dismissal commit', async ({
+  page,
+}) => {
+  await page.goto('/');
+  await enterCompactLayout(page);
+
+  let button = await openCompactMenu(page, '서비스');
+  await page
+    .getByRole('navigation', { name: '주요 메뉴' })
+    .getByRole('link', { name: '기술', exact: true })
+    .click();
+  await expectFocusRestoredOnCompactCommit(page, button);
+
+  await scrollSectionIntoView(page, 'stack');
+  button = await openCompactMenu(page, '기술');
+  await page.mouse.click(20, desktopViewport.height - 20);
+  await expectFocusRestoredOnCompactCommit(page, button);
+
+  button = await openCompactMenu(page, '기술');
+  await page.keyboard.press('Escape');
+  await expectFocusRestoredOnCompactCommit(page, button);
+
+  await page.goto('/');
+  await enterCompactLayout(page);
+  button = await openCompactMenu(page, '서비스');
+  const openedAt = await page.evaluate(() => window.scrollY);
+  await page.evaluate((top) => window.scrollTo({ top, behavior: 'instant' }), openedAt + 24);
+  await expectFocusRestoredOnCompactCommit(page, button);
+
+  await page.goto('/');
+  await enterCompactLayout(page);
+  await openCompactMenu(page, '서비스');
+  await page.evaluate(() => {
+    const toggle = document.querySelector<HTMLButtonElement>('[data-header-toggle]');
+    document.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, key: 'Escape' }));
+    toggle?.click();
+  });
+  await expect(header(page)).toHaveAttribute('data-header-layout', 'menu-expanded');
+  await page.waitForTimeout(500);
+  expect(
+    await header(page).evaluate((element) => {
+      const active = document.activeElement;
+      return {
+        focusInsideMenu: active
+          ? Boolean(element.querySelector('nav[aria-hidden="false"]')?.contains(active))
+          : false,
+        toggleFocused: active === element.querySelector('[data-header-toggle]'),
+      };
+    }),
+  ).toEqual({ focusInsideMenu: true, toggleFocused: false });
 });
 
 test('uses a contained 3+2 menu grid from the mobile Hero', async ({ page }) => {

@@ -80,6 +80,7 @@ export function useAdaptiveHeader({ headerRef, menuRef, toggleRef }: AdaptiveHea
   const openScrollYRef = useRef(0);
   const motionReadyRef = useRef(false);
   const reducedMotionRef = useRef(false);
+  const focusReturnFrameRef = useRef(0);
   const focusReturnPendingRef = useRef(false);
   const pendingFlipRef = useRef<ReturnType<typeof Flip.getState> | null>(null);
   const motionTimelineRef = useRef<gsap.core.Timeline | null>(null);
@@ -106,15 +107,7 @@ export function useAdaptiveHeader({ headerRef, menuRef, toggleRef }: AdaptiveHea
 
   const restoreToggleFocus = useCallback(() => {
     focusReturnPendingRef.current = true;
-    window.setTimeout(
-      () => {
-        if (!focusReturnPendingRef.current || layoutRef.current === 'menu-expanded') return;
-        focusReturnPendingRef.current = false;
-        toggleRef.current?.focus({ preventScroll: true });
-      },
-      reducedMotionRef.current ? 0 : 420,
-    );
-  }, [toggleRef]);
+  }, []);
 
   const closeMenu = useCallback(() => {
     if (layoutRef.current !== 'menu-expanded') return;
@@ -183,6 +176,19 @@ export function useAdaptiveHeader({ headerRef, menuRef, toggleRef }: AdaptiveHea
       finish();
     };
   }, [headerRef, layout, menuRef]);
+
+  useLayoutEffect(() => {
+    if (layout !== 'compact' || !focusReturnPendingRef.current) return;
+
+    window.cancelAnimationFrame(focusReturnFrameRef.current);
+    focusReturnFrameRef.current = window.requestAnimationFrame(() => {
+      if (!focusReturnPendingRef.current || layoutRef.current !== 'compact') return;
+      focusReturnPendingRef.current = false;
+      toggleRef.current?.focus({ preventScroll: true });
+    });
+
+    return () => window.cancelAnimationFrame(focusReturnFrameRef.current);
+  }, [layout, toggleRef]);
 
   useLayoutEffect(() => {
     if (layout !== 'menu-expanded') return;
@@ -319,6 +325,7 @@ export function useAdaptiveHeader({ headerRef, menuRef, toggleRef }: AdaptiveHea
     }
 
     focusReturnPendingRef.current = false;
+    window.cancelAnimationFrame(focusReturnFrameRef.current);
     openScrollYRef.current = window.scrollY;
     setOpenedSectionId(activeSectionIdRef.current);
     updateLayout('menu-expanded');

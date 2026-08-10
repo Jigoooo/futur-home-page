@@ -91,6 +91,17 @@ export function useAdaptiveHeader({ headerRef, menuRef, toggleRef }: AdaptiveHea
       if (layoutRef.current === nextLayout) return;
 
       const header = headerRef.current;
+      const activeElement = document.activeElement;
+      if (
+        nextLayout === 'compact' &&
+        layoutRef.current === 'hero-expanded' &&
+        activeElement &&
+        header?.contains(activeElement) &&
+        activeElement !== toggleRef.current
+      ) {
+        focusReturnPendingRef.current = true;
+      }
+
       if (header && motionReadyRef.current && !reducedMotionRef.current) {
         motionTimelineRef.current?.kill();
         motionTimelineRef.current = null;
@@ -103,7 +114,7 @@ export function useAdaptiveHeader({ headerRef, menuRef, toggleRef }: AdaptiveHea
       layoutRef.current = nextLayout;
       setLayout(nextLayout);
     },
-    [headerRef],
+    [headerRef, toggleRef],
   );
 
   const restoreToggleFocus = useCallback(() => {
@@ -200,7 +211,7 @@ export function useAdaptiveHeader({ headerRef, menuRef, toggleRef }: AdaptiveHea
     (currentLink ?? closeButton)?.focus({ preventScroll: true });
   }, [layout, menuRef]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
     const compactViewport = window.matchMedia('(max-width: 900px)');
     const sentinel = document.querySelector<HTMLElement>('[data-landing-header-sentinel]');

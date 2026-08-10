@@ -16,18 +16,20 @@ function compactButton(page: Page) {
   return header(page).locator('[data-header-toggle]');
 }
 
-async function expectCompactLabel(button: Locator, label: string, expanded: boolean) {
+async function expectCompactLabel(button: Locator, label: string) {
   await expect(button.getByText(label, { exact: true })).toBeVisible();
-  const accessibleLabel = `주요 메뉴 ${expanded ? '닫기' : '열기'} · 현재 위치 ${label}`;
+  await expect(button).toHaveAccessibleName(`주요 메뉴 열기 · 현재 위치 ${label}`);
+}
 
-  if (expanded) {
-    await expect(button).toHaveAttribute('aria-label', accessibleLabel);
-    await expect(button).toHaveAttribute('aria-hidden', 'true');
-    await expect(button).toHaveAttribute('tabindex', '-1');
-    return;
-  }
-
-  await expect(button).toHaveAccessibleName(accessibleLabel);
+async function expectExpandedController(page: Page, label: string) {
+  const controller = header(page).getByRole('button', {
+    name: `주요 메뉴 닫기 · 현재 위치 ${label}`,
+    exact: true,
+  });
+  await expect(controller).toBeVisible();
+  await expect(controller).toHaveAttribute('aria-expanded', 'true');
+  await expect(controller).toHaveAttribute('aria-controls', 'header-menu');
+  return controller;
 }
 
 async function scrollSectionIntoView(page: Page, sectionId: string) {
@@ -42,22 +44,21 @@ async function enterCompactLayout(page: Page, sectionId = 'services', label = '�
   await expect(header(page)).toHaveAttribute('data-header-layout', 'compact');
   const button = compactButton(page);
   await expect(button).toBeVisible();
-  await expectCompactLabel(button, label, false);
+  await expectCompactLabel(button, label);
 }
 
 async function openCompactMenu(page: Page, label: string) {
   const button = compactButton(page);
   await button.click();
   await expect(header(page)).toHaveAttribute('data-header-layout', 'menu-expanded');
-  await expect(button).toHaveAttribute('aria-expanded', 'true');
-  await expectCompactLabel(button, label, true);
+  await expectExpandedController(page, label);
   return button;
 }
 
 async function expectCompactMenuClosed(page: Page, button: Locator, label: string) {
   await expect(header(page)).toHaveAttribute('data-header-layout', 'compact');
   await expect(button).toHaveAttribute('aria-expanded', 'false');
-  await expectCompactLabel(button, label, false);
+  await expectCompactLabel(button, label);
   await expect(button).toBeFocused();
 }
 
@@ -430,8 +431,111 @@ test('moves from the desktop Hero header to Compact and Menu Expanded layouts', 
 
   await button.click();
   await expect(header(page)).toHaveAttribute('data-header-layout', 'menu-expanded');
-  await expect(button).toHaveAttribute('aria-expanded', 'true');
-  await expectCompactLabel(button, '서비스', true);
+  await expectExpandedController(page, '서비스');
+});
+
+test('restores toggle focus when a base transition hides focused Hero controls', async ({
+  page,
+}) => {
+  await page.goto('/');
+  const button = compactButton(page);
+  const logo = header(page).getByRole('link', { name: 'FUTUR home' });
+
+  await logo.focus();
+  await page.setViewportSize(mobileViewport);
+  await expectFocusRestoredOnCompactCommit(page, button);
+
+  await page.setViewportSize(desktopViewport);
+  await expect(header(page)).toHaveAttribute('data-header-layout', 'hero-expanded');
+  const servicesLink = header(page)
+    .getByRole('navigation', { name: '주요 메뉴' })
+    .getByRole('link', { name: '서비스', exact: true });
+  await servicesLink.focus();
+  await scrollSectionIntoView(page, 'services');
+  await expectFocusRestoredOnCompactCommit(page, button);
+});
+
+test('exposes the expanded close control as the current-location menu controller', async ({
+  page,
+}) => {
+  await page.goto('/');
+  await enterCompactLayout(page);
+  await compactButton(page).click();
+
+  const controller = header(page).getByRole('button', {
+    name: '주요 메뉴 닫기 · 현재 위치 서비스',
+    exact: true,
+  });
+  await expect(controller).toBeVisible();
+  await expect(controller).toHaveAttribute('aria-expanded', 'true');
+  await expect(controller).toHaveAttribute('aria-controls', 'header-menu');
+  await expect(page.locator('#header-menu')).toHaveCount(1);
+});
+
+test('hydrates mobile directly into Compact without a 158px painted frame', async ({ page }) => {
+  await page.setViewportSize(mobileViewport);
+  await page.addInitScript(() => {
+    const samples: Array<{ height: number; hydrated: string | null }> = [];
+    Object.defineProperty(window, '__headerPaintSamples', { configurable: true, value: samples });
+
+    const sample = () => {
+      const element = document.querySelector<HTMLElement>('[data-landing-nav]');
+      if (element) {
+        samples.push({
+          height: Math.round(element.getBoundingClientRect().height),
+          hydrated: element.dataset.headerHydrated ?? null,
+        });
+      }
+      if (samples.length < 4) requestAnimationFrame(sample);
+    };
+    requestAnimationFrame(sample);
+  });
+
+  await page.goto('/');
+  await expect(header(page)).toHaveAttribute('data-header-layout', 'compact');
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () =>
+          (
+            window as typeof window & {
+              __headerPaintSamples?: Array<{ height: number; hydrated: string | null }>;
+            }
+          ).__headerPaintSamples?.length ?? 0,
+      ),
+    )
+    .toBeGreaterThanOrEqual(4);
+
+  const samples = await page.evaluate(
+    () =>
+      (
+        window as typeof window & {
+          __headerPaintSamples?: Array<{ height: number; hydrated: string | null }>;
+        }
+      ).__headerPaintSamples ?? [],
+  );
+  expect(samples.every(({ height }) => height <= 60)).toBe(true);
+  expect(samples.some(({ height }) => height >= 150)).toBe(false);
+});
+
+test('disables both backdrop-filter implementations on the high-contrast glass overlay', async ({
+  page,
+}) => {
+  await page.emulateMedia({ contrast: 'more' });
+  await page.goto('/');
+
+  expect(
+    await header(page)
+      .locator('[data-header-glass]')
+      .evaluate((element) => {
+        const styles = getComputedStyle(element, '::after');
+        return {
+          backdropFilter: styles.backdropFilter,
+          webkitBackdropFilter:
+            styles.getPropertyValue('-webkit-backdrop-filter') || styles.backdropFilter,
+        };
+      }),
+  ).toEqual({ backdropFilter: 'none', webkitBackdropFilter: 'none' });
 });
 
 test('opens the Compact menu with click, Enter, and Space', async ({ page }) => {
@@ -448,8 +552,7 @@ test('opens the Compact menu with click, Enter, and Space', async ({ page }) => 
     }
 
     await expect(header(page)).toHaveAttribute('data-header-layout', 'menu-expanded');
-    await expect(button).toHaveAttribute('aria-expanded', 'true');
-    await expectCompactLabel(button, '서비스', true);
+    await expectExpandedController(page, '서비스');
     await page.keyboard.press('Escape');
     await expectCompactMenuClosed(page, button, '서비스');
   }
@@ -594,7 +697,7 @@ test('tracks section navigation and maps operations to process', async ({ page }
     if (label !== null) {
       const button = compactButton(page);
       await expect(button).toBeVisible();
-      await expectCompactLabel(button, label, false);
+      await expectCompactLabel(button, label);
 
       if (activeHref !== null) {
         await openCompactMenu(page, label);
@@ -634,8 +737,7 @@ test('closes the expanded menu and returns focus for every dismissal path', asyn
   const openedAt = await page.evaluate(() => window.scrollY);
   await page.evaluate((top) => window.scrollTo({ top, behavior: 'instant' }), openedAt + 23);
   await expect(header(page)).toHaveAttribute('data-header-layout', 'menu-expanded');
-  await expect(button).toHaveAttribute('aria-expanded', 'true');
-  await expectCompactLabel(button, '서비스', true);
+  await expectExpandedController(page, '서비스');
   await page.evaluate((top) => window.scrollTo({ top, behavior: 'instant' }), openedAt + 24);
   await expect(header(page)).toHaveAttribute('data-header-layout', 'compact');
   await expect(button).toHaveAttribute('aria-expanded', 'false');
@@ -702,9 +804,8 @@ test('uses a contained 3+2 menu grid from the mobile Hero', async ({ page }) => 
   await expect(header(page)).toHaveAttribute('data-header-layout', 'compact');
   const button = compactButton(page);
   await expect(button).toBeVisible();
-  await expectCompactLabel(button, 'FUTUR.', false);
+  await expectCompactLabel(button, 'FUTUR.');
   await openCompactMenu(page, 'FUTUR.');
-  await expect(button).toHaveAttribute('aria-expanded', 'true');
 
   const nav = page.getByRole('navigation', { name: '주요 메뉴' });
   const links = nav.getByRole('link');
@@ -754,7 +855,7 @@ test('completes Compact transitions immediately when reduced motion is requested
   await button.click();
   const frameSamples = await sampleReducedMotionFrames(page);
   await expect(header(page)).toHaveAttribute('data-header-layout', 'menu-expanded');
-  await expectCompactLabel(button, '서비스', true);
+  await expectExpandedController(page, '서비스');
 
   expect(frameSamples.elapsedMs).toBeGreaterThanOrEqual(700);
   expect(frameSamples.samples.length).toBeGreaterThan(2);

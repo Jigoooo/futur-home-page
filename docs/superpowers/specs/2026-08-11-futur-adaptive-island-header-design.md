@@ -58,7 +58,7 @@ Compact의 화면 라벨은 현재 구간을 보여준다. Hero와 Footer에서�
 - 활성 indicator follow-through: `70ms`
 - 닫힘: `340~380ms`
 
-모션은 위치 이해를 돕는 범위에서만 사용하며 메뉴 조작이나 현재 위치 전달을 지연시키지 않는다. `prefers-reduced-motion: reduce`에서는 동일한 상태 전환과 포커스 결과를 animation/transition 없이 즉시 완료한다. CSS duration/delay만 0으로 만드는 데 그치지 않고 GSAP Flip도 실행하지 않아야 하며, 전환 직후 geometry와 transform은 연속 두 animation frame 및 `120ms` 경과 뒤에도 변하지 않아야 한다.
+모션은 위치 이해를 돕는 범위에서만 사용하며 메뉴 조작이나 현재 위치 전달을 지연시키지 않는다. `prefers-reduced-motion: reduce`에서는 동일한 상태 전환과 포커스 결과를 animation/transition 없이 즉시 완료한다. CSS duration/delay만 0으로 만드는 데 그치지 않고 GSAP Flip도 실행하지 않아야 한다. 상태 변경 직후부터 전체 `70ms + 420ms + stagger/follow-through` 구간보다 긴 최소 `700ms` 동안 매 `requestAnimationFrame`마다 shell과 menu의 geometry, transform, opacity를 기록하며 모든 sample이 최초 sample과 동일해야 한다. 이 계약은 늦게 시작하는 GSAP와 opacity-only animation도 금지한다.
 
 ## 5. 크리스털 글라스 계약
 
@@ -115,10 +115,10 @@ Playwright는 실제 Chrome에서 다음을 검증한다.
 
 - `1280x720`의 `hero-expanded → compact → menu-expanded` 전환
 - Compact의 `data-header-toggle`, 동적 화면/접근성 라벨, `aria-expanded`, `aria-controls`, 클릭·`Enter`·`Space`
-- 다섯 활성 섹션, operations 매핑, Hero/Footer 비활성 상태
+- 다섯 활성 섹션, operations 매핑, Hero/Footer 비활성 상태. services/stack/team/process/operations/faq에서는 Compact를 실제로 열어 각 현재 위치 라벨의 `주요 메뉴 닫기 · 현재 위치 {label}`을 확인한다.
 - 메뉴 선택, 바깥 클릭, `Escape`, `23px` 유지와 정확히 `24px` 스크롤에 따른 닫힘·포커스 복귀
 - `390x844`의 Hero Compact, `3+2` grid, 좌우 `10px` 여백, 가로 overflow 방지
-- reduced-motion의 CSS/GSAP/Flip 없는 즉시 전환과 geometry/transform 안정성, no-JS 정적 탐색
+- reduced-motion의 CSS/GSAP/Flip 없는 즉시 전환과 700ms 매-frame geometry/transform/opacity 안정성, no-JS 정적 탐색
 - 문의 UI 및 접근 가능한 이름이 문의인 Header CTA 제거, 최종 섹션 순서, Hero canvas, Footer 이메일, 문의 모델·server 세 계층과 server/mail 행동 spec 보존
 
 최종 구현은 대상 Playwright, 전체 E2E, axe WCAG 2.2 AA, lint, build, `graphify update .`, diff-check를 통과해야 한다.

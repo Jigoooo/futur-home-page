@@ -53,20 +53,46 @@ async function expectCompactMenuClosed(page: Page, button: Locator, label: strin
   await expect(button).toBeFocused();
 }
 
-async function captureHeaderGeometry(page: Page) {
-  return header(page).evaluate((element) => {
-    const candidates = [element, ...element.querySelectorAll('[data-header-toggle], nav, nav a')];
+async function sampleReducedMotionFrames(page: Page) {
+  return header(page).evaluate(async (element) => {
+    const menu = element.querySelector('nav[aria-label="주요 메뉴"]');
     const round = (value: number) => Math.round(value * 1_000) / 1_000;
+    const snapshot = () =>
+      [
+        { name: 'shell', node: element },
+        { name: 'menu', node: menu },
+      ].map(({ name, node }) => {
+        if (!node) return { name, missing: true };
 
-    return candidates.map((candidate) => {
-      const rect = candidate.getBoundingClientRect();
-      return {
-        height: round(rect.height),
-        left: round(rect.left),
-        top: round(rect.top),
-        transform: getComputedStyle(candidate).transform,
-        width: round(rect.width),
+        const rect = node.getBoundingClientRect();
+        const styles = getComputedStyle(node);
+        return {
+          height: round(rect.height),
+          left: round(rect.left),
+          name,
+          opacity: styles.opacity,
+          top: round(rect.top),
+          transform: styles.transform,
+          width: round(rect.width),
+        };
+      });
+
+    const startedAt = performance.now();
+    const samples = [snapshot()];
+
+    return new Promise<{ elapsedMs: number; samples: ReturnType<typeof snapshot>[] }>((resolve) => {
+      const collectFrame = (timestamp: number) => {
+        samples.push(snapshot());
+
+        if (timestamp - startedAt >= 700) {
+          resolve({ elapsedMs: timestamp - startedAt, samples });
+          return;
+        }
+
+        requestAnimationFrame(collectFrame);
       };
+
+      requestAnimationFrame(collectFrame);
     });
   });
 }
@@ -149,6 +175,12 @@ test('tracks section navigation and maps operations to process', async ({ page }
       const button = compactButton(page);
       await expect(button).toBeVisible();
       await expectCompactLabel(button, label, false);
+
+      if (activeHref !== null) {
+        await openCompactMenu(page, label);
+        await page.keyboard.press('Escape');
+        await expectCompactMenuClosed(page, button, label);
+      }
     }
   }
 });
@@ -242,19 +274,15 @@ test('completes Compact transitions immediately when reduced motion is requested
 
   const button = compactButton(page);
   await button.click();
+  const frameSamples = await sampleReducedMotionFrames(page);
   await expect(header(page)).toHaveAttribute('data-header-layout', 'menu-expanded');
   await expectCompactLabel(button, '서비스', true);
 
-  const immediateGeometry = await captureHeaderGeometry(page);
-  await page.evaluate(
-    () =>
-      new Promise<void>((resolveFrame) => {
-        requestAnimationFrame(() => requestAnimationFrame(() => resolveFrame()));
-      }),
-  );
-  expect(await captureHeaderGeometry(page)).toEqual(immediateGeometry);
-  await page.waitForTimeout(120);
-  expect(await captureHeaderGeometry(page)).toEqual(immediateGeometry);
+  expect(frameSamples.elapsedMs).toBeGreaterThanOrEqual(700);
+  expect(frameSamples.samples.length).toBeGreaterThan(2);
+  const firstFrame = frameSamples.samples[0];
+  expect(firstFrame).toBeDefined();
+  for (const sample of frameSamples.samples) expect(sample).toEqual(firstFrame);
 
   const movingElements = await header(page).evaluate((element) => {
     const elements = [element, ...element.querySelectorAll('*')];

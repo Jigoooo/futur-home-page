@@ -2,17 +2,15 @@
 
 import { createRootRoute } from '@tanstack/react-router';
 
-import globalsUrl from '../styles/globals.css?url';
-import tokensUrl from '../styles/tokens.css?url';
 import { COMPANY_INFOS } from '@/entities/company';
 import { RootComponent, RootDocument, RootNotFound } from '@/pages/root';
+import '../styles/tokens.css';
+import '../styles/globals.css';
 
-const cssPreloadLinks = import.meta.env.PROD
-  ? [
-      { rel: 'preload', href: tokensUrl, as: 'style' },
-      { rel: 'preload', href: globalsUrl, as: 'style' },
-    ]
-  : [];
+const heroTitle = 'FROM COMPLEX WORK TO SERVICES THAT WORK.';
+const heroDescription =
+  '웹·앱·업무 시스템의 사용자 흐름과 데이터 구조를 함께 설계하고, 배포 이후 운영까지 이어가는 SI 개발 파트너.';
+const heroShareImage = `${COMPANY_INFOS.URL}/media/hero/futur-system-flow-og.webp`;
 
 export const Route = createRootRoute({
   head: () => ({
@@ -25,23 +23,19 @@ export const Route = createRootRoute({
       { rel: 'canonical', href: COMPANY_INFOS.URL },
       {
         rel: 'preload',
-        href: '/fonts/PretendardVariable.woff2',
+        href: '/fonts/PretendardVariable.critical.woff2',
         as: 'font',
         type: 'font/woff2',
         crossOrigin: 'anonymous',
       },
-      ...cssPreloadLinks,
-      { rel: 'stylesheet', href: tokensUrl },
-      { rel: 'stylesheet', href: globalsUrl },
     ],
     meta: [
       { charSet: 'utf-8' },
       { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-      { title: 'FUTUR. 아이디어를 현실의 서비스로' },
+      { title: `FUTUR | ${heroTitle}` },
       {
         name: 'description',
-        content:
-          'FUTUR는 기획서가 완성되지 않은 단계부터 함께 정리하고, 웹·앱·업무 시스템을 운영 가능한 형태로 만드는 SI·외주 개발 파트너입니다.',
+        content: heroDescription,
       },
       {
         name: 'keywords',
@@ -55,35 +49,35 @@ export const Route = createRootRoute({
         name: 'robots',
         content: 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1',
       },
-      { name: 'theme-color', content: '#fbfcff' },
+      { name: 'theme-color', content: '#06152b' },
       { name: 'color-scheme', content: 'light' },
       { name: 'format-detection', content: 'telephone=no' },
       { name: 'geo.region', content: 'KR-46' },
       { name: 'geo.placename', content: 'Iksan-si' },
       { name: 'geo.position', content: '35.9483;126.9578' },
       { name: 'ICBM', content: '35.9483, 126.9578' },
-      { property: 'og:title', content: 'FUTUR. 아이디어를 현실의 서비스로' },
+      { property: 'og:title', content: `FUTUR | ${heroTitle}` },
       {
         property: 'og:description',
-        content: '기획 전 상담부터 개발·배포·운영까지 함께 정리하는 SI·외주 개발 파트너.',
+        content: heroDescription,
       },
       { property: 'og:url', content: COMPANY_INFOS.URL },
       { property: 'og:type', content: 'website' },
       { property: 'og:locale', content: 'ko_KR' },
       { property: 'og:site_name', content: COMPANY_INFOS.NAME },
-      { property: 'og:image', content: `${COMPANY_INFOS.URL}/futur_main.png` },
-      { property: 'og:image:secure_url', content: `${COMPANY_INFOS.URL}/futur_main.png` },
+      { property: 'og:image', content: heroShareImage },
+      { property: 'og:image:secure_url', content: heroShareImage },
       { property: 'og:image:width', content: '1200' },
       { property: 'og:image:height', content: '630' },
       { property: 'og:image:alt', content: 'FUTUR landing preview' },
-      { property: 'og:image:type', content: 'image/png' },
+      { property: 'og:image:type', content: 'image/webp' },
       { name: 'twitter:card', content: 'summary_large_image' },
-      { name: 'twitter:title', content: 'FUTUR. 아이디어를 현실의 서비스로' },
+      { name: 'twitter:title', content: `FUTUR | ${heroTitle}` },
       {
         name: 'twitter:description',
-        content: '웹·앱·업무 시스템을 운영 가능한 형태로 만드는 SI·외주 개발 파트너.',
+        content: heroDescription,
       },
-      { name: 'twitter:image', content: `${COMPANY_INFOS.URL}/futur_main.png` },
+      { name: 'twitter:image', content: heroShareImage },
       { name: 'twitter:image:alt', content: 'FUTUR landing preview' },
     ],
     scripts: [

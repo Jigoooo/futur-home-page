@@ -77,3 +77,38 @@ test('uses the approved cinematic editorial information architecture', async ({ 
   await expect(page.locator('#responsibility')).toHaveCount(0);
   await expect(page.getByText('책임은 역할과 이름으로 확인할 수 있어야 합니다.')).toHaveCount(0);
 });
+
+test('loads scene motion lazily and preserves the reduced-motion final state', async ({
+  browser,
+  page,
+}) => {
+  const runtimeErrors: string[] = [];
+  page.on('pageerror', (error) => runtimeErrors.push(error.message));
+
+  await page.goto('/');
+
+  await expect(page.locator('[data-landing-page]')).toHaveAttribute(
+    'data-landing-scene-motion',
+    'ready',
+  );
+
+  await page.reload();
+  await expect(page.locator('[data-landing-page]')).toHaveAttribute(
+    'data-landing-scene-motion',
+    'ready',
+  );
+  expect(runtimeErrors).toEqual([]);
+
+  const reducedPage = await browser.newPage({ reducedMotion: 'reduce' });
+
+  await reducedPage.goto('/');
+  await expect(reducedPage.locator('[data-landing-page]')).not.toHaveAttribute(
+    'data-landing-scene-motion',
+    'ready',
+  );
+  await expect(
+    reducedPage.getByRole('heading', { level: 1, name: 'BUILT FOR WHAT’S NEXT.' }),
+  ).toBeVisible();
+
+  await reducedPage.close();
+});

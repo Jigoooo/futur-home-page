@@ -256,6 +256,7 @@ export function ContactSection() {
                 }}
                 className={styles.contactForm}
                 data-landing-contact-form
+                data-cursor-contrast='light'
                 aria-label='프로젝트 상담 양식'
                 noValidate
                 onSubmit={handleSubmit}

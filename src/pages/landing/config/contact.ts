@@ -23,9 +23,9 @@ export const briefStages = [
 
 export const timelineOptions = [
   { value: '협의 후 결정', label: '협의 후 결정' },
-  { value: '가능한 시점이 정해짐', label: '가능한 시점이 정해짐' },
-  { value: '내부 일정 확인 중', label: '내부 일정 확인 중' },
-  { value: '아직 정하지 않음', label: '아직 정하지 않음' },
+  { value: '1개월 이내', label: '1개월 이내' },
+  { value: '1~3개월', label: '1~3개월' },
+  { value: '3개월 이상', label: '3개월 이상' },
 ] as const satisfies readonly SelectOption[];
 
 export const budgetOptions = [

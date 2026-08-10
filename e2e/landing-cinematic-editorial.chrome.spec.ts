@@ -349,5 +349,90 @@ test('uses semantic nested cursor tones for the contact surface and its CTA', as
     'dark',
   );
 
-  await expect(contact.locator('[data-landing-contact-form]')).toBeVisible();
+  await expect(contact.locator('[data-landing-contact-form]')).toHaveAttribute(
+    'data-cursor-contrast',
+    'light',
+  );
+});
+
+test('keeps the contact surface compact and solid on mobile', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/');
+
+  const surface = page.locator('[data-contact-surface]');
+  expect(
+    Number.parseFloat(await surface.evaluate((node) => getComputedStyle(node).borderRadius)),
+  ).toBeGreaterThanOrEqual(30);
+  await expect(surface.locator('[style*="background: white" i]')).toHaveCount(0);
+  expect(
+    await surface
+      .locator('[data-landing-contact-form] input, [data-landing-contact-form] textarea')
+      .evaluateAll((controls) =>
+        controls.every(
+          (control) => getComputedStyle(control).backgroundColor === 'rgba(0, 0, 0, 0)',
+        ),
+      ),
+  ).toBe(true);
+});
+
+test('adapts the ring and dot cursor to semantic surfaces and recovers after blur', async ({
+  browser,
+  page,
+}) => {
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await page.goto('/');
+  await page.mouse.move(12, 12);
+  await page.mouse.move(24, 24);
+  await expect(page.locator('html')).toHaveAttribute('data-landing-cursor-enabled', 'true');
+  await page.mouse.move(36, 36);
+  await page.mouse.move(48, 48);
+  await expect(page.locator('body')).toHaveAttribute('data-landing-cursor-ready', 'true');
+
+  const ring = page.locator('[data-landing-cursor-ring]');
+  const dot = page.locator('[data-landing-cursor-dot]');
+  const assertTone = async (target: ReturnType<typeof page.locator>, tone: 'light' | 'dark') => {
+    await target.hover();
+    await expect(page.locator('body')).toHaveAttribute('data-landing-cursor-contrast', tone);
+    await expect(ring).toHaveCSS('opacity', '1');
+    await expect(dot).toHaveCSS('opacity', '1');
+    await expect(ring).toHaveCSS(
+      'border-color',
+      tone === 'light' ? 'rgba(248, 247, 243, 0.96)' : 'rgba(32, 37, 35, 0.94)',
+    );
+    await expect(dot).toHaveCSS(
+      'background-color',
+      tone === 'light' ? 'rgba(248, 247, 243, 0.96)' : 'rgba(32, 37, 35, 0.94)',
+    );
+  };
+
+  await assertTone(page.locator('#hero'), 'light');
+  await assertTone(page.locator('#quality'), 'dark');
+  await assertTone(page.locator('[data-contact-surface]'), 'light');
+  await assertTone(page.getByRole('link', { name: '메일로 문의' }), 'dark');
+  await assertTone(page.locator('[data-landing-contact-form]'), 'light');
+
+  await page.evaluate(() => window.dispatchEvent(new Event('blur')));
+  await expect(page.locator('body')).toHaveAttribute('data-landing-cursor-muted', 'true');
+  await page.evaluate(() => window.dispatchEvent(new Event('pageshow')));
+  await expect(page.locator('body')).not.toHaveAttribute('data-landing-cursor-muted', 'true');
+  await expect(page.locator('body')).toHaveAttribute('data-landing-cursor-ready', 'true');
+
+  const coarsePage = await browser.newPage({ hasTouch: true });
+  await coarsePage.setViewportSize({ width: 390, height: 844 });
+  await coarsePage.goto('/');
+  await coarsePage.mouse.move(12, 12);
+  await expect(coarsePage.locator('html')).not.toHaveAttribute(
+    'data-landing-cursor-enabled',
+    'true',
+  );
+  await coarsePage.close();
+
+  const reducedPage = await browser.newPage({ reducedMotion: 'reduce' });
+  await reducedPage.goto('/');
+  await reducedPage.mouse.move(12, 12);
+  await expect(reducedPage.locator('html')).not.toHaveAttribute(
+    'data-landing-cursor-enabled',
+    'true',
+  );
+  await reducedPage.close();
 });

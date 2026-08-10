@@ -29,3 +29,11 @@
 
 - No customer, metric, SLA, automatic NDA, schedule, or experience claim was added.
 - Remaining concern: rerun the full contact delivery/mail-safety/server-boundary/a11y/runtime suite in a clean worker because the existing forced hidden-checkbox interaction was flaky during the final focused run.
+
+## Review round 1
+
+- Commit `021666f` is the Task 7 implementation commit. The follow-up restores the approved timeline values (`1개월 이내`, `1~3개월`, `3개월 이상`) without changing the selected payload shape.
+- Root-cause note: the earlier contact-delivery failure was non-reproducible; a clean single-worker rerun passed 3/3, so it is not treated as a product regression.
+- Added behavioral cursor coverage: two post-enable pointer moves establish ready state, then it checks Hero, Quality, dark contact, nested CTA and form tones, both ring/dot color and visibility, blur/pageshow recovery, and coarse/reduced disablement. It passed 1/1.
+- Added the 390px contact-surface radius and flat-control assertion.
+- Follow-up gates: contact delivery 3/3; mail safety 1/1; server boundaries 6 pass and 3 configured capacity skips; lint passed with 5 existing role-choice warnings; build and diff-check passed. The combined run detached while interactive a11y was executing, so its result is not claimed here.

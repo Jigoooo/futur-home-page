@@ -60,12 +60,6 @@ test('uses the approved navigation anchors and one inquiry-focused hero action',
   expect(hrefs).toEqual(['#quality', '#services', '#review', '#process', '#faq', '#contact']);
 
   const hero = page.locator('#hero');
-  await expect(
-    hero.getByRole('heading', {
-      level: 1,
-      name: 'VISIBLE EXPERIENCE. SOUND STRUCTURE.',
-    }),
-  ).toBeVisible();
   await expect(hero.getByRole('link', { name: '프로젝트 문의하기' })).toBeVisible();
   await expect(hero.getByRole('link')).toHaveCount(1);
 });

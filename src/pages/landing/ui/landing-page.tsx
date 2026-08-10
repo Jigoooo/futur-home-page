@@ -1,3 +1,4 @@
+import { ChevronUp } from 'lucide-react';
 import { lazy, Suspense, useEffect, useRef, useState, type RefObject } from 'react';
 
 import { ContactSection } from './contact-section';
@@ -10,7 +11,10 @@ import { ProcessSection } from './process-section';
 import { QualityStandardSection } from './quality-standard-section';
 import { ReviewMethodSection } from './review-method-section';
 import { ServicesSection } from './services-section';
+import scrollTopStyles from './styles/scroll-top.module.css';
 import sharedStyles from './styles/shared.module.css';
+import { useInViewReveal } from './use-in-view-reveal';
+import { scrollToPageTop } from '../lib/scroll-to-page-top';
 
 const LandingEnhancements = lazy(() =>
   import('./landing-enhancements').then((module) => ({ default: module.LandingEnhancements })),
@@ -60,6 +64,7 @@ function DeferredLandingEnhancements({ pageRef }: { pageRef: RefObject<HTMLEleme
 export function LandingPage() {
   const pageRef = useRef<HTMLElement | null>(null);
 
+  useInViewReveal();
   return (
     <>
       <Suspense fallback={null}>
@@ -81,6 +86,15 @@ export function LandingPage() {
         <ContactSection />
         <FooterSection />
         <LandingScrollbar />
+        <button
+          type='button'
+          className={scrollTopStyles.scrollTop}
+          data-landing-interactive='round'
+          aria-label='상단으로 이동'
+          onClick={scrollToPageTop}
+        >
+          <ChevronUp size={22} strokeWidth={2.2} />
+        </button>
       </main>
     </>
   );

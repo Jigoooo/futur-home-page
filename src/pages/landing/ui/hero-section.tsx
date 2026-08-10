@@ -1,8 +1,6 @@
 import { EditorialTextReveal } from './editorial-text-reveal';
 import { HeroParticleBackground } from './hero-particle-background';
-import { cx } from './lib/cx';
 import styles from './styles/hero.module.css';
-import sharedStyles from './styles/shared.module.css';
 
 export function HeroSection() {
   return (
@@ -14,7 +12,7 @@ export function HeroSection() {
       data-cursor-contrast='light'
     >
       <HeroParticleBackground />
-      <div className={cx(styles.heroInner, sharedStyles.container)}>
+      <div className={styles.heroInner}>
         <div className={styles.heroCopy}>
           <EditorialTextReveal
             as='h1'

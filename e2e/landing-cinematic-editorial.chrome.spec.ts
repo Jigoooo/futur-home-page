@@ -62,8 +62,11 @@ test('preserves classic reveal targets and tablet navigation', async ({ page }) 
   await expect(page.getByRole('navigation', { name: '주요 메뉴' })).toBeVisible();
 });
 
-test('keeps Hero copy inside deliberate responsive gutters', async ({ page }) => {
+test('keeps Hero copy inside deliberate responsive gutters without narrowing particles', async ({
+  page,
+}) => {
   const title = page.getByRole('heading', { level: 1, name: 'BUILT FOR WHAT’S NEXT.' });
+  const particleLayer = page.locator('[data-hero-particle-layer]');
 
   await page.setViewportSize({ width: 1280, height: 720 });
   await page.goto('/');
@@ -71,6 +74,11 @@ test('keeps Hero copy inside deliberate responsive gutters', async ({ page }) =>
 
   await page.setViewportSize({ width: 390, height: 844 });
   expect((await title.boundingBox())?.x).toBeGreaterThanOrEqual(20);
+
+  const particleBox = await particleLayer.boundingBox();
+  expect(particleBox).not.toBeNull();
+  expect(particleBox?.x).toBe(0);
+  expect(particleBox?.width).toBeGreaterThanOrEqual(390);
 });
 
 test('reveals the scroll-to-top control only after meaningful page progress', async ({ page }) => {

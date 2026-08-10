@@ -46,6 +46,7 @@ graphify-out/
 .impeccable/
 .superpowers/
 .review-screens/
+.worktrees/
 _workspace/
 
 # Database leftovers from the source app are intentionally out of scope.

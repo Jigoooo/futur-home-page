@@ -4,17 +4,6 @@
   overflow: hidden;
 }
 
-.opsSection::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(720px 360px at 78% 18%, rgba(49, 199, 164, 0.18), transparent 70%),
-    radial-gradient(560px 320px at 12% 86%, rgba(138, 112, 255, 0.16), transparent 72%);
-  pointer-events: none;
-  z-index: 0;
-}
-
 .head {
   position: relative;
   z-index: 1;
@@ -47,7 +36,7 @@
   padding: 30px 28px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: var(--radius-md);
-  background: linear-gradient(180deg, rgba(12, 33, 83, 0.94), rgba(8, 24, 74, 0.94));
+  background: #0c2153;
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.32);
   transition:
     transform 0.32s var(--ease),

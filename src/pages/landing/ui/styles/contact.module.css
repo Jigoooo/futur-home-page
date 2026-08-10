@@ -14,19 +14,8 @@
   padding: 62px 72px;
   border: 1px solid #e1e8f4;
   border-radius: 48px;
-  background: linear-gradient(135deg, #f3f7ff, #ffffff 56%, #eef5ff);
+  background: #ffffff;
   box-shadow: var(--shadow);
-}
-
-.ctaWrap::before {
-  content: '';
-  position: absolute;
-  right: -120px;
-  top: -120px;
-  width: 340px;
-  height: 340px;
-  border-radius: 999px;
-  background: radial-gradient(circle, rgba(47, 107, 255, 0.17), transparent 68%);
 }
 
 .ctaWrap h2,
@@ -112,7 +101,7 @@
 .contactCardDivider {
   margin: 28px 0 24px;
   height: 1px;
-  background: linear-gradient(90deg, transparent, #e2e9f4 24%, #e2e9f4 76%, transparent);
+  background: #e2e9f4;
 }
 
 .contactCardInfo {

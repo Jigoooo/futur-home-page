@@ -60,7 +60,7 @@
 }
 
 .legalContent li::marker {
-  color: #6e7d9d;
+  color: #5e6b85;
 }
 
 .legalContent a {
@@ -82,7 +82,7 @@
   margin-top: 56px;
   padding-top: 28px;
   border-top: 1px solid #e5edfa;
-  color: #6e7d9d;
+  color: #5e6b85;
   font-size: 13px;
 }
 

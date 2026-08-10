@@ -1,5 +1,5 @@
 import { ArrowRight } from 'lucide-react';
-import { type MouseEvent } from 'react';
+import { type MouseEvent, useEffect, useState } from 'react';
 
 import { navigationItems } from '../config';
 import { Button } from './button';
@@ -40,10 +40,30 @@ function handleHashLinkClick(event: MouseEvent<HTMLAnchorElement>) {
 }
 
 export function HeaderSection() {
+  const [surface, setSurface] = useState<'hero' | 'solid'>('hero');
+
+  useEffect(() => {
+    const sentinel = document.querySelector('[data-landing-header-sentinel]');
+
+    if (!sentinel || !('IntersectionObserver' in window)) {
+      const animationFrameId = window.requestAnimationFrame(() => {
+        setSurface(window.scrollY > 48 ? 'solid' : 'hero');
+      });
+      return () => window.cancelAnimationFrame(animationFrameId);
+    }
+
+    const observer = new IntersectionObserver(([entry]) => {
+      setSurface(entry?.isIntersecting === false ? 'solid' : 'hero');
+    });
+
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, []);
+
   return (
-    <header id='top' className={styles.nav} data-landing-nav>
+    <header id='top' className={styles.nav} data-landing-nav data-header-surface={surface}>
       <a href='#top' className={styles.logo} aria-label='FUTUR home' onClick={handleHashLinkClick}>
-        FUTUR<span>.</span>
+        FUTUR
       </a>
       <nav className={styles.navMenu} aria-label='주요 메뉴'>
         {navigationItems.map((item) => (

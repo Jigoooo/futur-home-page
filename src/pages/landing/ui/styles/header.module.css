@@ -1,17 +1,31 @@
 .nav {
-  position: sticky;
+  position: fixed;
   top: 18px;
+  left: 50%;
   z-index: 60;
   width: min(1680px, calc(100% - 48px));
   height: 80px;
-  margin: 18px auto 0;
   padding: 0 22px 0 26px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border: 1px solid rgba(220, 230, 244, 0.9);
+  border: 1px solid transparent;
   border-radius: 28px;
+  background: transparent;
+  color: #ffffff;
+  transform: translateX(-50%);
+  box-shadow: none;
+  transition:
+    background-color 220ms ease,
+    border-color 220ms ease,
+    box-shadow 220ms ease,
+    color 220ms ease;
+}
+
+.nav[data-header-surface='solid'] {
+  border-color: rgba(220, 230, 244, 0.9);
   background: rgba(255, 255, 255, 0.94);
+  color: var(--navy);
   -webkit-backdrop-filter: blur(24px) saturate(180%);
   backdrop-filter: blur(24px) saturate(180%);
   box-shadow: 0 16px 46px rgba(28, 48, 92, 0.08);
@@ -20,20 +34,16 @@
 .logo {
   display: inline-flex;
   align-items: center;
+  color: currentColor;
   font-size: 25px;
   font-weight: 950;
-  color: var(--navy);
   line-height: 1;
-}
-
-.logo span {
-  color: var(--blue);
 }
 
 .navMenu {
   display: flex;
   gap: 18px;
-  color: #1a2750;
+  color: currentColor;
   font-size: 14px;
   font-weight: 850;
 }
@@ -47,8 +57,8 @@
   border-radius: 999px;
   opacity: 0.82;
   transition:
-    color 0.2s ease,
-    opacity 0.2s ease;
+    color 150ms ease,
+    opacity 150ms ease;
 }
 
 .navMenu a::after {
@@ -59,19 +69,32 @@
   bottom: 8px;
   height: 2px;
   border-radius: 999px;
-  background: var(--blue);
+  background: currentColor;
   transform: scaleX(0);
   transform-origin: left;
-  transition: transform 0.25s var(--ease);
+  transition: transform 150ms var(--ease);
 }
 
-.navMenu a:hover {
-  color: var(--blue);
+.navMenu a:hover,
+.navMenu a:focus-visible {
   opacity: 1;
 }
 
-.navMenu a:hover::after {
+.navMenu a:hover::after,
+.navMenu a:focus-visible::after {
   transform: scaleX(1);
+}
+
+.nav[data-header-surface='solid'] .navMenu a:hover,
+.nav[data-header-surface='solid'] .navMenu a:focus-visible {
+  color: var(--blue);
+}
+
+.nav[data-header-surface='hero'] .ctaButton {
+  --btn-bg: #ffffff;
+  --btn-color: #07183f;
+  --btn-border: #ffffff;
+  box-shadow: none;
 }
 
 @media (max-width: 900px) {
@@ -101,12 +124,19 @@
 @media (max-width: 560px) {
   .nav {
     width: calc(100% - 20px);
-    margin: 10px auto 0;
   }
 
   .ctaButton {
     width: auto;
     min-width: 106px;
     padding: 0 14px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav,
+  .navMenu a,
+  .navMenu a::after {
+    transition-duration: 150ms;
   }
 }

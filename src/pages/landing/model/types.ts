@@ -94,7 +94,6 @@ export interface ContactChip {
 export interface TrustStat {
   value: string;
   label: string;
-  caption?: string;
 }
 
 export interface StackItem {

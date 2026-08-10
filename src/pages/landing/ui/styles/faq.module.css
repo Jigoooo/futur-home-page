@@ -22,7 +22,7 @@
   padding: 4px 28px;
   border: 1px solid var(--line);
   border-radius: var(--radius-md);
-  background: linear-gradient(180deg, #ffffff, #fbfdff);
+  background: #ffffff;
   box-shadow: var(--shadow-soft);
   transition:
     border-color 0.24s ease,
@@ -73,7 +73,7 @@
   width: 28px;
   height: 28px;
   border-radius: 999px;
-  background: linear-gradient(180deg, #eef5ff, #f8fbff);
+  background: #eef5ff;
   border: 1px solid #dee9fb;
   color: var(--blue);
   font-size: 13px;
@@ -100,7 +100,7 @@
 
 .itemOpen .toggle {
   transform: rotate(-180deg);
-  background: linear-gradient(180deg, #eef5ff, #f8fbff);
+  background: #eef5ff;
   border-color: #d6e2f6;
   color: var(--blue);
 }

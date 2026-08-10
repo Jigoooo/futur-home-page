@@ -1,4 +1,5 @@
 import { stackItems } from '../config';
+import { EditorialTextReveal } from './editorial-text-reveal';
 import { cx } from './lib/cx';
 import sharedStyles from './styles/shared.module.css';
 import styles from './styles/stack.module.css';
@@ -13,12 +14,14 @@ export function StackSection() {
           className={cx(styles.head, sharedStyles.reveal, sharedStyles.revealUp)}
           data-landing-reveal='up'
         >
-          <span className={sharedStyles.kicker}>Stack</span>
-          <h2 className={cx(sharedStyles.sectionTitle, styles.title)}>
-            이미 검증된 도구로,
-            <br />
-            안정적으로 만듭니다.
-          </h2>
+          <EditorialTextReveal
+            as='h2'
+            className={cx(sharedStyles.sectionTitle, styles.title)}
+            lines={['이미 검증된 도구로,', '안정적으로 만듭니다.']}
+            split='lines'
+            trigger='in-view'
+            accessibleLabel='이미 검증된 도구로, 안정적으로 만듭니다.'
+          />
           <p className={sharedStyles.sectionDesc}>
             새 기술을 무리하게 도입하기보다, 신뢰할 수 있는 스택을 깊게 사용합니다.
           </p>

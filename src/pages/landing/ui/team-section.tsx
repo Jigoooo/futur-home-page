@@ -1,4 +1,5 @@
 import { teamRoles } from '../config';
+import { EditorialTextReveal } from './editorial-text-reveal';
 import { cx } from './lib/cx';
 import sharedStyles from './styles/shared.module.css';
 import styles from './styles/team.module.css';
@@ -15,12 +16,14 @@ export function TeamSection() {
             className={cx(sharedStyles.stickyLead, sharedStyles.reveal, sharedStyles.revealLeft)}
             data-landing-reveal='left'
           >
-            <span className={sharedStyles.kicker}>Our Team</span>
-            <h2 className={sharedStyles.sectionTitle}>
-              프로젝트를 움직이는
-              <br />
-              역할들.
-            </h2>
+            <EditorialTextReveal
+              as='h2'
+              className={sharedStyles.sectionTitle}
+              lines={['프로젝트를 움직이는', '역할들.']}
+              split='lines'
+              trigger='in-view'
+              accessibleLabel='프로젝트를 움직이는 역할들.'
+            />
             <p className={sharedStyles.sectionDesc}>
               각자의 전문 영역을 나누되, 프로젝트 목표와 사용자의 업무 흐름은 함께 이해합니다.
             </p>

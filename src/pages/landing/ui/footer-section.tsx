@@ -27,10 +27,8 @@ export function FooterSection() {
 
         <div className={styles.footerGrid}>
           <div>
-            <h3>
-              FUTUR<span>.</span>
-            </h3>
-            <p>아이디어를 현실의 서비스로 만드는 SI·외주 개발 파트너.</p>
+            <h3>FUTUR</h3>
+            <p>복잡한 업무를 실제로 작동하는 서비스로 만드는 SI 개발 파트너.</p>
           </div>
 
           <div>

@@ -4,7 +4,6 @@ import { CustomSelect } from './custom-select';
 import { Icon } from './icons';
 import { cx } from './lib/cx';
 import formStyles from './styles/form-controls.module.css';
-import sharedStyles from './styles/shared.module.css';
 
 interface ContactBriefFieldsProps {
   stage: string;
@@ -38,7 +37,6 @@ export function ContactBriefFields({
   return (
     <fieldset className={formStyles.formSection}>
       <div className={formStyles.formSectionHead}>
-        <span className={sharedStyles.kicker}>Project Brief</span>
         <h3>상담 전에 필요한 내용을 가볍게 정리합니다.</h3>
       </div>
 

@@ -1,4 +1,5 @@
 import { processSteps } from '../config';
+import { EditorialTextReveal } from './editorial-text-reveal';
 import { cx } from './lib/cx';
 import styles from './styles/process.module.css';
 import sharedStyles from './styles/shared.module.css';
@@ -15,12 +16,14 @@ export function ProcessSection() {
             className={cx(sharedStyles.stickyLead, sharedStyles.reveal, sharedStyles.revealLeft)}
             data-landing-reveal='left'
           >
-            <span className={sharedStyles.kicker}>Process</span>
-            <h2 className={sharedStyles.sectionTitle}>
-              가볍게 시작하고,
-              <br />
-              명확하게 진행합니다.
-            </h2>
+            <EditorialTextReveal
+              as='h2'
+              className={sharedStyles.sectionTitle}
+              lines={['가볍게 시작하고,', '명확하게 진행합니다.']}
+              split='lines'
+              trigger='in-view'
+              accessibleLabel='가볍게 시작하고, 명확하게 진행합니다.'
+            />
             <p className={sharedStyles.sectionDesc}>
               처음부터 모든 것을 확정하기보다, 필요한 범위를 정리하고 우선순위에 따라 단계적으로
               진행합니다.

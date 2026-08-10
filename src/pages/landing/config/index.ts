@@ -7,7 +7,6 @@ export {
   timelineOptions,
 } from './contact';
 export { faqItems } from './faq';
-export { heroPoints } from './hero';
 export { navigationItems } from './navigation';
 export { operationsPolicies } from './operations-policy';
 export { processSteps } from './process';

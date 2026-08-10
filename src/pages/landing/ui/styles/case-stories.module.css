@@ -1,7 +1,7 @@
 .caseSection {
   padding-block: clamp(235px, 15vw, 315px);
   border-block: 1px solid #eef2f8;
-  background: linear-gradient(180deg, rgba(245, 248, 255, 0.72), rgba(255, 255, 255, 0.35));
+  background: #f8f9fb;
 }
 
 .caseHead {
@@ -63,17 +63,6 @@
   border-radius: 54px;
   background: rgba(255, 255, 255, 0.86);
   box-shadow: var(--shadow);
-}
-
-.casePanel::before {
-  content: '';
-  position: absolute;
-  left: -240px;
-  top: -240px;
-  width: 520px;
-  height: 520px;
-  border-radius: 999px;
-  background: radial-gradient(circle, rgba(47, 107, 255, 0.12), transparent 68%);
 }
 
 .casePanelInner {
@@ -147,7 +136,7 @@
 .metric span {
   display: block;
   margin-top: 5px;
-  color: #7d89a0;
+  color: #5e6b85;
   font-size: 12px;
   font-weight: 850;
 }
@@ -209,19 +198,8 @@
   overflow: hidden;
   border: 1px solid #e1e8f4;
   border-radius: 36px;
-  background: linear-gradient(160deg, #f6f9ff, #ffffff);
+  background: #f8f9fb;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
-}
-
-.caseVisual::before {
-  content: '';
-  position: absolute;
-  right: -120px;
-  top: -120px;
-  width: 250px;
-  height: 250px;
-  border-radius: 999px;
-  background: radial-gradient(circle, rgba(47, 107, 255, 0.18), transparent 70%);
 }
 
 .caseImageFrame {
@@ -271,7 +249,7 @@
   place-items: center;
   border-radius: 18px;
   background: #ebf4ff;
-  color: #316cff;
+  color: #1e4dc4;
   font-weight: 1000;
 }
 
@@ -283,7 +261,7 @@
 }
 
 .sideNote span {
-  color: #78849b;
+  color: #526381;
   font-size: 12px;
   font-weight: 800;
 }

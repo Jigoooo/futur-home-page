@@ -2,6 +2,7 @@ import { ChevronDown } from 'lucide-react';
 import { useState } from 'react';
 
 import { faqItems } from '../config';
+import { EditorialTextReveal } from './editorial-text-reveal';
 import { cx } from './lib/cx';
 import styles from './styles/faq.module.css';
 import sharedStyles from './styles/shared.module.css';
@@ -25,8 +26,14 @@ export function FaqSection() {
           className={cx(styles.head, sharedStyles.reveal, sharedStyles.revealUp)}
           data-landing-reveal='up'
         >
-          <span className={sharedStyles.kicker}>FAQ</span>
-          <h2 className={cx(sharedStyles.sectionTitle, styles.title)}>자주 묻는 질문.</h2>
+          <EditorialTextReveal
+            as='h2'
+            className={cx(sharedStyles.sectionTitle, styles.title)}
+            lines={['자주 묻는 질문.']}
+            split='lines'
+            trigger='in-view'
+            accessibleLabel='자주 묻는 질문.'
+          />
           <p className={sharedStyles.sectionDesc}>
             문의 전에 가장 많이 물어보시는 내용을 정리했습니다.
           </p>

@@ -27,7 +27,7 @@
   padding: 22px 26px;
   border: 1px solid var(--line);
   border-radius: var(--radius-md);
-  background: linear-gradient(180deg, #ffffff, #fbfdff);
+  background: #ffffff;
   box-shadow: var(--shadow-soft);
 }
 

@@ -2,7 +2,7 @@
   padding-top: clamp(78px, 7vw, 112px);
   padding-bottom: 38px;
   border-top: 1px solid #dfe7f3;
-  background: linear-gradient(180deg, #fbfdff 0%, #f7faff 100%);
+  background: #f8f9fb;
 }
 
 .footerTop {
@@ -14,9 +14,7 @@
   padding: 64px 58px;
   border: 1px solid #dce8f7;
   border-radius: 46px;
-  background:
-    radial-gradient(640px 300px at 90% 0%, rgba(47, 107, 255, 0.16), transparent 68%),
-    linear-gradient(135deg, #ffffff 0%, #f4f8ff 100%);
+  background: #ffffff;
   box-shadow: 0 30px 90px rgba(20, 42, 94, 0.1);
 }
 
@@ -113,7 +111,7 @@
 .footer p {
   max-width: 420px;
   margin: 0;
-  color: #687693;
+  color: #53617b;
   font-size: 14px;
   line-height: 1.75;
 }
@@ -190,7 +188,7 @@
   margin-top: 24px;
   padding-top: 22px;
   border-top: 1px solid #eef2f8;
-  color: #8b96aa;
+  color: #5e6b85;
   font-size: 13px;
   flex-wrap: wrap;
 }

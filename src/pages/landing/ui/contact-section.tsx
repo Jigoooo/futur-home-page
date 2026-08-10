@@ -5,6 +5,7 @@ import { useRef, useState, type FormEvent } from 'react';
 import { Button } from './button';
 import { ContactBriefFields } from './contact-brief-fields';
 import { ContactIdentityFields, type ContactFieldErrors } from './contact-identity-fields';
+import { EditorialTextReveal } from './editorial-text-reveal';
 import { Icon } from './icons';
 import { LegalModal } from './legal-modal';
 import { briefStages, budgetOptions, contactChips, timelineOptions } from '../config';
@@ -193,11 +194,14 @@ export function ContactSection() {
           data-landing-reveal='up'
         >
           <div>
-            <h2>
-              새로운 프로젝트를
-              <br />
-              가볍게 이야기해보세요.
-            </h2>
+            <EditorialTextReveal
+              as='h2'
+              className={styles.ctaTitle}
+              lines={['새로운 프로젝트를', '가볍게 이야기해보세요.']}
+              split='lines'
+              trigger='in-view'
+              accessibleLabel='새로운 프로젝트를 가볍게 이야기해보세요.'
+            />
             <p>
               기획서가 없어도 괜찮습니다. 현재 상황과 만들고 싶은 결과를 알려주시면, 다음 단계를
               함께 정리하겠습니다.

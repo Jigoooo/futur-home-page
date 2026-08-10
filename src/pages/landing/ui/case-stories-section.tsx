@@ -1,6 +1,7 @@
 import { useRef, useState, type KeyboardEvent } from 'react';
 
 import { caseStories } from '../config';
+import { EditorialTextReveal } from './editorial-text-reveal';
 import { Lines } from '../lib/line-breaks';
 import type { CaseStoryKey } from '../model/types';
 import { cx } from './lib/cx';
@@ -48,12 +49,14 @@ export function CaseStoriesSection() {
           data-landing-reveal='up'
         >
           <div>
-            <span className={sharedStyles.kicker}>Project Records</span>
-            <h2 className={sharedStyles.sectionTitle}>
-              실제로 진행한
-              <br />
-              프로젝트 흐름.
-            </h2>
+            <EditorialTextReveal
+              as='h2'
+              className={sharedStyles.sectionTitle}
+              lines={['실제로 진행한', '프로젝트 흐름.']}
+              split='lines'
+              trigger='in-view'
+              accessibleLabel='실제로 진행한 프로젝트 흐름.'
+            />
             <p className={sharedStyles.sectionDesc}>
               고객명과 민감한 데이터는 비식별 처리하고, 문제·진행 방식·결과 중심으로 정리했습니다.
             </p>

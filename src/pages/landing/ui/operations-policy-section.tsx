@@ -1,4 +1,5 @@
 import { operationsPolicies } from '../config';
+import { EditorialTextReveal } from './editorial-text-reveal';
 import { Icon } from './icons';
 import { cx } from './lib/cx';
 import styles from './styles/operations-policy.module.css';
@@ -12,12 +13,14 @@ export function OperationsPolicySection() {
           className={cx(styles.head, sharedStyles.reveal, sharedStyles.revealUp)}
           data-landing-reveal='up'
         >
-          <span className={sharedStyles.kicker}>Operations</span>
-          <h2 className={cx(sharedStyles.sectionTitle, styles.title)}>
-            만드는 것에서
-            <br />
-            끝나지 않습니다.
-          </h2>
+          <EditorialTextReveal
+            as='h2'
+            className={cx(sharedStyles.sectionTitle, styles.title)}
+            lines={['만드는 것에서', '끝나지 않습니다.']}
+            split='lines'
+            trigger='in-view'
+            accessibleLabel='만드는 것에서 끝나지 않습니다.'
+          />
           <p className={cx(sharedStyles.sectionDesc, styles.desc)}>
             운영·보안·인수인계까지 명문화된 기준으로 진행합니다.
           </p>

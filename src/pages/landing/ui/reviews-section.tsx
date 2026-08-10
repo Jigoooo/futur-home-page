@@ -2,6 +2,7 @@ import { ArrowRight } from 'lucide-react';
 
 import { reviews } from '../config';
 import { Button } from './button';
+import { EditorialTextReveal } from './editorial-text-reveal';
 import { cx } from './lib/cx';
 import styles from './styles/reviews.module.css';
 import sharedStyles from './styles/shared.module.css';
@@ -18,12 +19,14 @@ export function ReviewsSection() {
           data-landing-reveal='up'
         >
           <div>
-            <span className={sharedStyles.kicker}>Review</span>
-            <h2 className={sharedStyles.sectionTitle}>
-              함께 일한 고객의
-              <br />
-              이야기.
-            </h2>
+            <EditorialTextReveal
+              as='h2'
+              className={sharedStyles.sectionTitle}
+              lines={['함께 일한 고객의', '이야기.']}
+              split='lines'
+              trigger='in-view'
+              accessibleLabel='함께 일한 고객의 이야기.'
+            />
           </div>
           <Button href='#contact' variant='ghost' cursorText='문의'>
             <span data-landing-label>상담 문의</span>

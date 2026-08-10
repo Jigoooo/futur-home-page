@@ -18,9 +18,18 @@ test('keeps classic content visible without JavaScript', async ({ browser }) => 
   const page = await context.newPage();
 
   await page.goto('/');
-  await expect(page.locator('#services [data-landing-reveal]').first()).toBeVisible();
-  await expect(page.locator('#team [data-landing-reveal]').first()).toBeVisible();
-  await expect(page.locator('#contact [data-landing-reveal]').first()).toBeVisible();
+
+  for (const selector of ['#services', '#team', '#contact']) {
+    const target = page.locator(`${selector} [data-landing-reveal]`).first();
+
+    await expect(target).toBeVisible();
+    expect(
+      await target.evaluate((node) => {
+        const style = getComputedStyle(node);
+        return { opacity: style.opacity, transform: style.transform };
+      }),
+    ).toEqual({ opacity: '1', transform: 'none' });
+  }
 
   await context.close();
 });

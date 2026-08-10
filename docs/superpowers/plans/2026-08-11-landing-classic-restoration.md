@@ -12,6 +12,8 @@
 
 - 복원 기준점은 Git commit `12fa1c8`이다.
 - `git checkout 12fa1c8 -- .`, 전체 revert, 강제 reset을 사용하지 않는다.
+- Hero·커서·문의 보안 예외를 제외한 랜딩 TSX·CSS는 `git show 12fa1c8:<path>`의 파일 본문 자체를 출발점으로 복원한다.
+- 현재 컴포넌트에 과거 token·간격을 재해석해 입히지 않는다. 과거 소스에서 시작해 사실 경계·현재 호환성·접근성 marker만 최소 수정한다.
 - 현재 `HeroSection`, Hero particle engine/shader/GL, `CustomCursor`, `useCustomCursor` 동작을 보존한다.
 - 현재 문의 필드명, 검증, 전송 상태, fallback mail, 서버 allowlist/rate-limit/idempotency/honeypot/form-age/test-address guard를 보존한다.
 - 현재 pill 버튼의 spotlight, sheen, focus-visible, press 동작을 보존한다.
@@ -362,6 +364,8 @@ git commit -m "feat(landing): 사실 기반 클래식 페이지 구조 복원"
 - Modify: `src/pages/landing/ui/styles/{shared,header,services,process}.module.css`
 - Modify: `src/pages/landing/ui/header-section.tsx`
 - Modify: `src/pages/landing/ui/{services,stack,team,process,operations-policy}-section.tsx`
+- Modify: `src/styles/tokens.css`
+- Modify: `src/styles/globals.css`
 
 **Interfaces:**
 
@@ -395,26 +399,58 @@ Run: `pnpm exec playwright test e2e/landing-classic-restoration.chrome.spec.ts -
 
 Expected: `data-classic-surface`가 없어 FAIL.
 
-- [ ] **Step 3: 과거 디자인 토큰 선택 복원**
+- [ ] **Step 3: 중단된 스타일 이식 diff 폐기**
 
-`git show 12fa1c8:<path>`를 참고해 캡슐형 header, 교차 section background, 2열 정보 구조, 24px 카드 radius를 복원한다. 공통 폭은 데스크톱 `min(100% - 48px, 1180px)`, 모바일 `min(100% - 32px, 1180px)`로 제한한다.
+Task 2 구현자가 중단 전에 만든 uncommitted 파일은 모두 Task 2 소유 파일이다. 해당 diff를 먼저 `883956b` 상태로 되돌리고 RED 테스트부터 새 기준으로 다시 작성한다. Task 1 커밋과 문서 수정 커밋은 되돌리지 않는다.
+
+- [ ] **Step 4: 과거 TSX·CSS 파일 본문 자체 복원**
+
+다음 파일은 `git show 12fa1c8:<path>`의 전체 내용을 출발점으로 교체한다.
+
+```text
+src/pages/landing/ui/header-section.tsx
+src/pages/landing/ui/services-section.tsx
+src/pages/landing/ui/stack-section.tsx
+src/pages/landing/ui/team-section.tsx
+src/pages/landing/ui/process-section.tsx
+src/pages/landing/ui/operations-policy-section.tsx
+src/pages/landing/ui/styles/shared.module.css
+src/pages/landing/ui/styles/header.module.css
+src/pages/landing/ui/styles/services.module.css
+src/pages/landing/ui/styles/stack.module.css
+src/pages/landing/ui/styles/team.module.css
+src/pages/landing/ui/styles/process.module.css
+src/pages/landing/ui/styles/operations-policy.module.css
+```
+
+복원 후 허용되는 차이는 다음뿐이다.
+
+- 과거 `cursorText`, 연차, 위치, 완료 프로젝트 필드 제거.
+- 현재 `data-cursor-contrast`와 `data-classic-surface` marker 추가.
+- Header의 현재 hash scroll handler와 Hero/solid surface sentinel 연결 유지.
+- 현재 `Button` API에 맞춘 CTA 연결.
+- Task 1의 사실 기반 config/type interface에 맞춘 property 이름 조정.
+
+- [ ] **Step 5: 과거 token·global source 복원과 현재 호환 추가**
+
+`src/styles/tokens.css`와 `src/styles/globals.css`도 `12fa1c8` 파일 본문을 기준으로 복원한다. 그 뒤 다음 현재 호환 값만 추가한다.
 
 ```css
-.classicSurface {
-  width: min(100% - 48px, 1180px);
-  margin-inline: auto;
-  border-radius: 32px;
-}
-
-@media (max-width: 640px) {
-  .classicSurface {
-    width: min(100% - 32px, 1180px);
-    border-radius: 24px;
-  }
+:root {
+  --font-body: 'Wanted Sans Variable', 'Wanted Sans', 'FUTUR Sans Critical', sans-serif;
+  --font-display: var(--font-body);
+  --charcoal: #202523;
+  --paper: #f3f1ec;
+  --paper-cool: #e9ecec;
+  --haze-blue: #5c8dc5;
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
 }
 ```
 
-- [ ] **Step 4: 섹션별 반응형 스타일 적용**
+`globals.css`에는 현재 custom cursor의 `html[data-landing-cursor-enabled='true']` 네이티브 커서 억제·compact viewport 복구 규칙을 유지한다. Hero CSS와 custom cursor CSS는 수정하지 않는다.
+
+- [ ] **Step 6: 과거 반응형 동작 확인**
 
 - 서비스: 데스크톱 2×2, 모바일 1열.
 - 기술: 데스크톱 4그룹, 태블릿 2열, 모바일 1열.
@@ -424,11 +460,11 @@ Expected: `data-classic-surface`가 없어 FAIL.
 - 모든 H2는 데스크톱 `55px`, 모바일 `42px` 이하.
 - 현재 Layered Merge, orbit, path SVG, clip-path stage 스타일을 복원하지 않는다.
 
-- [ ] **Step 5: Header 비례 복원**
+- [ ] **Step 7: Header 호환 경계 확인**
 
 과거 캡슐형 header 비례를 적용하되 현재 `data-header-surface`, cursor tone, 모바일 CTA containment를 유지한다. 6개 링크가 태블릿 breakpoint에서 기존 메뉴로 전환되도록 한다.
 
-- [ ] **Step 6: GREEN 확인**
+- [ ] **Step 8: GREEN 확인**
 
 Run:
 
@@ -439,7 +475,7 @@ pnpm exec playwright test e2e/a11y/landing.static.a11y.spec.ts --workers=1
 
 Expected: geometry, Hero, runtime, static axe PASS.
 
-- [ ] **Step 7: 커밋**
+- [ ] **Step 9: 커밋**
 
 ```bash
 git add e2e/landing-classic-restoration.chrome.spec.ts \
@@ -455,7 +491,8 @@ git add e2e/landing-classic-restoration.chrome.spec.ts \
   src/pages/landing/ui/styles/stack.module.css \
   src/pages/landing/ui/styles/team.module.css \
   src/pages/landing/ui/styles/process.module.css \
-  src/pages/landing/ui/styles/operations-policy.module.css
+  src/pages/landing/ui/styles/operations-policy.module.css \
+  src/styles/tokens.css src/styles/globals.css
 git commit -m "feat(landing): 클래식 본문과 헤더 스타일 복원"
 ```
 
@@ -504,7 +541,7 @@ Expected: classic surface가 없어 FAIL.
 
 - [ ] **Step 3: FAQ 시각 레이어만 복원**
 
-현재 disclosure button과 answer region을 유지한다. 현재 장식 grid를 제거하고 `12fa1c8`의 단일 열, 구분선, 넉넉한 질문 행을 적용한다.
+`faq-section.tsx`와 `styles/faq.module.css`는 `git show 12fa1c8:<path>`의 파일 본문 자체에서 시작한다. 현재 FAQ config 카피와 disclosure 접근성 계약을 다시 연결하고 `data-classic-surface`만 추가한다.
 
 - [ ] **Step 4: 문의 로직을 고정하고 밝은 클래식 폼 적용**
 
@@ -526,11 +563,11 @@ const protectedContactNames = [
 ];
 ```
 
-과거의 밝은 폼 surface와 2열 데스크톱 배치를 적용한다. 모바일은 1열, surface radius `24px`, control min-height `48px`로 한다. visible label surface와 native checkbox 연결을 유지한다.
+`contact-section.tsx`, `styles/contact.module.css`, `styles/form-controls.module.css`는 `12fa1c8`의 파일 본문과 class 구조에서 시작한다. 그 위에 현재 input name, validation, pending/success/failure 상태, fallback mail, visible label surface와 native checkbox 연결을 다시 이식한다. 서버 파일은 수정하지 않는다.
 
 - [ ] **Step 5: Footer 정보 구조 복원**
 
-브랜드, 현재 연락처, 서비스 탐색, 정책 링크를 클래식 다열 구조로 분리한다. 확인되지 않은 영문 슬로건, 고객·성과·운영 보장은 넣지 않는다.
+`footer-section.tsx`와 `styles/footer.module.css`는 `12fa1c8`의 파일 본문 자체에서 시작한다. 브랜드, 현재 연락처, 서비스 탐색, 정책 링크만 현재 factual config와 연결한다. 확인되지 않은 영문 슬로건, 고객·성과·운영 보장은 넣지 않는다.
 
 - [ ] **Step 6: 문의·접근성 GREEN 확인**
 
@@ -565,23 +602,28 @@ git commit -m "feat(landing): 클래식 문의와 하단 레이아웃 복원"
 
 - Preserves: `useCustomCursor()`, `CustomCursor`, current button interaction.
 - Removes: quality/merge/review/process scene timelines.
-- Produces: `[data-reveal].is-visible` one-shot reveal.
+- Produces: `[data-landing-reveal][data-landing-visible='true']` one-shot reveal.
 
 - [ ] **Step 1: 모션 RED 테스트 작성**
 
 ```ts
 test('reveals classic sections once without hiding SSR content', async ({ page }) => {
   await page.goto('/');
-  await expect(page.locator('[data-reveal]').first()).toBeVisible();
+  await expect(page.locator('[data-landing-reveal]').first()).toBeVisible();
   await page.locator('#team').scrollIntoViewIfNeeded();
-  await expect(page.locator('#team [data-reveal]').first()).toHaveClass(/is-visible/);
+  await expect(page.locator('#team [data-landing-reveal]').first()).toHaveAttribute(
+    'data-landing-visible',
+    'true',
+  );
 });
 
 test.describe('reduced motion', () => {
   test.use({ reducedMotion: 'reduce' });
   test('shows restored sections in their final state', async ({ page }) => {
     await page.goto('/');
-    await expect(page.locator('[data-reveal]:not(.is-visible)')).toHaveCount(0);
+    await expect(
+      page.locator('[data-landing-reveal]:not([data-landing-visible="true"])'),
+    ).toHaveCount(0);
   });
 });
 ```
@@ -606,7 +648,7 @@ scene motion import와 mount를 제거한다.
 
 - [ ] **Step 4: one-shot reveal 구현**
 
-`useInViewReveal`은 `[data-reveal]`을 관찰해 `is-visible`을 한 번 부여한다. 이동은 `translateY(14px)` 이하, duration `480ms` 이하, easing `var(--ease-out)`만 사용한다. reduced-motion이나 JavaScript-disabled 경로에서는 콘텐츠가 처음부터 보인다.
+`use-in-view-reveal.ts`는 `git show 12fa1c8:src/pages/landing/ui/use-in-view-reveal.ts`의 파일 본문 자체에서 시작한다. 현재 SSR visibility gate와 reduced-motion 요구에 필요한 최소 보정만 적용하고, 과거의 `data-landing-reveal` → `data-landing-visible` one-shot 계약을 그대로 사용한다.
 
 - [ ] **Step 5: 시네마틱 테스트 정리**
 

@@ -133,7 +133,10 @@ Hero 이후의 화면은 팀 소개가 실제로 렌더링되던 Git 기준점 `
 ## 7. 구현 방식
 
 - `git checkout`이나 전체 revert로 과거 트리를 덮어쓰지 않는다.
-- `git show 12fa1c8:<path>`를 기준으로 필요한 컴포넌트·설정·CSS를 선택 복원한다.
+- Hero·커서·문의 보안 예외를 제외한 랜딩 컴포넌트와 CSS는 `git show 12fa1c8:<path>`의 파일 본문 자체를 출발점으로 선택 복원한다.
+- 현재 컴포넌트 구조에 과거 색·간격·토큰을 흉내 내는 방식은 사용하지 않는다. 과거 TSX·CSS를 먼저 복원한 다음 사실 경계와 현재 호환성에 필요한 최소 변경만 적용한다.
+- 허용되는 최소 변경은 검증되지 않은 필드·문구 삭제, 현재 Hero·커서 연결, 문의 보안 로직 연결, 접근성·테스트용 semantic marker로 한정한다.
+- 클래식 본문이 사용하는 과거 token과 global canvas도 과거 소스를 기준으로 복원하되, 현재 Hero의 `--charcoal`·`--paper`와 cursor 활성화 규칙은 호환 token으로 유지한다.
 - 현재 Hero, particle engine/shader, custom cursor, contact server 경계와 충돌하는 과거 코드는 가져오지 않는다.
 - 제거된 타입·설정·에셋은 실제 렌더링에 필요한 경우만 복원한다.
 - 루트 `DESIGN.md`는 구현 완료 시 이 설계를 최종 권위로 반영한다.

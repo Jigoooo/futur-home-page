@@ -65,3 +65,21 @@ test('uses only the approved navigation anchors and removes the Hero action', as
   const hero = page.locator('#hero');
   await expect(hero.getByRole('link')).toHaveCount(0);
 });
+
+test('routes FAQ inquiries through the factual Footer email without stale form copy', async ({
+  page,
+}) => {
+  await page.goto('/');
+
+  const faq = page.locator('#faq');
+  await expect(faq).not.toContainText('문의 양식');
+
+  const planningQuestion = faq.getByRole('button', { name: '기획서가 없는데 문의해도 되나요?' });
+  const costQuestion = faq.getByRole('button', { name: '비용은 어떻게 책정되나요?' });
+  await expect(planningQuestion).toBeVisible();
+  await expect(costQuestion).toBeVisible();
+  await costQuestion.click();
+
+  await expect(faq).toContainText('페이지 하단 이메일 kjwoo@futur.co.kr');
+  await expect(page.locator('#footer a[href="mailto:kjwoo@futur.co.kr"]')).not.toHaveCount(0);
+});

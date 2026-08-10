@@ -1,24 +1,16 @@
-import { ChevronUp } from 'lucide-react';
 import { lazy, Suspense, useEffect, useRef, useState, type RefObject } from 'react';
 
-import { CaseStoriesSection } from './case-stories-section';
 import { ContactSection } from './contact-section';
 import { FaqSection } from './faq-section';
 import { FooterSection } from './footer-section';
 import { HeaderSection } from './header-section';
 import { HeroSection } from './hero-section';
 import { LandingScrollbar } from './landing-scrollbar';
-import { OperationsPolicySection } from './operations-policy-section';
 import { ProcessSection } from './process-section';
-import { ReviewsSection } from './reviews-section';
+import { QualityStandardSection } from './quality-standard-section';
+import { ReviewMethodSection } from './review-method-section';
 import { ServicesSection } from './services-section';
-import { StackSection } from './stack-section';
-import scrollTopStyles from './styles/scroll-top.module.css';
 import sharedStyles from './styles/shared.module.css';
-import { TeamSection } from './team-section';
-import { TrustSection } from './trust-section';
-import { useInViewReveal } from './use-in-view-reveal';
-import { scrollToPageTop } from '../lib/scroll-to-page-top';
 
 const LandingEnhancements = lazy(() =>
   import('./landing-enhancements').then((module) => ({ default: module.LandingEnhancements })),
@@ -68,13 +60,22 @@ function DeferredLandingEnhancements({ pageRef }: { pageRef: RefObject<HTMLEleme
 export function LandingPage() {
   const pageRef = useRef<HTMLElement | null>(null);
 
-  useInViewReveal();
   return (
     <>
       <Suspense fallback={null}>
         <DeferredLandingEnhancements pageRef={pageRef} />
       </Suspense>
-      <main ref={pageRef} className={sharedStyles.page} data-landing-page>
+      <main
+        ref={pageRef}
+        className={sharedStyles.page}
+        data-landing-page
+        data-impeccable-thesis='하나의 검토 기록처럼 이어지는 랜딩 페이지. 범용 카드 그리드를 사용하지 않는다.'
+        data-impeccable-world='Harbor haze와 paper/charcoal, 평평한 구획선, League Gothic과 Wanted Sans, 기존 pill 버튼'
+        data-impeccable-story='경험과 구조의 품질 기준에서 제공 영역, 검토 방식, 진행 방식, 문의로 이어진다.'
+        data-impeccable-first-viewport='밝은 정보 영역과 어두운 파티클 검토창을 나누고, 왼쪽에 헤드라인과 CTA를 둔다.'
+        data-impeccable-form='Calibration Rail, approved option 2, seed 14b0fc7a'
+        data-impeccable-finish='unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, and DESIGN.md'
+      >
         <span
           className={sharedStyles.headerSentinel}
           data-landing-header-sentinel
@@ -82,27 +83,14 @@ export function LandingPage() {
         />
         <HeaderSection />
         <HeroSection />
-        <TrustSection />
+        <QualityStandardSection />
         <ServicesSection />
-        <StackSection />
-        <CaseStoriesSection />
-        <TeamSection />
+        <ReviewMethodSection />
         <ProcessSection />
-        <OperationsPolicySection />
-        <ReviewsSection />
         <FaqSection />
         <ContactSection />
         <FooterSection />
         <LandingScrollbar />
-        <button
-          type='button'
-          className={scrollTopStyles.scrollTop}
-          data-landing-interactive='round'
-          aria-label='상단으로 이동'
-          onClick={scrollToPageTop}
-        >
-          <ChevronUp size={22} strokeWidth={2.2} />
-        </button>
       </main>
     </>
   );

@@ -9,32 +9,59 @@ import sharedStyles from './styles/shared.module.css';
 export function ServicesSection() {
   return (
     <section
-      className={cx(sharedStyles.sectionBlock, styles.serviceChapter)}
+      className={cx(sharedStyles.sectionBlock, sharedStyles.bgSoft, sharedStyles.section)}
       id='services'
       data-landing-section
       data-cursor-contrast='dark'
     >
-      <div className={sharedStyles.container}>
-        <div className={styles.serviceLead} data-reveal>
-          <h2 className={cx(sharedStyles.sectionTitle, styles.serviceTitle)}>제공 서비스</h2>
-          <p className={cx(sharedStyles.sectionDesc, styles.serviceDesc)}>
-            화면 경험부터 업무 시스템, 외부 연동과 운영까지 필요한 범위를 함께 만듭니다.
-          </p>
-        </div>
-        <div className={styles.serviceList}>
-          {services.map((service) => (
-            <article key={service.title} className={styles.serviceCard} data-reveal>
-              <span className={styles.serviceIcon} aria-hidden='true'>
-                <Icon name={service.icon} />
-              </span>
-              <h3>{service.title}</h3>
-              <p>{service.description}</p>
-              <a className={styles.serviceLink} href='#contact'>
-                문의하기
-                <ArrowRight size={15} strokeWidth={1.8} aria-hidden='true' />
-              </a>
-            </article>
-          ))}
+      <div className={sharedStyles.container} data-classic-surface>
+        <div className={cx(styles.serviceLayout, sharedStyles.gridLayout)}>
+          <div
+            className={cx(sharedStyles.reveal, sharedStyles.revealLeft)}
+            data-landing-reveal='left'
+          >
+            <span className={sharedStyles.kicker}>Our Services</span>
+            <h2 className={sharedStyles.sectionTitle}>
+              <span className={sharedStyles.nowrap}>비즈니스에 필요한</span>
+              <br />
+              개발 과정을
+              <br className={sharedStyles.desktopBreak} /> 한 흐름으로.
+            </h2>
+            <p className={sharedStyles.sectionDesc}>
+              화면만 만드는 것이 아니라, 사용 방식·데이터·운영까지 연결해 실제로 굴러가는 서비스를
+              만듭니다.
+            </p>
+          </div>
+          <div
+            className={cx(
+              styles.serviceList,
+              sharedStyles.twoColumnList,
+              sharedStyles.reveal,
+              sharedStyles.revealRight,
+            )}
+            data-landing-reveal='right'
+          >
+            {services.map((service) => (
+              <article
+                key={service.title}
+                className={styles.serviceCard}
+                data-landing-card
+                data-landing-spotlight='card'
+              >
+                <div className={styles.serviceIcon} data-landing-service-icon>
+                  <Icon name={service.icon} />
+                </div>
+                <h3>{service.title}</h3>
+                <p>{service.description}</p>
+                <a className={styles.cardLink} href='#contact' data-landing-interactive='card-link'>
+                  자세히 보기{' '}
+                  <i data-landing-arrow>
+                    <ArrowRight size={14} strokeWidth={2.2} />
+                  </i>
+                </a>
+              </article>
+            ))}
+          </div>
         </div>
       </div>
     </section>

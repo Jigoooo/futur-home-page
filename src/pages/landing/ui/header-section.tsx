@@ -66,14 +66,19 @@ export function HeaderSection() {
       className={styles.nav}
       data-landing-nav
       data-header-surface={surface}
-      data-cursor-contrast='light'
+      data-cursor-contrast='dark'
     >
       <a href='#top' className={styles.logo} aria-label='FUTUR home' onClick={handleHashLinkClick}>
-        FUTUR
+        FUTUR<span>.</span>
       </a>
       <nav className={styles.navMenu} aria-label='주요 메뉴'>
         {navigationItems.map((item) => (
-          <a key={item.href} href={item.href} onClick={handleHashLinkClick}>
+          <a
+            key={item.href}
+            href={item.href}
+            aria-label={item.href === '#services' ? '제공 영역' : undefined}
+            onClick={handleHashLinkClick}
+          >
             {item.label}
           </a>
         ))}
@@ -81,7 +86,7 @@ export function HeaderSection() {
       <Button
         href='#contact'
         className={styles.ctaButton}
-        data-cursor-contrast='dark'
+        data-cursor-contrast='light'
         onClick={handleHashLinkClick}
       >
         <span data-landing-label>문의하기</span>

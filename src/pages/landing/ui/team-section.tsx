@@ -6,33 +6,53 @@ import styles from './styles/team.module.css';
 export function TeamSection() {
   return (
     <section
-      className={cx(sharedStyles.sectionBlock, styles.teamSection)}
+      className={cx(sharedStyles.sectionBlock, sharedStyles.section, styles.teamSection)}
       id='team'
       data-landing-section
       data-cursor-contrast='dark'
     >
-      <div className={sharedStyles.container}>
-        <div className={styles.head} data-reveal>
-          <h2 className={sharedStyles.sectionTitle}>프로젝트를 함께 움직이는 역할</h2>
-          <p className={sharedStyles.sectionDesc}>
-            역할별 전문성을 바탕으로 요구사항부터 운영과 인수인계까지 연결합니다.
-          </p>
-        </div>
-        <div className={styles.roleList}>
-          {teamRoles.map((role) => (
-            <article key={role.badge} className={styles.roleCard} data-reveal>
-              <span className={styles.badge} aria-hidden='true'>
-                {role.badge}
-              </span>
-              <h3>{role.title}</h3>
-              <p>{role.responsibility}</p>
-              <ul aria-label={`${role.title} 담당 영역`}>
-                {role.tags.map((tag) => (
-                  <li key={tag}>{tag}</li>
-                ))}
-              </ul>
-            </article>
-          ))}
+      <div className={sharedStyles.container} data-classic-surface>
+        <div className={cx(styles.teamLayout, sharedStyles.gridLayout)}>
+          <div
+            className={cx(sharedStyles.stickyLead, sharedStyles.reveal, sharedStyles.revealLeft)}
+            data-landing-reveal='left'
+          >
+            <span className={sharedStyles.kicker}>Our Team</span>
+            <h2 className={sharedStyles.sectionTitle}>
+              프로젝트를 움직이는
+              <br />
+              역할들.
+            </h2>
+            <p className={sharedStyles.sectionDesc}>
+              각자의 전문 영역을 나누되, 프로젝트 목표와 사용자의 업무 흐름은 함께 이해합니다.
+            </p>
+          </div>
+          <div
+            className={cx(
+              styles.roleGrid,
+              sharedStyles.twoColumnList,
+              sharedStyles.reveal,
+              sharedStyles.revealRight,
+            )}
+            data-landing-reveal='right'
+          >
+            {teamRoles.map((role) => (
+              <article key={role.badge} className={styles.roleCard}>
+                <div className={styles.roleTop}>
+                  <div className={styles.roleBadge}>{role.badge}</div>
+                </div>
+                <h3>{role.title}</h3>
+                <p className={styles.roleJob}>{role.responsibility}</p>
+                <div className={styles.tags}>
+                  {role.tags.map((tag) => (
+                    <span key={tag} className={styles.tag}>
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              </article>
+            ))}
+          </div>
         </div>
       </div>
     </section>

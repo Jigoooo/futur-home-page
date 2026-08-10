@@ -7,26 +7,37 @@ import sharedStyles from './styles/shared.module.css';
 export function OperationsPolicySection() {
   return (
     <section
-      className={cx(sharedStyles.sectionBlock, styles.operationsSection)}
+      className={cx(sharedStyles.sectionBlock, sharedStyles.bgDark, styles.opsSection)}
       id='operations'
       data-landing-section
-      data-cursor-contrast='dark'
+      data-cursor-contrast='light'
     >
-      <div className={sharedStyles.container}>
-        <div className={styles.head} data-reveal>
-          <h2 className={sharedStyles.sectionTitle}>운영 원칙</h2>
-          <p className={sharedStyles.sectionDesc}>
-            프로젝트 시작부터 종료 이후까지 필요한 운영 조건과 인계 범위를 문서로 남깁니다.
+      <div className={sharedStyles.container} data-classic-surface>
+        <div
+          className={cx(styles.head, sharedStyles.reveal, sharedStyles.revealUp)}
+          data-landing-reveal='up'
+        >
+          <span className={sharedStyles.kicker}>Operations</span>
+          <h2 className={cx(sharedStyles.sectionTitle, styles.title)}>
+            만드는 것에서
+            <br />
+            끝나지 않습니다.
+          </h2>
+          <p className={cx(sharedStyles.sectionDesc, styles.desc)}>
+            운영·보안·인수인계까지 명문화된 기준으로 진행합니다.
           </p>
         </div>
-        <div className={styles.policyList}>
+        <div
+          className={cx(styles.grid, sharedStyles.reveal, sharedStyles.revealUp)}
+          data-landing-reveal='up'
+        >
           {operationsPolicies.map((policy) => (
-            <article key={policy.title} className={styles.policyCard} data-reveal>
-              <span className={styles.icon} aria-hidden='true'>
+            <article key={policy.title} className={styles.card}>
+              <div className={styles.iconBox} aria-hidden='true'>
                 <Icon name={policy.icon} />
-              </span>
-              <h3>{policy.title}</h3>
-              <p>{policy.description}</p>
+              </div>
+              <h3 className={styles.cardTitle}>{policy.title}</h3>
+              <p className={styles.cardDesc}>{policy.description}</p>
             </article>
           ))}
         </div>

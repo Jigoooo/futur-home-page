@@ -35,3 +35,19 @@ test('does not restore unverified proof or cinematic-only scenes', async ({ page
   ).toHaveCount(0);
   await expect(page.getByText(/24\/7|4시간|30\+|95%\+|자동 NDA|경력 \d+년/)).toHaveCount(0);
 });
+
+test('uses classic surfaces without horizontal overflow', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/');
+
+  const width = await page.evaluate(() => ({
+    client: document.documentElement.clientWidth,
+    scroll: document.documentElement.scrollWidth,
+  }));
+  expect(width.scroll).toBeLessThanOrEqual(width.client);
+  await expect(
+    page.locator(
+      '#services [data-classic-surface], #stack [data-classic-surface], #team [data-classic-surface], #process [data-classic-surface], #operations [data-classic-surface]',
+    ),
+  ).toHaveCount(5);
+});

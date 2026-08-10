@@ -13,10 +13,11 @@ test.describe('/ 랜딩 페이지 정적 스캔', () => {
    * 전체 스캔보다 빠르게 위치를 좁혀준다.
    */
   const sections = [
-    { id: '#quality', name: '품질 기준' },
     { id: '#services', name: '제공 영역' },
-    { id: '#review', name: '검토 방식' },
+    { id: '#stack', name: '기술 스택' },
+    { id: '#team', name: '팀' },
     { id: '#process', name: '진행 방식' },
+    { id: '#operations', name: '운영 원칙' },
     { id: '#faq', name: 'FAQ(첫 항목만 펼침)' },
     { id: '#contact', name: 'Contact(초기 상태)' },
   ] as const;

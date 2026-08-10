@@ -4,7 +4,7 @@
 
 **Goal:** 현재 전체 화면 Hero와 semantic 커스텀 커서는 유지하면서, Hero 이후를 팀 소개가 존재했던 `12fa1c8`의 클래식 랜딩 레이아웃으로 선택 복원한다.
 
-**Architecture:** 과거 커밋을 전체 revert하지 않고 컴포넌트·설정·CSS를 섹션 단위로 선택 복원한다. 현재 Hero particle 런타임, cursor tone 경계, 문의 클라이언트·서버 계약은 그대로 두고, 클래식 표현이 필요한 컴포넌트는 현재 접근성 마크업에 과거 시각 스타일을 이식한다. 검증되지 않은 증거 섹션은 테스트에서 부재 계약으로 고정한다.
+**Architecture:** 과거 커밋을 전체 revert하지 않고 컴포넌트·설정·CSS를 섹션 단위로 선택 복원한다. 현재 Hero particle 런타임과 cursor tone 경계는 그대로 둔다. Hero·커서를 제외한 클래식 화면은 `12fa1c8`의 실제 소스에서 시작하며, 문의 화면도 과거 TSX·필드 구성·CSS를 직접 복원한 뒤 현재의 강화된 서버 계약과 보안 경계만 다시 연결한다. 검증되지 않은 증거 섹션은 테스트에서 부재 계약으로 고정한다.
 
 **Tech Stack:** React 19, TypeScript 6, CSS Modules, GSAP 3, TanStack Start, Playwright 1.60, axe-core
 
@@ -12,10 +12,12 @@
 
 - 복원 기준점은 Git commit `12fa1c8`이다.
 - `git checkout 12fa1c8 -- .`, 전체 revert, 강제 reset을 사용하지 않는다.
-- Hero·커서·문의 보안 예외를 제외한 랜딩 TSX·CSS는 `git show 12fa1c8:<path>`의 파일 본문 자체를 출발점으로 복원한다.
+- Hero·커서·문의 서버 보안 예외를 제외한 랜딩 TSX·CSS는 `git show 12fa1c8:<path>`의 파일 본문 자체를 출발점으로 복원한다. 문의 UI는 예외가 아니며 반드시 과거 소스에서 시작한다.
 - 현재 컴포넌트에 과거 token·간격을 재해석해 입히지 않는다. 과거 소스에서 시작해 사실 경계·현재 호환성·접근성 marker만 최소 수정한다.
 - 현재 `HeroSection`, Hero particle engine/shader/GL, `CustomCursor`, `useCustomCursor` 동작을 보존한다.
-- 현재 문의 필드명, 검증, 전송 상태, fallback mail, 서버 allowlist/rate-limit/idempotency/honeypot/form-age/test-address guard를 보존한다.
+- 문의의 과거 단계·서비스·일정·예산·담당자·내용·동의 필드 구성과 좌우 레이아웃을 복원한다.
+- 현재 서버 입력 계약에 필요한 필드명, 검증, 전송 상태, fallback mail, 서버 allowlist/rate-limit/idempotency/honeypot/form-age/test-address guard를 과거 UI에 연결한다.
+- 과거 문의의 `평균 회신 24시간`, `빠른 범위 검토` 같은 미검증 SLA 문구는 복원하지 않는다.
 - 현재 pill 버튼의 spotlight, sheen, focus-visible, press 동작을 보존한다.
 - 숫자 지표, 고객 후기, 익명 완료 사례, `24/7`, `4시간 응답`, 경력 연수, 자동 NDA를 복원하지 않는다.
 - 신규 런타임 의존성을 추가하지 않는다.
@@ -42,7 +44,10 @@
 - `src/pages/landing/model/types.ts`
 - `src/pages/landing/ui/{services,stack,team,process,operations-policy}-section.tsx`
 - `src/pages/landing/ui/{header,faq,contact,footer}-section.tsx`
+- `src/pages/landing/ui/{contact-brief-fields,contact-identity-fields,custom-select}.tsx`
+- `src/pages/landing/config/contact.ts`
 - `src/pages/landing/ui/styles/{shared,header,services,stack,team,process,operations-policy,faq,contact,footer}.module.css`
+- `src/pages/landing/ui/styles/form-controls.module.css`
 - `src/pages/landing/ui/{landing-page,landing-enhancements}.tsx`
 - `src/pages/landing/ui/{use-in-view-reveal,use-landing-gsap-interactions}.ts`
 
@@ -507,7 +512,9 @@ git commit -m "feat(landing): 클래식 본문과 헤더 스타일 복원"
 **Files:**
 
 - Modify: `e2e/landing-classic-restoration.chrome.spec.ts`
+- Modify: `src/pages/landing/config/contact.ts`
 - Modify: `src/pages/landing/ui/{faq,contact,footer}-section.tsx`
+- Modify: `src/pages/landing/ui/{contact-brief-fields,contact-identity-fields,custom-select}.tsx`
 - Modify: `src/pages/landing/ui/styles/{faq,contact,form-controls,footer}.module.css`
 - Test unchanged: `e2e/contact-delivery.chrome.spec.ts`
 - Test unchanged: `e2e/contact-mail-safety.chrome.spec.ts`
@@ -516,20 +523,29 @@ git commit -m "feat(landing): 클래식 본문과 헤더 스타일 복원"
 
 **Interfaces:**
 
-- Preserves: FAQ `aria-expanded`/`aria-controls`, Contact input names, native consent controls, submit state, legal modal triggers.
+- Preserves: FAQ `aria-expanded`/`aria-controls`, Contact server input names, native consent controls, submit state, legal modal triggers.
 - Produces: FAQ와 Contact의 `data-classic-surface`; factual Footer columns.
+- Restores: 문의 단계·서비스·일정·예산·담당자·내용·동의 필드와 `12fa1c8`의 클래식 좌우 레이아웃.
 
 - [ ] **Step 1: 하단 기능·geometry RED 테스트 추가**
 
 ```ts
-test('keeps classic lower surfaces and native contact controls', async ({ page }) => {
+test('restores the classic contact composition and native controls', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/#contact');
 
   await expect(
     page.locator('#faq [data-classic-surface], #contact [data-classic-surface]'),
   ).toHaveCount(2);
-  for (const name of ['privacyConsent', 'collectionConsent']) {
+  await expect(page.locator('#contact input[name="stage"]')).toHaveCount(3);
+  await expect(page.locator('#contact input[name="services"]')).toHaveCount(5);
+  await expect(page.locator('#contact input[type="hidden"][name="timeline"]')).toHaveCount(1);
+  await expect(page.locator('#contact input[type="hidden"][name="budget"]')).toHaveCount(1);
+  await expect(page.locator('#contact input[name="name"]')).toHaveCount(1);
+  await expect(page.locator('#contact input[name="company"]')).toHaveCount(1);
+  await expect(page.locator('#contact input[name="email"]')).toHaveCount(1);
+  await expect(page.locator('#contact textarea[name="message"]')).toHaveCount(1);
+  for (const name of ['collectionConsent', 'overseasTransferConsent']) {
     const input = page.locator(`input[name="${name}"]`);
     await input.locator('..').click();
     await expect(input).toBeChecked();
@@ -541,13 +557,13 @@ test('keeps classic lower surfaces and native contact controls', async ({ page }
 
 Run: `pnpm exec playwright test e2e/landing-classic-restoration.chrome.spec.ts --grep "lower surfaces" --workers=1`
 
-Expected: classic surface가 없어 FAIL.
+Expected: classic surface 또는 과거 문의 구성 계약이 없어 FAIL.
 
 - [ ] **Step 3: FAQ 시각 레이어만 복원**
 
 `faq-section.tsx`와 `styles/faq.module.css`는 `git show 12fa1c8:<path>`의 파일 본문 자체에서 시작한다. 현재 FAQ config 카피와 disclosure 접근성 계약을 다시 연결하고 `data-classic-surface`만 추가한다.
 
-- [ ] **Step 4: 문의 로직을 고정하고 밝은 클래식 폼 적용**
+- [ ] **Step 4: 과거 문의 소스를 완전히 복원하고 현재 서버 경계 연결**
 
 다음 input name을 변경하지 않는다.
 
@@ -555,19 +571,22 @@ Expected: classic surface가 없어 FAIL.
 const protectedContactNames = [
   'name',
   'email',
-  'phone',
   'company',
-  'projectType',
   'stage',
-  'schedule',
+  'timeline',
   'budget',
+  'services',
+  'otherService',
   'message',
-  'privacyConsent',
   'collectionConsent',
+  'overseasTransferConsent',
+  'website',
 ];
 ```
 
-`contact-section.tsx`, `styles/contact.module.css`, `styles/form-controls.module.css`는 `12fa1c8`의 파일 본문과 class 구조에서 시작한다. 그 위에 현재 input name, validation, pending/success/failure 상태, fallback mail, visible label surface와 native checkbox 연결을 다시 이식한다. 서버 파일은 수정하지 않는다.
+`contact-section.tsx`, `contact-brief-fields.tsx`, `contact-identity-fields.tsx`, `custom-select.tsx`, `config/contact.ts`, `styles/contact.module.css`, `styles/form-controls.module.css`는 모두 `git show 12fa1c8:<path>`의 파일 본문과 class 구조에서 시작한다. 현재 어두운 시네마틱 문의 wrapper나 현재 필드 배열을 남겨두고 스타일만 바꾸지 않는다.
+
+과거의 단계·필요 서비스·일정·예산·담당자 정보·문의 내용·동의 UI와 좌우 레이아웃을 그대로 복원한 뒤, 현재 `ContactInquiryInput`, pending/success/failure, fallback mail, visible label surface와 native checkbox 연결을 최소 수정으로 다시 이식한다. `평균 회신 24시간`, `빠른 범위 검토`는 삭제하고 확인 가능한 이메일 등만 남긴다. 서버 파일은 수정하지 않는다.
 
 - [ ] **Step 5: Footer 정보 구조 복원**
 
@@ -586,7 +605,7 @@ Expected: 0 failed. 환경 용량 guard에 의한 기존 skip만 허용.
 - [ ] **Step 7: 커밋**
 
 ```bash
-git add e2e/landing-classic-restoration.chrome.spec.ts src/pages/landing/ui/faq-section.tsx src/pages/landing/ui/contact-section.tsx src/pages/landing/ui/footer-section.tsx src/pages/landing/ui/styles/faq.module.css src/pages/landing/ui/styles/contact.module.css src/pages/landing/ui/styles/form-controls.module.css src/pages/landing/ui/styles/footer.module.css
+git add e2e/landing-classic-restoration.chrome.spec.ts src/pages/landing/config/contact.ts src/pages/landing/ui/faq-section.tsx src/pages/landing/ui/contact-section.tsx src/pages/landing/ui/contact-brief-fields.tsx src/pages/landing/ui/contact-identity-fields.tsx src/pages/landing/ui/custom-select.tsx src/pages/landing/ui/footer-section.tsx src/pages/landing/ui/styles/faq.module.css src/pages/landing/ui/styles/contact.module.css src/pages/landing/ui/styles/form-controls.module.css src/pages/landing/ui/styles/footer.module.css
 git commit -m "feat(landing): 클래식 문의와 하단 레이아웃 복원"
 ```
 

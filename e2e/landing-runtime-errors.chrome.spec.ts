@@ -28,7 +28,7 @@ test('initial load and primary interactions emit no runtime errors', async ({ pa
   await page.waitForTimeout(350);
   await page
     .getByRole('navigation', { name: '주요 메뉴' })
-    .getByRole('link', { name: '서비스' })
+    .getByRole('link', { name: '제공 영역' })
     .click();
   await page.locator('#services').getByRole('link').first().hover();
   await page.mouse.move(0, 0);

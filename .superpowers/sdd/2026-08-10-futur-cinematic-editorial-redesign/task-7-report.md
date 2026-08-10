@@ -37,3 +37,9 @@
 - Added behavioral cursor coverage: two post-enable pointer moves establish ready state, then it checks Hero, Quality, dark contact, nested CTA and form tones, both ring/dot color and visibility, blur/pageshow recovery, and coarse/reduced disablement. It passed 1/1.
 - Added the 390px contact-surface radius and flat-control assertion.
 - Follow-up gates: contact delivery 3/3; mail safety 1/1; server boundaries 6 pass and 3 configured capacity skips; lint passed with 5 existing role-choice warnings; build and diff-check passed. The combined run detached while interactive a11y was executing, so its result is not claimed here.
+
+## Review round 2
+
+- Controller evidence: interactive a11y passed 4/4 in 9.5 seconds.
+- Root cause for the initial runtime spec failure was a stale visible-copy locator (`서비스`) after the approved navigation label became `제공 영역`; no runtime error was emitted.
+- Updated only that navigation locator while preserving runtime-error collection and assertions. Single-worker runtime verification passed 1/1 in 7.9 seconds.

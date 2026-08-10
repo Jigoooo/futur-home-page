@@ -31,7 +31,7 @@
 .ctaWrap h2 {
   margin: 0;
   color: #f2f5f1;
-  font-size: clamp(43px, 5.6vw, 72px);
+  font-size: clamp(43px, 3.75vw, 48px);
   line-height: 1.04;
   font-weight: 720;
   letter-spacing: -0.04em;

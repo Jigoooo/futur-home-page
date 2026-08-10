@@ -43,6 +43,7 @@ graphify-out/
 .playwright-mcp/
 .omc/
 .omx/
+.impeccable/
 .superpowers/
 .review-screens/
 _workspace/

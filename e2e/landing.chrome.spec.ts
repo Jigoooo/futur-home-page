@@ -14,9 +14,7 @@ test('loads the landing page through Chrome', async ({ page }) => {
   await page.goto('/');
 
   await expect(page.getByRole('link', { name: 'FUTUR home' })).toBeVisible();
-  await expect(
-    page.getByRole('heading', { name: 'VISIBLE EXPERIENCE. SOUND STRUCTURE.' }),
-  ).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'BUILT FOR WHAT’S NEXT.' })).toBeVisible();
   await expect(page.locator('canvas[data-hero-particles]')).toHaveCount(1);
 
   await page.getByRole('link', { name: /프로젝트 문의하기/ }).click();
@@ -46,7 +44,7 @@ test('animates header navigation scroll to sections', async ({ page }) => {
 
   await page
     .getByRole('navigation', { name: '주요 메뉴' })
-    .getByRole('link', { name: '서비스' })
+    .getByRole('link', { name: '제공 영역' })
     .click();
 
   await expect(page.locator('#services')).toBeInViewport();

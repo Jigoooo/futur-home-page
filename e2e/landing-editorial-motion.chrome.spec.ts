@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-const HERO_LABEL = 'VISIBLE EXPERIENCE. SOUND STRUCTURE.';
+const HERO_LABEL = 'BUILT FOR WHAT’S NEXT.';
 
 test('serves the editorial landing content without a JavaScript visibility gate', async ({
   browser,
@@ -18,7 +18,7 @@ test('serves the editorial landing content without a JavaScript visibility gate'
 
   await page.goto('/');
   await expect(page.getByRole('heading', { level: 1, name: HERO_LABEL })).toBeVisible();
-  await expect(page.getByText(/보이는 화면과 보이지 않는 구조를/)).toBeVisible();
+  await expect(page.getByText(/화면에 보이는 경험부터 코드와 데이터/)).toBeVisible();
   await expect(page.locator('.style-gate-loader')).toHaveCount(0);
 
   const noScriptPage = await browser.newPage({ javaScriptEnabled: false });
@@ -66,10 +66,10 @@ test('limits staggered entrance motion to the hero and keeps later sections visi
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto('/');
 
-  const heroWords = page.locator('[data-landing-hero] [data-editorial-word]');
-  await expect(heroWords).toHaveCount(4);
+  const heroUnits = page.locator('[data-landing-hero] [data-editorial-unit]');
+  await expect(heroUnits).toHaveCount(2);
 
-  const heroMotion = await heroWords.evaluateAll((elements) =>
+  const heroMotion = await heroUnits.evaluateAll((elements) =>
     elements.map((element) => {
       const style = getComputedStyle(element);
       return {
@@ -85,7 +85,7 @@ test('limits staggered entrance motion to the hero and keeps later sections visi
   expect(heroMotion.every(({ filter }) => filter === 'none')).toBe(true);
 
   const sections = page.locator('[data-landing-section]:not([data-landing-hero])');
-  await expect(sections).toHaveCount(8);
+  await expect(sections).toHaveCount(7);
   const visibility = await sections.evaluateAll((elements) =>
     elements.map((element) => {
       const style = getComputedStyle(element);
@@ -104,7 +104,9 @@ test.describe('reduced motion', () => {
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await page.goto('/');
 
-    const motion = await page.locator('[data-editorial-word]').evaluateAll((elements) =>
+    const heroUnits = page.locator('[data-landing-hero] [data-editorial-unit]');
+    await expect(heroUnits).toHaveCount(2);
+    const motion = await heroUnits.evaluateAll((elements) =>
       elements.map((element) => {
         const style = getComputedStyle(element);
         return {

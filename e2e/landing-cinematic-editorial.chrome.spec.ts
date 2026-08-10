@@ -120,6 +120,37 @@ test('keeps Hero copy inside deliberate responsive gutters', async ({ page }) =>
   expect((await title.boundingBox())?.x).toBeGreaterThanOrEqual(20);
 });
 
+test('keeps the mobile header inquiry button inside its capsule', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/');
+
+  const headerBox = await page.locator('[data-landing-nav]').boundingBox();
+  const inquiryBox = await page
+    .locator('[data-landing-nav] [data-landing-interactive="button"]')
+    .boundingBox();
+
+  expect(headerBox).not.toBeNull();
+  expect(inquiryBox).not.toBeNull();
+  expect(inquiryBox!.x).toBeGreaterThanOrEqual(headerBox!.x);
+  expect(inquiryBox!.x + inquiryBox!.width).toBeLessThanOrEqual(headerBox!.x + headerBox!.width);
+});
+
+test('keeps major editorial and contact titles within the approved scale', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await page.goto('/');
+
+  for (const heading of await page.locator('#services h2, #faq h2').all()) {
+    expect(
+      Number.parseFloat(await heading.evaluate((node) => getComputedStyle(node).fontSize)),
+    ).toBeLessThanOrEqual(55);
+  }
+
+  const contactTitle = page.locator('#contact h2');
+  expect(
+    Number.parseFloat(await contactTitle.evaluate((node) => getComputedStyle(node).fontSize)),
+  ).toBeLessThanOrEqual(48);
+});
+
 test('uses the approved cinematic editorial information architecture', async ({ page }) => {
   await page.goto('/');
 

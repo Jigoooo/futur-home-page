@@ -108,7 +108,8 @@
     padding-inline: 18px 10px;
   }
 
-  .ctaButton {
+  .nav .ctaButton {
+    width: auto;
     min-height: 40px;
     padding: 0 15px;
     font-size: 13px;

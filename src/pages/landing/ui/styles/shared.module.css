@@ -70,7 +70,7 @@
 .sectionTitle {
   margin: 0;
   color: var(--charcoal);
-  font-size: clamp(40px, 5vw, 68px);
+  font-size: clamp(40px, 4.3vw, 55px);
   line-height: 1.08;
   font-weight: 760;
   letter-spacing: -0.035em;

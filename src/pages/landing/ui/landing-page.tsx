@@ -65,17 +65,7 @@ export function LandingPage() {
       <Suspense fallback={null}>
         <DeferredLandingEnhancements pageRef={pageRef} />
       </Suspense>
-      <main
-        ref={pageRef}
-        className={sharedStyles.page}
-        data-landing-page
-        data-impeccable-thesis='하나의 검토 기록처럼 이어지는 랜딩 페이지. 범용 카드 그리드를 사용하지 않는다.'
-        data-impeccable-world='Harbor haze와 paper/charcoal, 평평한 구획선, League Gothic과 Wanted Sans, 기존 pill 버튼'
-        data-impeccable-story='경험과 구조의 품질 기준에서 제공 영역, 검토 방식, 진행 방식, 문의로 이어진다.'
-        data-impeccable-first-viewport='밝은 정보 영역과 어두운 파티클 검토창을 나누고, 왼쪽에 헤드라인과 CTA를 둔다.'
-        data-impeccable-form='Calibration Rail, approved option 2, seed 14b0fc7a'
-        data-impeccable-finish='unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, and DESIGN.md'
-      >
+      <main ref={pageRef} className={sharedStyles.page} data-landing-page>
         <span
           className={sharedStyles.headerSentinel}
           data-landing-header-sentinel

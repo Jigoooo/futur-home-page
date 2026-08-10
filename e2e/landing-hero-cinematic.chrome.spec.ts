@@ -124,6 +124,33 @@ test('morphs surfaces and accumulates a damped pointer trail', async ({ page }) 
   await expect(canvas).not.toHaveAttribute('data-particle-surface', initialSurface ?? '');
 });
 
+test('keeps fast pointer movement within the restrained interaction profile', async ({ page }) => {
+  await page.goto('/');
+
+  const canvas = page.locator('canvas[data-hero-particles]');
+  await expect(canvas).toHaveAttribute('data-particle-state', 'ready');
+
+  const box = await canvas.boundingBox();
+  expect(box).not.toBeNull();
+  if (!box) return;
+
+  for (let step = 0; step < 12; step += 1) {
+    await page.mouse.move(
+      box.x + box.width * (0.18 + step * 0.055),
+      box.y + box.height * (step % 2 === 0 ? 0.34 : 0.58),
+    );
+  }
+
+  await expect
+    .poll(async () => Number(await canvas.getAttribute('data-pointer-samples')))
+    .toBeGreaterThan(2);
+  await expect(canvas).toHaveAttribute('data-pointer-response', 'restrained');
+
+  const impulse = Number(await canvas.getAttribute('data-pointer-impulse'));
+  expect(impulse).toBeGreaterThan(0);
+  expect(impulse).toBeLessThanOrEqual(0.004);
+});
+
 test('does not start the particle renderer for reduced motion or Save-Data', async ({
   browser,
 }) => {

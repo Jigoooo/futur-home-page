@@ -72,6 +72,13 @@ vec2 projectSurface(vec3 position, float aspect) {
 }
 `;
 
+export const HERO_POINTER_RESPONSE = {
+  radialImpulse: 0.0035,
+  radiusMax: 0.105,
+  radiusMin: 0.055,
+  tangentImpulse: 0.0005,
+} as const;
+
 export const DISPLACEMENT_VERTEX_SHADER = `#version 300 es
 precision highp float;
 
@@ -110,13 +117,13 @@ void main() {
     vec2 delta = ndc - samplePoint.xy;
     delta.x *= uAspect;
     float distanceFromPointer = length(delta);
-    float radius = mix(0.09, 0.2, samplePoint.z);
+    float radius = mix(${HERO_POINTER_RESPONSE.radiusMin}, ${HERO_POINTER_RESPONSE.radiusMax}, samplePoint.z);
     float influence = exp(-distanceFromPointer * distanceFromPointer / (radius * radius));
     vec2 direction = delta / max(distanceFromPointer, 0.001);
     direction.x /= uAspect;
     vec2 tangent = vec2(-direction.y, direction.x);
-    field += direction * influence * samplePoint.z * samplePoint.w * 0.018;
-    field += tangent * influence * samplePoint.z * samplePoint.w * 0.004;
+    field += direction * influence * samplePoint.z * samplePoint.w * ${HERO_POINTER_RESPONSE.radialImpulse};
+    field += tangent * influence * samplePoint.z * samplePoint.w * ${HERO_POINTER_RESPONSE.tangentImpulse};
   }
 
   outColor = vec4(clamp(field, vec2(-0.16), vec2(0.16)), 0.0, 1.0);

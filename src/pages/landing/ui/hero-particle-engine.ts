@@ -12,6 +12,7 @@ import {
   DISPLACEMENT_VERTEX_SHADER,
   EMITTER_FRAGMENT_SHADER,
   EMITTER_VERTEX_SHADER,
+  HERO_POINTER_RESPONSE,
   MAIN_FRAGMENT_SHADER,
   MAIN_VERTEX_SHADER,
 } from './hero-particle-shaders';
@@ -428,6 +429,8 @@ export function createHeroParticleEngine(canvas: HTMLCanvasElement): HeroParticl
   canvas.dataset.particleDisplacement = `trail-${POINTER_TRAIL_SIZE}`;
   canvas.dataset.particleEmitter = tier.emit > 0 ? 'active' : 'disabled';
   canvas.dataset.particleSurface = '0-1';
+  canvas.dataset.pointerImpulse = String(HERO_POINTER_RESPONSE.radialImpulse);
+  canvas.dataset.pointerResponse = 'restrained';
   canvas.dataset.pointerSamples = '0';
   resize();
 

@@ -24,9 +24,9 @@ Skiper, Tailwind, Framer Motion을 비롯한 새 의존성은 추가하지 않�
 - `compact`: Hero 이탈 뒤 표시되는 Compact 상태
 - `menu-expanded`: Compact 버튼으로 다섯 개 메뉴를 펼친 상태
 
-데스크톱 기준 viewport는 `1280x720`이다. Hero에서는 `hero-expanded`로 시작하고 Hero 이탈 후 `compact`가 된다. Compact 크기는 약 `220x58px`, 확장 메뉴는 최대 `820x68px`다. Compact 버튼은 상태나 라벨과 무관한 `data-header-toggle` marker를 제공한다.
+데스크톱 기준 viewport는 `1280x720`이다. Hero에서는 `hero-expanded`로 시작하고 Hero 이탈 후 `compact`가 된다. 이 viewport에서 Hero expanded는 `1232x76px`, Compact는 `220x58px`, 확장 메뉴는 `820x68px`이며 top은 `18px`다. Compact 버튼은 상태나 라벨과 무관한 `data-header-toggle` marker를 제공한다.
 
-모바일 기준 viewport는 `390x844`다. 모바일은 Hero에서도 `compact`로 시작한다. 확장 시 화면 좌우에 각각 최소 `10px`을 남기며 약 `158px` 높이 안에서 다섯 메뉴를 첫 줄 3개, 둘째 줄 2개의 `3+2` grid로 표시한다. 문서와 메뉴 어느 쪽에도 가로 overflow가 생기면 안 된다.
+모바일 기준 viewport는 `390x844`다. 모바일은 Hero에서도 `compact`로 시작한다. Compact는 `220x56px`, top `10px`이고 확장 메뉴는 `370x158px`다. 확장 시 화면 좌우에 각각 `10px`을 남기며 다섯 메뉴를 첫 줄 3개, 둘째 줄 2개의 `3+2` grid로 표시한다. 문서와 메뉴 어느 쪽에도 가로 overflow가 생기면 안 된다.
 
 ## 3. 동작과 현재 위치
 
@@ -73,6 +73,8 @@ Adaptive Island 표면은 배경에 따라 다음 값을 사용한다.
 
 표면에는 inset highlight를 사용하고 fine pointer 환경에서만 spotlight를 제공한다. 스크롤 가장자리의 blur는 progressive하게 적용한다. `backdrop-filter` 미지원 환경과 고대비 환경에서는 효과에 의존하지 않고 `94%` 불투명 표면으로 대체해 텍스트 대비와 경계를 유지한다.
 
+fixed outer Header는 위치와 Flip geometry만 소유하고, 단일 inner `data-header-glass` surface가 glass 표현을 소유한다. `will-change`는 `data-header-motion='true'`인 전환 구간에만 유지한다. Hash target offset은 CSS의 Compact 기준값인 desktop `92px`, mobile `82px`을 사용한다.
+
 ## 6. 접근성, no-JS, reduced-motion
 
 - 상단바는 `주요 메뉴`라는 navigation landmark를 유지한다.
@@ -106,10 +108,15 @@ Adaptive Island 표면은 배경에 따라 다음 값을 사용한다.
 - `e2e/contact-server-boundaries.chrome.spec.ts`의 server 경계 행동 회귀
 - `e2e/contact-mail-safety.chrome.spec.ts`의 실제 메일 차단 행동 회귀
 - 문의 입력 검증, 메일 전송, allowlist, rate limit, idempotency, honeypot, form-age, test-address guard를 포함한 server 코드
+- 개인정보처리방침과 이용약관의 기존 production 문구 및 수집 항목
 
-즉, 이번 변경은 공개 랜딩의 문의 UI와 그 진입점만 제거한다. 입력 모델과 server 함수는 삭제하거나 약화하지 않으며, Footer 이메일은 사용자가 연락할 수 있는 공개 경로로 남긴다.
+즉, 이번 변경은 공개 랜딩의 문의 UI와 그 진입점만 제거한다. 입력 모델과 server 함수는 삭제하거나 약화하지 않으며, Footer 이메일·주소·`mailto:`와 company JSON-LD `ContactPoint`는 사용자가 연락할 수 있는 공개 경로로 남긴다. particle shader/engine의 `contact`는 포인터와 표면의 물리적 접촉을 뜻하므로 문의 UI 제거 대상이 아니다.
 
-## 8. 검증 계약
+## 8. Hero full-bleed와 콘텐츠 gutter
+
+Hero의 particle layer와 canvas는 viewport 전체 폭을 유지한다. HTML content wrapper는 desktop에서 `min(1400px, calc(100% - 64px))`, `720px` 이하에서 `calc(100% - 40px)`를 사용해 `390px` viewport의 좌우 gutter를 각각 `20px` 이상 보장한다. 공유 본문 container의 mobile `14px` gutter가 Hero wrapper를 덮어쓰지 않아야 한다.
+
+## 9. 검증 계약
 
 Playwright는 실제 Chrome에서 다음을 검증한다.
 
@@ -120,5 +127,6 @@ Playwright는 실제 Chrome에서 다음을 검증한다.
 - `390x844`의 Hero Compact, `3+2` grid, 좌우 `10px` 여백, 가로 overflow 방지
 - reduced-motion의 CSS/GSAP/Flip 없는 즉시 전환과 700ms 매-frame geometry/transform/opacity 안정성, no-JS 정적 탐색
 - 문의 UI 및 접근 가능한 이름이 문의인 Header CTA 제거, 최종 섹션 순서, Hero canvas, Footer 이메일, 문의 모델·server 세 계층과 server/mail 행동 spec 보존
+- 모바일 Hero HTML copy의 좌우 `20px` 이상 gutter와 particle layer의 viewport-wide 폭 동시 보존
 
 최종 구현은 대상 Playwright, 전체 E2E, axe WCAG 2.2 AA, lint, build, `graphify update .`, diff-check를 통과해야 한다.

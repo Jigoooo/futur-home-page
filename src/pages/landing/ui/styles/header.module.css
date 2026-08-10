@@ -4,7 +4,7 @@
   left: 50%;
   z-index: 60;
   display: flex;
-  width: min(1440px, calc(100% - 48px));
+  width: min(1400px, calc(100% - 64px));
   height: 64px;
   align-items: center;
   justify-content: space-between;
@@ -103,7 +103,7 @@
 @media (max-width: 900px) {
   .nav {
     top: 10px;
-    width: calc(100% - 32px);
+    width: calc(100% - 40px);
     height: 58px;
     padding-inline: 18px 10px;
   }

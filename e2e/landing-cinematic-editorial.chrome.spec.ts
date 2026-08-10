@@ -20,6 +20,9 @@ test('renders the approved full-screen particle hero with restrained typography'
   expect(await title.evaluate((node) => getComputedStyle(node).fontFamily)).not.toContain(
     'League Gothic',
   );
+  expect(await page.evaluate(() => getComputedStyle(document.body).fontFamily)).toContain(
+    'Wanted Sans Variable',
+  );
   await expect(hero.getByRole('link', { name: '프로젝트 문의하기' })).toHaveCount(1);
 });
 
@@ -35,6 +38,17 @@ test('preserves in-view reveal targets and tablet navigation', async ({ page }) 
       ),
   ).toBe(true);
   await expect(page.getByRole('navigation', { name: '주요 메뉴' })).toBeVisible();
+});
+
+test('keeps Hero copy inside deliberate responsive gutters', async ({ page }) => {
+  const title = page.getByRole('heading', { level: 1, name: 'BUILT FOR WHAT’S NEXT.' });
+
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await page.goto('/');
+  expect((await title.boundingBox())?.x).toBeGreaterThanOrEqual(32);
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  expect((await title.boundingBox())?.x).toBeGreaterThanOrEqual(20);
 });
 
 test('uses the approved cinematic editorial information architecture', async ({ page }) => {

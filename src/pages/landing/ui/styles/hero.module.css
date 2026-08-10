@@ -65,8 +65,9 @@
   position: relative;
   z-index: 2;
   display: flex;
-  width: 100%;
+  width: min(1400px, calc(100% - 64px));
   align-items: flex-end;
+  margin-inline: auto;
   padding-top: clamp(148px, 22vh, 220px);
   padding-bottom: clamp(72px, 12vh, 132px);
 }
@@ -126,6 +127,7 @@
 @media (max-width: 720px) {
   .heroInner {
     align-items: flex-end;
+    width: calc(100% - 40px);
     padding-top: 132px;
     padding-bottom: 58px;
   }

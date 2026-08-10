@@ -621,10 +621,11 @@ git commit -m "feat(landing): 클래식 문의와 하단 레이아웃 복원"
 - Modify: `src/pages/landing/ui/landing-enhancements.tsx`
 - Modify: `src/pages/landing/ui/use-in-view-reveal.ts`
 - Modify: `src/pages/landing/ui/use-landing-gsap-interactions.ts`
+- Modify: `src/pages/landing/ui/styles/shared.module.css`
 
 **Interfaces:**
 
-- Preserves: `useCustomCursor()`, `CustomCursor`, current button interaction.
+- Preserves: `CustomCursor` 내부의 `useCustomCursor()`, current button interaction, deferred enhancement mount.
 - Removes: quality/merge/review/process scene timelines.
 - Produces: `[data-landing-reveal][data-landing-visible='true']` one-shot reveal.
 
@@ -639,6 +640,16 @@ test('reveals classic sections once without hiding SSR content', async ({ page }
     'data-landing-visible',
     'true',
   );
+});
+
+test('keeps classic content visible without JavaScript', async ({ browser }) => {
+  const context = await browser.newContext({ javaScriptEnabled: false });
+  const page = await context.newPage();
+  await page.goto('/');
+  await expect(page.locator('#services [data-landing-reveal]').first()).toBeVisible();
+  await expect(page.locator('#team [data-landing-reveal]').first()).toBeVisible();
+  await expect(page.locator('#contact [data-landing-reveal]').first()).toBeVisible();
+  await context.close();
 });
 
 test.describe('reduced motion', () => {
@@ -658,25 +669,19 @@ Run: `pnpm exec playwright test e2e/landing-editorial-motion.chrome.spec.ts --wo
 
 Expected: 현재 scene motion 계약과 새 classic reveal 계약이 달라 FAIL.
 
-- [ ] **Step 3: LandingEnhancements를 커서·버튼 경계로 축소**
+- [ ] **Step 3: LandingEnhancements의 현재 커서·버튼 경계 보존**
 
-```tsx
-export function LandingEnhancements({ pageRef }: Props) {
-  useCustomCursor();
-  useLandingGsapInteractions(pageRef);
-  return <CustomCursor />;
-}
-```
-
-scene motion import와 mount를 제거한다.
+현재 `LandingEnhancements`는 `useLandingGsapInteractions(pageRef)`와 `<CustomCursor />`만 렌더링하고, `CustomCursor` 내부가 `useCustomCursor()`를 호출한다. 이 구조를 그대로 유지한다. `useCustomCursor()`를 `LandingEnhancements`에서 중복 호출하지 않는다. scene motion import·mount·ready attribute가 없음을 테스트와 source scan으로 고정한다.
 
 - [ ] **Step 4: one-shot reveal 구현**
 
-`use-in-view-reveal.ts`는 `git show 12fa1c8:src/pages/landing/ui/use-in-view-reveal.ts`의 파일 본문 자체에서 시작한다. 현재 SSR visibility gate와 reduced-motion 요구에 필요한 최소 보정만 적용하고, 과거의 `data-landing-reveal` → `data-landing-visible` one-shot 계약을 그대로 사용한다.
+`use-in-view-reveal.ts`는 `git show 12fa1c8:src/pages/landing/ui/use-in-view-reveal.ts`의 파일 본문 자체에서 시작한다. 과거의 `data-landing-reveal` → `data-landing-visible` one-shot 계약을 그대로 사용한다. reduced-motion이면 모든 target을 즉시 final state로 표시하고 observer를 만들지 않는다.
+
+`styles/shared.module.css`도 과거 reveal 스타일을 기준으로 하되 JavaScript 비활성화 시 `.reveal`이 기본적으로 보여야 한다. enhancement가 준비된 `body[data-landing-ready='true']`에서만 아직 visible이 아닌 target을 숨겨 reveal하도록 최소 gate를 추가한다. reduced-motion에서는 opacity/transform transition 없이 최종 상태를 유지한다.
 
 - [ ] **Step 5: 시네마틱 테스트 정리**
 
-`landing-cinematic-editorial.chrome.spec.ts`에서 quality stage, merge, review mask, process path, dark cinematic contact 기대만 제거한다. Hero full viewport/gutter, mobile header, scroll-top, cursor tone/ring-dot/lifecycle/coarse/reduced 테스트는 유지한다.
+`landing-cinematic-editorial.chrome.spec.ts`에서 quality stage, merge, review mask, process path, dark cinematic contact 기대를 제거한다. `landing-editorial-motion.chrome.spec.ts`의 `#quality`, `#review`, 시네마틱 전용 확정 카피, 영문 kicker 부재 기대도 제거하거나 현재 클래식 구조 계약으로 교체한다. Hero full viewport/gutter, mobile header, scroll-top, cursor tone/ring-dot/lifecycle/coarse/reduced, contact disclosure 테스트는 유지한다.
 
 - [ ] **Step 6: GREEN 확인**
 
@@ -691,7 +696,7 @@ Expected: 0 failed.
 - [ ] **Step 7: 커밋**
 
 ```bash
-git add e2e/landing-cinematic-editorial.chrome.spec.ts e2e/landing-editorial-motion.chrome.spec.ts src/pages/landing/ui/landing-enhancements.tsx src/pages/landing/ui/use-in-view-reveal.ts src/pages/landing/ui/use-landing-gsap-interactions.ts
+git add e2e/landing-cinematic-editorial.chrome.spec.ts e2e/landing-editorial-motion.chrome.spec.ts src/pages/landing/ui/landing-enhancements.tsx src/pages/landing/ui/use-in-view-reveal.ts src/pages/landing/ui/use-landing-gsap-interactions.ts src/pages/landing/ui/styles/shared.module.css
 git commit -m "refactor(landing): 클래식 reveal과 현재 커서 경계 통합"
 ```
 

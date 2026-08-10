@@ -9,7 +9,6 @@
     "start": "node .output/server/index.mjs",
     "lint": "eslint src",
     "lint:fix": "eslint src --fix",
-    "assets:project-records": "node scripts/generate-project-record-images.mjs",
     "preview": "vite preview --port 3010",
     "test:e2e": "playwright test",
     "test:e2e:headed": "playwright test --headed",
@@ -27,7 +26,8 @@
     "nitro": "3.0.260522-beta",
     "react": "19.2.6",
     "react-dom": "19.2.6",
-    "resend": "^6.18.1"
+    "resend": "^6.18.1",
+    "wanted-sans": "1.0.3"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.11.3",

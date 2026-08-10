@@ -1,4 +1,4 @@
-import { ArrowDown, ArrowRight } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 
 import { Button } from './button';
 import { EditorialTextReveal } from './editorial-text-reveal';
@@ -9,38 +9,34 @@ import sharedStyles from './styles/shared.module.css';
 
 export function HeroSection() {
   return (
-    <section className={styles.hero} data-landing-hero>
+    <section
+      id='hero'
+      className={styles.hero}
+      data-landing-hero
+      data-landing-section
+      data-cursor-contrast='light'
+    >
       <HeroParticleBackground />
       <div className={cx(styles.heroInner, sharedStyles.container)}>
         <div className={styles.heroCopy}>
           <EditorialTextReveal
             as='h1'
             className={styles.title}
-            lines={['FROM COMPLEX WORK', 'TO SERVICES THAT WORK.']}
-            split='words'
+            lines={['BUILT FOR', 'WHAT’S NEXT.']}
+            split='lines'
             trigger='load'
-            accessibleLabel='FROM COMPLEX WORK TO SERVICES THAT WORK.'
+            accessibleLabel='BUILT FOR WHAT’S NEXT.'
+            lineAttribute='data-hero-headline-row'
           />
           <p>
-            FUTUR는 웹·앱·업무 시스템의 사용자 흐름과 데이터 구조를 함께 설계하고, 배포 이후
-            운영까지 이어갑니다.
+            보이는 경험부터 코드와 데이터, 배포 이후의 운영까지. 다음 변화를 견딜 수 있는 디지털
+            제품을 함께 만듭니다.
           </p>
           <div className={styles.heroActions}>
-            <Button href='#contact' cursorText='START'>
+            <Button href='#contact' cursorText='START' data-cursor-contrast='dark'>
               <span data-landing-label>프로젝트 문의하기</span>
               <span data-landing-arrow>
                 <ArrowRight size={14} strokeWidth={2.2} />
-              </span>
-            </Button>
-            <Button
-              href='#cases'
-              variant='ghost'
-              className={styles.secondaryAction}
-              cursorText='VIEW'
-            >
-              <span data-landing-label>사례 둘러보기</span>
-              <span data-landing-arrow>
-                <ArrowDown size={14} strokeWidth={2.2} />
               </span>
             </Button>
           </div>

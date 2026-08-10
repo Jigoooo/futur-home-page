@@ -61,7 +61,13 @@ export function HeaderSection() {
   }, []);
 
   return (
-    <header id='top' className={styles.nav} data-landing-nav data-header-surface={surface}>
+    <header
+      id='top'
+      className={styles.nav}
+      data-landing-nav
+      data-header-surface={surface}
+      data-cursor-contrast='light'
+    >
       <a href='#top' className={styles.logo} aria-label='FUTUR home' onClick={handleHashLinkClick}>
         FUTUR
       </a>
@@ -76,6 +82,7 @@ export function HeaderSection() {
         href='#contact'
         className={styles.ctaButton}
         cursorText='문의'
+        data-cursor-contrast='dark'
         onClick={handleHashLinkClick}
       >
         <span data-landing-label>문의하기</span>

@@ -1,9 +1,20 @@
 :root {
-  --ink: #0a1330;
-  --navy: #07183f;
-  --navy-2: #10265f;
-  --blue: #1e4dc4; /* WCAG AA 4.5:1 on white */
-  --blue-2: #7fa8ff;
+  --font-body:
+    'Wanted Sans Variable', 'Wanted Sans', 'FUTUR Sans Critical', 'Apple SD Gothic Neo',
+    'Noto Sans KR', system-ui, sans-serif;
+  --font-display: var(--font-body);
+  --ink: #202523;
+  --charcoal: #202523;
+  --navy: #202523;
+  --navy-2: #303633;
+  --blue: #356fae;
+  --blue-2: #5c8dc5;
+  --haze-slate: #909eae;
+  --haze-blue: #5c8dc5;
+  --haze-taupe: #ad9e90;
+  --haze-olive: #736f60;
+  --paper: #f3f1ec;
+  --paper-cool: #e9ecec;
   --sky: #72d8ff;
   --mint: #31c7a4;
   --violet: #8a70ff;
@@ -11,16 +22,16 @@
   --rose: #ff7d9f;
   --error: #c92a2a; /* WCAG AA on white: 기존 #ff4d4f = 3.76:1 → ~5.8:1 */
   --error-soft: rgba(201, 42, 42, 0.22);
-  --muted: #5a667e; /* WCAG AA 4.5:1 (기존 #66738d on #f5f8ff = 4.48:1) */
-  --muted-2: #8792a8;
-  --line: #deded7;
-  --line-2: #e9e9e3;
-  --surface: #ffffff;
-  --soft: #f8f9fb;
-  --bg: #ffffff;
-  --shadow: 0 32px 90px rgba(25, 45, 86, 0.1);
-  --shadow-soft: 0 18px 54px rgba(25, 45, 86, 0.075);
-  --shadow-hover: 0 36px 90px rgba(20, 42, 94, 0.16);
+  --muted: #545c58;
+  --muted-2: #6b7470;
+  --line: rgba(32, 37, 35, 0.24);
+  --line-2: rgba(32, 37, 35, 0.12);
+  --surface: #f8f7f3;
+  --soft: #e9ecec;
+  --bg: #f3f1ec;
+  --shadow: 0 24px 70px rgba(32, 37, 35, 0.12);
+  --shadow-soft: 0 14px 42px rgba(32, 37, 35, 0.08);
+  --shadow-hover: 0 24px 60px rgba(32, 37, 35, 0.14);
   --radius-xl: 56px;
   --radius-lg: 44px;
   --radius-md: 30px;
@@ -28,5 +39,4 @@
   --ease: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
-  --spring: cubic-bezier(0.2, 1.25, 0.34, 1);
 }

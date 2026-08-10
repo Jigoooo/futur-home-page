@@ -1,5 +1,28 @@
 import { expect, test } from '@playwright/test';
 
+test('renders the approved full-screen particle hero with restrained typography', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await page.goto('/');
+
+  const hero = page.locator('[data-landing-hero]');
+  const particle = page.locator('[data-hero-particle-layer]');
+  const title = page.getByRole('heading', { level: 1, name: 'BUILT FOR WHAT’S NEXT.' });
+
+  expect((await hero.boundingBox())?.height).toBeGreaterThanOrEqual(720);
+  expect((await particle.boundingBox())?.width).toBeGreaterThanOrEqual(1279);
+  await expect(title).toBeVisible();
+  await expect(page.locator('[data-hero-headline-row]')).toHaveText(['BUILT FOR', 'WHAT’S NEXT.']);
+  expect(
+    Number.parseFloat(await title.evaluate((node) => getComputedStyle(node).fontSize)),
+  ).toBeLessThanOrEqual(80);
+  expect(await title.evaluate((node) => getComputedStyle(node).fontFamily)).not.toContain(
+    'League Gothic',
+  );
+  await expect(hero.getByRole('link', { name: '프로젝트 문의하기' })).toHaveCount(1);
+});
+
 test('uses the approved cinematic editorial information architecture', async ({ page }) => {
   await page.goto('/');
 

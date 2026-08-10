@@ -4,12 +4,13 @@ import { createRootRoute } from '@tanstack/react-router';
 
 import { COMPANY_INFOS } from '@/entities/company';
 import { RootComponent, RootDocument, RootNotFound } from '@/pages/root';
+import 'wanted-sans/fonts/webfonts/variable/split/WantedSansVariable.css';
 import '../styles/tokens.css';
 import '../styles/globals.css';
 
-const heroTitle = 'FROM COMPLEX WORK TO SERVICES THAT WORK.';
+const heroTitle = 'BUILT FOR WHAT’S NEXT.';
 const heroDescription =
-  '웹·앱·업무 시스템의 사용자 흐름과 데이터 구조를 함께 설계하고, 배포 이후 운영까지 이어가는 SI 개발 파트너.';
+  '보이는 경험부터 코드와 데이터, 배포 이후의 운영까지 함께 만드는 개발 파트너.';
 const heroShareImage = `${COMPANY_INFOS.URL}/media/hero/futur-system-flow-og.webp`;
 
 export const Route = createRootRoute({
@@ -21,13 +22,6 @@ export const Route = createRootRoute({
       { rel: 'icon', href: '/logo_144x144.png', type: 'image/png', sizes: '144x144' },
       { rel: 'apple-touch-icon', href: '/logo_180x180.png', sizes: '180x180' },
       { rel: 'canonical', href: COMPANY_INFOS.URL },
-      {
-        rel: 'preload',
-        href: '/fonts/PretendardVariable.critical.woff2',
-        as: 'font',
-        type: 'font/woff2',
-        crossOrigin: 'anonymous',
-      },
     ],
     meta: [
       { charSet: 'utf-8' },
@@ -49,8 +43,8 @@ export const Route = createRootRoute({
         name: 'robots',
         content: 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1',
       },
-      { name: 'theme-color', content: '#06152b' },
-      { name: 'color-scheme', content: 'light' },
+      { name: 'theme-color', content: '#202523' },
+      { name: 'color-scheme', content: 'dark light' },
       { name: 'format-detection', content: 'telephone=no' },
       { name: 'geo.region', content: 'KR-46' },
       { name: 'geo.placename', content: 'Iksan-si' },

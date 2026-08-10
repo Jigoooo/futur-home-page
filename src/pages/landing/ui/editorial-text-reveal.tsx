@@ -9,6 +9,7 @@ export type EditorialTextRevealProps = {
   trigger: 'load' | 'in-view';
   className?: string;
   accessibleLabel: string;
+  lineAttribute?: 'data-hero-headline-row';
 };
 
 type IndexedStyle = CSSProperties & {
@@ -24,6 +25,7 @@ export function EditorialTextReveal({
   trigger,
   className,
   accessibleLabel,
+  lineAttribute,
 }: EditorialTextRevealProps) {
   const Heading = as as ElementType;
   let unitIndex = 0;
@@ -34,7 +36,6 @@ export function EditorialTextReveal({
       aria-label={accessibleLabel}
       data-editorial-text
       data-editorial-trigger={trigger}
-      {...(trigger === 'in-view' ? { 'data-landing-reveal': 'editorial' } : {})}
     >
       <span className={styles.visual} aria-hidden='true'>
         {lines.map((line, lineIndex) => {
@@ -48,6 +49,7 @@ export function EditorialTextReveal({
             <span
               className={styles.line}
               data-editorial-line={lineIndex}
+              {...(lineAttribute ? { [lineAttribute]: true } : {})}
               key={`${lineIndex}-${line}`}
             >
               <span className={styles.lineCopy} data-editorial-line-copy>

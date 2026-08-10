@@ -9,7 +9,7 @@ import {
   MAIN_VERTEX_SHADER,
 } from '../src/pages/landing/ui/hero-particle-shaders';
 
-const HERO_LABEL = 'FROM COMPLEX WORK TO SERVICES THAT WORK.';
+const HERO_LABEL = 'BUILT FOR WHAT’S NEXT.';
 
 test('serves the hero copy and particle canvas immediately from SSR', async ({
   browser,
@@ -33,7 +33,7 @@ test('serves the hero copy and particle canvas immediately from SSR', async ({
   await expect(page.locator('canvas[data-hero-particles]')).toHaveCount(1);
   await expect(page.locator('[data-hero-particle-layer]')).toHaveAttribute('aria-hidden', 'true');
   await expect(page.getByRole('link', { name: /프로젝트 문의하기/ })).toBeVisible();
-  await expect(page.getByRole('link', { name: /사례 둘러보기/ })).toBeVisible();
+  await expect(page.locator('[data-landing-hero] a')).toHaveCount(1);
 
   const noScriptPage = await browser.newPage({ javaScriptEnabled: false });
   await noScriptPage.goto('/');
@@ -94,14 +94,14 @@ test('renders a changing WebGL2 particle field and reacts to pointer movement', 
   await expect(canvas).toHaveAttribute('data-pointer-active', 'false');
 });
 
-test('runs the dense parametric particle pipeline on desktop', async ({ page }) => {
+test('runs the dense parametric particle pipeline on the dark hero surface', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto('/');
 
   const hero = page.locator('[data-landing-hero]');
   const canvas = page.locator('canvas[data-hero-particles]');
   await expect(canvas).toHaveAttribute('data-particle-state', 'ready');
-  await expect(hero).toHaveCSS('background-color', 'rgb(6, 21, 43)');
+  await expect(hero).toHaveCSS('background-color', 'rgb(32, 37, 35)');
   await expect(canvas).toHaveCSS('opacity', '1');
   await expect(canvas).toHaveAttribute('data-particle-density', 'active');
   await expect(canvas).toHaveAttribute('data-particle-displacement', 'feedback-touch');
@@ -188,7 +188,7 @@ test('keeps the sculptural silhouette while contact particles move and lift loca
   expect(HERO_POINTER_RESPONSE.surfaceLift).toBeLessThanOrEqual(0.04);
 });
 
-test('keeps far-depth and dispersing particles visible on the navy surface', () => {
+test('keeps far-depth and dispersing particles visible on the dark hero surface', () => {
   expect(MAIN_VERTEX_SHADER).toContain('gl_PointSize = mix(0.9, 2.45, depth)');
   expect(MAIN_FRAGMENT_SHADER).toContain('vec3 farColor = vec3(0.18, 0.42, 0.5);');
   expect(MAIN_FRAGMENT_SHADER).toContain('mix(0.3, 0.68, vDepth)');
@@ -256,11 +256,13 @@ test('does not start the particle renderer for reduced motion or Save-Data', asy
   await saveDataPage.close();
 });
 
-test('keeps the hero reveal within 650ms and uses four visual rows on mobile', async ({ page }) => {
+test('keeps the hero reveal within 650ms and retains two explicit rows on mobile', async ({
+  page,
+}) => {
   await page.goto('/');
 
-  const words = page.locator('[data-landing-hero] [data-editorial-word]');
-  const timings = await words.evaluateAll((elements) =>
+  const units = page.locator('[data-landing-hero] [data-editorial-unit]');
+  const timings = await units.evaluateAll((elements) =>
     elements.map((element) => {
       const style = getComputedStyle(element);
       return {
@@ -278,22 +280,27 @@ test('keeps the hero reveal within 650ms and uses four visual rows on mobile', a
 
   await page.setViewportSize({ width: 390, height: 844 });
   await page.waitForTimeout(700);
-  const rows = await words.evaluateAll((elements) =>
+  const rows = await page.locator('[data-hero-headline-row]').evaluateAll((elements) =>
     elements.map((element) => ({
       text: element.textContent,
       top: Math.round(element.getBoundingClientRect().top),
       width: Math.round(element.getBoundingClientRect().width),
     })),
   );
-  expect(new Set(rows.map(({ top }) => top)).size, JSON.stringify(rows)).toBe(4);
+  expect(new Set(rows.map(({ top }) => top)).size, JSON.stringify(rows)).toBe(2);
+  await expect(page.getByRole('link', { name: /프로젝트 문의하기/ })).toBeInViewport();
   await expect(page.locator('[data-landing-hero]')).not.toHaveCSS('overflow-x', 'visible');
 });
 
 test('transitions the header from the hero surface after the 48px sentinel', async ({ page }) => {
   await page.goto('/');
-  await page.waitForFunction(() => document.body.dataset.landingReady === 'true');
 
   const header = page.locator('[data-landing-nav]');
+  await page.waitForFunction(() => {
+    const element = document.querySelector('[data-landing-nav]');
+
+    return element && Object.keys(element).some((key) => key.startsWith('__reactProps$'));
+  });
   await expect(header).toHaveAttribute('data-header-surface', 'hero');
 
   await page.evaluate(() => window.scrollTo({ top: 96, behavior: 'instant' }));

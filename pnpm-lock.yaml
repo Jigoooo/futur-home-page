@@ -35,6 +35,9 @@ importers:
       resend:
         specifier: ^6.18.1
         version: 6.18.1
+      wanted-sans:
+        specifier: 1.0.3
+        version: 1.0.3
     devDependencies:
       '@axe-core/playwright':
         specifier: ^4.11.3
@@ -2782,6 +2785,9 @@ packages:
     resolution: {integrity: sha512-rCoJEhvMr0X6alHmwc9abbrA5ZrLZFKpFQVKPNFwl2h7DapXOGdmimIHDtLOWhT4PjhZhxFEtZoQgEXbkDWdZw==}
     engines: {node: '>=20.0.0'}
     hasBin: true
+
+  wanted-sans@1.0.3:
+    resolution: {integrity: sha512-YU+mQRJMc97zMGFmxFjOvjdrF5Hi2zagc69bNP9n//i77Dlf9AWGfziZWYKdhQzPK5tw+e0iHcjLrZXDatxRTQ==}
 
   web-streams-polyfill@3.3.3:
     resolution: {integrity: sha512-d2JWLCivmZYTSIoge9MsgFCZrt571BikcWGYkjC1khllbTeDlGqZ2D8vD8E/lJa8WGWbb7Plm8/XJYV7IJHZZw==}
@@ -5721,6 +5727,8 @@ snapshots:
     transitivePeerDependencies:
       - debug
       - supports-color
+
+  wanted-sans@1.0.3: {}
 
   web-streams-polyfill@3.3.3:
     optional: true

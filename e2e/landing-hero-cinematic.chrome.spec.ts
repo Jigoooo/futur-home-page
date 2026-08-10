@@ -110,6 +110,7 @@ test('runs the dense parametric particle pipeline on desktop', async ({ page }) 
   await expect(canvas).toHaveAttribute('data-particle-emitter-count', '4000');
   await expect(canvas).toHaveAttribute('data-particle-emitter-style', 'dandelion-seeds');
   await expect(canvas).toHaveAttribute('data-particle-initial-shape', 'braided-flow');
+  await expect(canvas).toHaveAttribute('data-particle-initial-density', 'clustered');
   await expect(canvas).toHaveAttribute('data-particle-surface-scale', 'expanded');
   await expect(canvas).toHaveAttribute(
     'data-pointer-lift',
@@ -192,6 +193,14 @@ test('keeps far-depth and dispersing particles visible on the navy surface', () 
   expect(MAIN_FRAGMENT_SHADER).toContain('vec3 farColor = vec3(0.18, 0.42, 0.5);');
   expect(MAIN_FRAGMENT_SHADER).toContain('mix(0.3, 0.68, vDepth)');
   expect(EMITTER_FRAGMENT_SHADER).toContain('vEmitterAlpha * 0.9');
+});
+
+test('clusters the initial braided flow around each ribbon centerline', () => {
+  expect(MAIN_VERTEX_SHADER).toContain(
+    'float compactAcross = sign(across) * pow(abs(across), 1.45);',
+  );
+  expect(MAIN_VERTEX_SHADER).toContain('float crossing = laneOffset * cos(uv.x * PI) * 0.74;');
+  expect(MAIN_VERTEX_SHADER).toContain('compactAcross * 0.28');
 });
 
 test('keeps fast pointer movement within the surface-contact profile', async ({ page }) => {

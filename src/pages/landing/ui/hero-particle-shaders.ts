@@ -17,11 +17,12 @@ mat3 rotateY(float angle) {
 vec3 braidedFlow(vec2 uv, float time) {
   float lane = min(floor(uv.y * 3.0), 2.0);
   float across = (fract(uv.y * 3.0) - 0.5) * 2.0;
+  float compactAcross = sign(across) * pow(abs(across), 1.45);
   float laneOffset = lane - 1.0;
   float phase = lane * TAU / 3.0;
   float x = (uv.x * 2.0 - 1.0) * 2.62;
-  float crossing = laneOffset * cos(uv.x * PI) * 0.86;
-  float y = crossing + sin(uv.x * TAU + phase) * 0.1 + across * 0.28;
+  float crossing = laneOffset * cos(uv.x * PI) * 0.74;
+  float y = crossing + sin(uv.x * TAU + phase) * 0.1 + compactAcross * 0.28;
   float z = sin(uv.x * TAU + phase + time * 0.1) * 0.44 + across * 0.09;
   return vec3(x, y, z);
 }

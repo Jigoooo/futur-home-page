@@ -436,6 +436,7 @@ export function createHeroParticleEngine(canvas: HTMLCanvasElement): HeroParticl
   canvas.dataset.particleEmitterCount = String(tier.emit);
   canvas.dataset.particleEmitterStyle = 'dandelion-seeds';
   canvas.dataset.particleInitialShape = 'braided-flow';
+  canvas.dataset.particleInitialDensity = 'clustered';
   canvas.dataset.particleSurfaceScale = 'expanded';
   canvas.dataset.particleSurface = '0-1';
   canvas.dataset.pointerImpulse = String(HERO_POINTER_RESPONSE.radialImpulse);

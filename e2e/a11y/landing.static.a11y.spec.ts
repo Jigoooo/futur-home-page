@@ -13,13 +13,13 @@ test.describe('/ 랜딩 페이지 정적 스캔', () => {
    * 전체 스캔보다 빠르게 위치를 좁혀준다.
    */
   const sections = [
-    { id: '#services', name: '제공 영역' },
-    { id: '#stack', name: '기술 스택' },
+    { id: '#services', name: '서비스' },
+    { id: '#stack', name: '기술' },
     { id: '#team', name: '팀' },
-    { id: '#process', name: '진행 방식' },
+    { id: '#process', name: '프로세스' },
     { id: '#operations', name: '운영 원칙' },
     { id: '#faq', name: 'FAQ(첫 항목만 펼침)' },
-    { id: '#contact', name: 'Contact(초기 상태)' },
+    { id: '#contact', name: '문의(초기 상태)' },
   ] as const;
 
   for (const { id, name } of sections) {

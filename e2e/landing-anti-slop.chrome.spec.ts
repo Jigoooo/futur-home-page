@@ -2,10 +2,11 @@ import { expect, test } from '@playwright/test';
 
 const SECTION_ORDER = [
   'hero',
-  'quality',
   'services',
-  'review',
+  'stack',
+  'team',
   'process',
+  'operations',
   'faq',
   'contact',
   'footer',
@@ -23,7 +24,7 @@ test('keeps only the evidence-backed landing narrative in the approved order', a
     )
     .toEqual([...SECTION_ORDER]);
 
-  for (const removedId of ['trust', 'stack', 'cases', 'reviews', 'operations', 'team']) {
+  for (const removedId of ['trust', 'cases', 'reviews', 'quality', 'review']) {
     await expect(page.locator(`#${removedId}`)).toHaveCount(0);
   }
 
@@ -39,6 +40,11 @@ test('keeps only the evidence-backed landing narrative in the approved order', a
     '헬스케어 앱 기획 리드',
     'ANONYMIZED WEB PROJECT',
     '예약·결제·관리 흐름을',
+    '완료 프로젝트',
+    '평균 회신 24시간',
+    '빠른 범위 검토',
+    '4시간 응답',
+    '자동 NDA',
     'React Native',
     'Spring Boot',
     '사례 둘러보기',
@@ -57,7 +63,7 @@ test('uses the approved navigation anchors and one inquiry-focused hero action',
     .locator('a')
     .evaluateAll((links) => links.map((link) => (link as HTMLAnchorElement).getAttribute('href')));
 
-  expect(hrefs).toEqual(['#quality', '#services', '#review', '#process', '#faq', '#contact']);
+  expect(hrefs).toEqual(['#services', '#stack', '#team', '#process', '#faq', '#contact']);
 
   const hero = page.locator('#hero');
   await expect(hero.getByRole('link', { name: '프로젝트 문의하기' })).toBeVisible();

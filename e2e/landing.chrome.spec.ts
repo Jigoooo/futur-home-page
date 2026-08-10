@@ -44,7 +44,7 @@ test('animates header navigation scroll to sections', async ({ page }) => {
 
   await page
     .getByRole('navigation', { name: '주요 메뉴' })
-    .getByRole('link', { name: '제공 영역' })
+    .getByRole('link', { name: '서비스' })
     .click();
 
   await expect(page.locator('#services')).toBeInViewport();

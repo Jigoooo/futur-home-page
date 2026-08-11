@@ -784,23 +784,43 @@ test('suspends only the Header blur while scrolling without degrading Hero rende
   expect(heroQuality.width).toBe(heroQuality.renderedWidth);
   expect(heroQuality.height).toBe(heroQuality.renderedHeight);
 
-  const fadeOutSamplesPromise = backdrop.evaluate(async (element) => {
+  await page.evaluate(() => {
+    (
+      window as typeof window & { __heroDrawCalls: Array<{ count: number; mode: number }> }
+    ).__heroDrawCalls.length = 0;
+  });
+  const fadeOutSamples = await backdrop.evaluate(async (element) => {
     const nav = element.closest<HTMLElement>('[data-landing-nav]')!;
-    const startedAt = performance.now();
+    const scrollEdge = nav.querySelector<HTMLElement>('[data-header-scroll-edge]')!;
+    const startedScrolling = new Promise<number>((resolve) => {
+      window.addEventListener('scroll', () => resolve(performance.now()), { once: true });
+    });
     const samples: Array<{
       backdropFilter: string;
+      edgeOpacity: number;
       elapsedMs: number;
       opacity: number;
       scrolling: boolean;
       suspended: boolean;
     }> = [];
+    let nextTop = window.scrollY + 8;
+    window.scrollTo({ behavior: 'instant', top: nextTop });
+    const startedAt = await startedScrolling;
+    let lastNudgeAt = startedAt;
 
-    while (performance.now() - startedAt < 150) {
+    while (performance.now() - startedAt < 210) {
       await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+      const now = performance.now();
+      if (now - lastNudgeAt >= 40) {
+        nextTop += 2;
+        window.scrollTo({ behavior: 'instant', top: nextTop });
+        lastNudgeAt = now;
+      }
       const styles = getComputedStyle(element);
       samples.push({
         backdropFilter: styles.backdropFilter,
-        elapsedMs: performance.now() - startedAt,
+        edgeOpacity: Number(getComputedStyle(scrollEdge).opacity),
+        elapsedMs: now - startedAt,
         opacity: Number(styles.opacity),
         scrolling: nav.dataset.headerScrolling === 'true',
         suspended: nav.dataset.headerBackdropSuspended === 'true',
@@ -808,19 +828,6 @@ test('suspends only the Header blur while scrolling without degrading Hero rende
     }
 
     return samples;
-  });
-  await page.evaluate(() => {
-    (
-      window as typeof window & { __heroDrawCalls: Array<{ count: number; mode: number }> }
-    ).__heroDrawCalls.length = 0;
-    window.scrollTo({ behavior: 'instant', top: 120 });
-  });
-  const fadeOutSamples = await fadeOutSamplesPromise;
-  await page.evaluate(async () => {
-    for (const top of [124, 128, 132, 136]) {
-      window.scrollTo({ behavior: 'instant', top });
-      await new Promise<void>((resolve) => window.setTimeout(resolve, 40));
-    }
   });
   await expect(nav).toHaveAttribute('data-header-scrolling', 'true');
   await expect(nav).toHaveAttribute('data-header-backdrop-suspended', 'true');
@@ -833,14 +840,25 @@ test('suspends only the Header blur while scrolling without degrading Hero rende
       suspended: false,
     }),
   );
-  expect(
-    fadeOutSamples.some(
-      ({ backdropFilter, opacity }) =>
-        backdropFilter === 'blur(20px) saturate(1.35) contrast(1.03)' &&
-        opacity > 0.05 &&
-        opacity < 0.95,
-    ),
-  ).toBe(true);
+  const fadeOutMidpoint = fadeOutSamples.find(
+    ({ elapsedMs }) => elapsedMs >= 40 && elapsedMs <= 60,
+  );
+  expect(fadeOutMidpoint).toBeDefined();
+  expect(fadeOutMidpoint?.backdropFilter).toBe('blur(20px) saturate(1.35) contrast(1.03)');
+  expect(fadeOutMidpoint?.opacity).toBeGreaterThanOrEqual(0.55);
+  expect(fadeOutMidpoint?.edgeOpacity).toBeLessThanOrEqual(0.45);
+  expect(fadeOutMidpoint?.suspended).toBe(false);
+  const firstSuspendedSample = fadeOutSamples.find(({ suspended }) => suspended);
+  expect(firstSuspendedSample).toBeDefined();
+  expect(firstSuspendedSample?.elapsedMs).toBeGreaterThanOrEqual(145);
+  expect(firstSuspendedSample?.elapsedMs).toBeLessThanOrEqual(200);
+  expect(firstSuspendedSample?.backdropFilter).toBe('none');
+  expect(firstSuspendedSample?.opacity).toBeLessThanOrEqual(0.01);
+  const steadySuspendedSample = fadeOutSamples.find(
+    ({ elapsedMs, suspended }) => elapsedMs >= 175 && suspended,
+  );
+  expect(steadySuspendedSample?.backdropFilter).toBe('none');
+  expect(steadySuspendedSample?.opacity).toBe(0);
   expect(await readBackdropStyle(backdrop)).toMatchObject({
     backdropFilter: 'none',
     opacity: 0,
@@ -1088,6 +1106,144 @@ test('retargets the Header backdrop crossfade from its current frame', async ({ 
   expect(interruption.finalOpacity).toBeGreaterThan(0.999);
   expect(interruption.scrolling).toBeUndefined();
   expect(interruption.suspended).toBeUndefined();
+});
+
+test('keeps the mobile Header backdrop crossfade continuous and the scroll edge contained', async ({
+  page,
+}) => {
+  await page.setViewportSize(mobileViewport);
+  await page.goto('/');
+
+  const nav = header(page);
+  const backdrop = nav.locator('[data-header-backdrop-layer]');
+  await expect(nav).toHaveAttribute('data-header-hydrated', 'true');
+
+  const lifecycle = await backdrop.evaluate(async (element) => {
+    const nav = element.closest<HTMLElement>('[data-landing-nav]')!;
+    const scrollEdge = nav.querySelector<HTMLElement>('[data-header-scroll-edge]')!;
+    const startedScrolling = new Promise<number>((resolve) => {
+      window.addEventListener('scroll', () => resolve(performance.now()), { once: true });
+    });
+    const fadeOutSamples: Array<{
+      edgeOpacity: number;
+      elapsedMs: number;
+      filter: string;
+      opacity: number;
+      suspended: boolean;
+    }> = [];
+    let nextTop = window.scrollY + 8;
+    window.scrollTo({ behavior: 'instant', top: nextTop });
+    const startedAt = await startedScrolling;
+    let lastNudgeAt = startedAt;
+
+    while (performance.now() - startedAt < 210) {
+      await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+      const now = performance.now();
+      if (now - lastNudgeAt >= 40) {
+        nextTop += 2;
+        window.scrollTo({ behavior: 'instant', top: nextTop });
+        lastNudgeAt = now;
+      }
+      const styles = getComputedStyle(element);
+      fadeOutSamples.push({
+        edgeOpacity: Number(getComputedStyle(scrollEdge).opacity),
+        elapsedMs: now - startedAt,
+        filter: styles.backdropFilter,
+        opacity: Number(styles.opacity),
+        suspended: nav.dataset.headerBackdropSuspended === 'true',
+      });
+    }
+
+    const restoreDeadline = performance.now() + 700;
+    let restoreBeforeInterruption = 0;
+    while (performance.now() < restoreDeadline) {
+      await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+      const opacity = Number(getComputedStyle(element).opacity);
+      if (nav.dataset.headerScrolling !== 'true' && opacity > 0.05 && opacity < 0.95) {
+        restoreBeforeInterruption = opacity;
+        break;
+      }
+    }
+    if (!restoreBeforeInterruption) {
+      throw new Error('Mobile Header backdrop did not enter its restore crossfade');
+    }
+
+    window.scrollTo({ behavior: 'instant', top: window.scrollY + 8 });
+    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+    const restoreAfterInterruption = Number(getComputedStyle(element).opacity);
+
+    const settleDeadline = performance.now() + 900;
+    while (
+      nav.dataset.headerScrolling === 'true' ||
+      nav.dataset.headerBackdropSuspended === 'true' ||
+      Number(getComputedStyle(element).opacity) < 0.9999
+    ) {
+      await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+      if (performance.now() > settleDeadline) {
+        throw new Error('Interrupted mobile Header backdrop did not settle');
+      }
+    }
+
+    const edgeRect = scrollEdge.getBoundingClientRect();
+    const navRect = nav.getBoundingClientRect();
+    const finalStyles = getComputedStyle(element);
+    return {
+      edge: {
+        bottom: edgeRect.bottom,
+        filter: getComputedStyle(scrollEdge).backdropFilter,
+        height: edgeRect.height,
+        left: edgeRect.left,
+        navBottom: navRect.bottom,
+        right: edgeRect.right,
+        top: edgeRect.top,
+        viewportWidth: window.innerWidth,
+      },
+      fadeOutSamples,
+      final: {
+        filter: finalStyles.backdropFilter,
+        opacity: Number(finalStyles.opacity),
+        scrolling: nav.dataset.headerScrolling,
+        suspended: nav.dataset.headerBackdropSuspended,
+      },
+      restoreAfterInterruption,
+      restoreBeforeInterruption,
+    };
+  });
+
+  const fadeOutMidpoint = lifecycle.fadeOutSamples.find(
+    ({ elapsedMs }) => elapsedMs >= 40 && elapsedMs <= 60,
+  );
+  expect(fadeOutMidpoint).toBeDefined();
+  expect(fadeOutMidpoint?.filter).toBe('blur(20px) saturate(1.35) contrast(1.03)');
+  expect(fadeOutMidpoint?.opacity).toBeGreaterThanOrEqual(0.55);
+  expect(fadeOutMidpoint?.edgeOpacity).toBeLessThanOrEqual(0.45);
+  const firstSuspendedSample = lifecycle.fadeOutSamples.find(({ suspended }) => suspended);
+  expect(firstSuspendedSample?.elapsedMs).toBeGreaterThanOrEqual(145);
+  expect(firstSuspendedSample?.filter).toBe('none');
+  expect(firstSuspendedSample?.opacity).toBeLessThanOrEqual(0.01);
+  const steadySuspendedSample = lifecycle.fadeOutSamples.find(
+    ({ elapsedMs, suspended }) => elapsedMs >= 175 && suspended,
+  );
+  expect(steadySuspendedSample?.filter).toBe('none');
+  expect(steadySuspendedSample?.opacity).toBe(0);
+  expect(lifecycle.restoreBeforeInterruption).toBeGreaterThan(0.05);
+  expect(lifecycle.restoreBeforeInterruption).toBeLessThan(0.95);
+  expect(
+    Math.abs(lifecycle.restoreAfterInterruption - lifecycle.restoreBeforeInterruption),
+  ).toBeLessThan(0.3);
+  expect(lifecycle.edge.filter).toBe('none');
+  expect(lifecycle.edge.height).toBeGreaterThanOrEqual(18);
+  expect(lifecycle.edge.height).toBeLessThanOrEqual(28);
+  expect(lifecycle.edge.left).toBeGreaterThanOrEqual(0);
+  expect(lifecycle.edge.right).toBeLessThanOrEqual(lifecycle.edge.viewportWidth);
+  expect(lifecycle.edge.top).toBeCloseTo(lifecycle.edge.navBottom - 4, 0);
+  expect(lifecycle.edge.bottom).toBeGreaterThan(lifecycle.edge.navBottom);
+  expect(lifecycle.final).toMatchObject({
+    filter: 'blur(20px) saturate(1.35) contrast(1.03)',
+    scrolling: undefined,
+    suspended: undefined,
+  });
+  expect(lifecycle.final.opacity).toBeGreaterThan(0.999);
 });
 
 test('switches dark surface ink from Hero white to light-section navy', async ({ page }) => {
@@ -1651,6 +1807,7 @@ test('applies semantic clear crystal glass, spotlight, cursor contrast, and resi
       document.head.append(forcedFallback);
 
       const originalTone = nav.dataset.headerGlassTone;
+      const originalScrolling = nav.dataset.headerScrolling;
       const logo = nav.querySelector<HTMLElement>('a[aria-label="FUTUR home"]');
       const servicesLink = nav.querySelector<HTMLElement>('a[href="#services"]');
       if (!logo || !servicesLink) return null;
@@ -1658,6 +1815,7 @@ test('applies semantic clear crystal glass, spotlight, cursor contrast, and resi
       const computedByTone: Record<string, Record<string, string>> = {};
       for (const tone of ['dark', 'light']) {
         nav.dataset.headerGlassTone = tone;
+        nav.dataset.headerScrolling = 'true';
         const originalCurrent = servicesLink.getAttribute('aria-current');
         servicesLink.setAttribute('aria-current', 'location');
         await new Promise<void>((resolve) => window.setTimeout(resolve, 180));
@@ -1674,17 +1832,22 @@ test('applies semantic clear crystal glass, spotlight, cursor contrast, and resi
           backdropFilter: styles.backdropFilter,
           backdropLayerFilter: backdropStyles.backdropFilter,
           backdropLayerOpacity: backdropStyles.opacity,
+          backdropLayerTransitionDuration: backdropStyles.transitionDuration,
           backgroundColor: styles.backgroundColor,
+          headerScrolling: nav.dataset.headerScrolling ?? '',
           logoColor: getComputedStyle(logo).color,
           navigationColor: getComputedStyle(servicesLink).color,
           scrollEdgeFilter: scrollEdgeStyles.backdropFilter,
           scrollEdgeOpacity: scrollEdgeStyles.opacity,
+          scrollEdgeTransitionDuration: scrollEdgeStyles.transitionDuration,
           webkitBackdropFilter: styles.getPropertyValue('-webkit-backdrop-filter'),
         };
       }
 
       if (originalTone) nav.dataset.headerGlassTone = originalTone;
       else delete nav.dataset.headerGlassTone;
+      if (originalScrolling) nav.dataset.headerScrolling = originalScrolling;
+      else delete nav.dataset.headerScrolling;
       forcedFallback.remove();
       return computedByTone;
     }),
@@ -1694,11 +1857,14 @@ test('applies semantic clear crystal glass, spotlight, cursor contrast, and resi
       backdropFilter: 'none',
       backdropLayerFilter: 'none',
       backdropLayerOpacity: '0',
+      backdropLayerTransitionDuration: '0s',
       backgroundColor: 'rgba(248, 250, 255, 0.92)',
+      headerScrolling: 'true',
       logoColor: 'rgb(7, 24, 63)',
       navigationColor: 'rgb(7, 24, 63)',
       scrollEdgeFilter: 'none',
       scrollEdgeOpacity: '0',
+      scrollEdgeTransitionDuration: '0s',
       webkitBackdropFilter: '',
     },
     light: {
@@ -1706,11 +1872,14 @@ test('applies semantic clear crystal glass, spotlight, cursor contrast, and resi
       backdropFilter: 'none',
       backdropLayerFilter: 'none',
       backdropLayerOpacity: '0',
+      backdropLayerTransitionDuration: '0s',
       backgroundColor: 'rgba(248, 250, 255, 0.92)',
+      headerScrolling: 'true',
       logoColor: 'rgb(7, 24, 63)',
       navigationColor: 'rgb(7, 24, 63)',
       scrollEdgeFilter: 'none',
       scrollEdgeOpacity: '0',
+      scrollEdgeTransitionDuration: '0s',
       webkitBackdropFilter: '',
     },
   });
@@ -1719,6 +1888,7 @@ test('applies semantic clear crystal glass, spotlight, cursor contrast, and resi
   for (const tone of ['dark', 'light'] as const) {
     await header(page).evaluate((element, nextTone) => {
       element.dataset.headerGlassTone = nextTone;
+      element.dataset.headerScrolling = 'true';
     }, tone);
     expect(await readGlassStyle(glass)).toMatchObject({
       backdropFilter: 'none',
@@ -1728,10 +1898,12 @@ test('applies semantic clear crystal glass, spotlight, cursor contrast, and resi
     expect(await readBackdropStyle(backdrop)).toMatchObject({
       backdropFilter: 'none',
       opacity: 0,
+      transitionDuration: '0s',
       webkitBackdropFilter: '',
     });
     await expect(scrollEdge).toHaveCSS('backdrop-filter', 'none');
     await expect(scrollEdge).toHaveCSS('opacity', '0');
+    await expect(scrollEdge).toHaveCSS('transition-duration', '0s');
     const fallbackInk = await header(page).evaluate(async (element) => {
       const logo = element.querySelector<HTMLElement>('a[aria-label="FUTUR home"]')!;
       const servicesLink = element.querySelector<HTMLElement>('a[href="#services"]')!;
@@ -1756,6 +1928,7 @@ test('applies semantic clear crystal glass, spotlight, cursor contrast, and resi
       navigation: 'rgb(7, 24, 63)',
     });
   }
+  await header(page).evaluate((element) => delete element.dataset.headerScrolling);
 
   const coarsePage = await browser.newPage({ hasTouch: true, viewport: mobileViewport });
   await coarsePage.goto('/');

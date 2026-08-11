@@ -307,7 +307,7 @@ export function useAdaptiveHeader({ headerRef, menuRef, toggleRef }: AdaptiveHea
         suspendBackdrop();
         return;
       }
-      suspendTimer = window.setTimeout(suspendBackdrop, 120);
+      suspendTimer = window.setTimeout(suspendBackdrop, 160);
     };
     const restoreBackdrop = () => {
       idleTimer = 0;

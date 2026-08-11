@@ -87,12 +87,14 @@
 
 .nav[data-header-scrolling='true'] .backdropLayer {
   opacity: 0;
-  transition-duration: 120ms;
+  transition-duration: 160ms;
+  transition-timing-function: var(--ease-in-out);
 }
 
 .nav[data-header-scrolling='true'] .scrollEdge {
   opacity: 1;
-  transition-duration: 120ms;
+  transition-duration: 160ms;
+  transition-timing-function: var(--ease-in-out);
 }
 
 .nav[data-header-backdrop-suspended='true'] .backdropLayer {
@@ -457,7 +459,9 @@
   }
 
   .backdropLayer,
-  .scrollEdge {
+  .scrollEdge,
+  .nav[data-header-scrolling='true'] .backdropLayer,
+  .nav[data-header-scrolling='true'] .scrollEdge {
     opacity: 0;
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
@@ -490,7 +494,9 @@
   }
 
   .backdropLayer,
-  .scrollEdge {
+  .scrollEdge,
+  .nav[data-header-scrolling='true'] .backdropLayer,
+  .nav[data-header-scrolling='true'] .scrollEdge {
     opacity: 0;
     -webkit-backdrop-filter: none;
     backdrop-filter: none;

@@ -10,6 +10,10 @@ import {
 } from 'react';
 
 import {
+  clearDesktopActiveIndicator,
+  startDesktopActiveIndicatorMotion,
+} from './header-active-indicator';
+import {
   clearDesktopHeaderFrame,
   getDesktopHeaderProgress,
   type HeaderMotionPhase,
@@ -90,6 +94,7 @@ export function useAdaptiveHeader({ headerRef, menuRef, toggleRef }: AdaptiveHea
   const focusReturnTargetRef = useRef<'desktop' | 'toggle' | null>(null);
   const headerFocusOwnershipRef = useRef(true);
   const motionTimelineRef = useRef<gsap.core.Timeline | null>(null);
+  const desktopIndicatorTimelineRef = useRef<gsap.core.Timeline | null>(null);
 
   const cancelToggleFocusReturn = useCallback(() => {
     focusReturnGenerationRef.current += 1;
@@ -134,7 +139,9 @@ export function useAdaptiveHeader({ headerRef, menuRef, toggleRef }: AdaptiveHea
 
       if (header && mobileMenuTransition && motionReadyRef.current) {
         const menuItems = Array.from(menuRef.current?.querySelectorAll<HTMLElement>('a') ?? []);
-        const indicator = header.querySelector<HTMLElement>('[data-header-active-indicator]');
+        const indicator = header.querySelector<HTMLElement>(
+          '[data-header-mobile-active-indicator]',
+        );
         let timeline: gsap.core.Timeline | null = null;
         timeline = startMobileHeaderMotion({
           header,
@@ -498,11 +505,78 @@ export function useAdaptiveHeader({ headerRef, menuRef, toggleRef }: AdaptiveHea
 
   const displayedSectionId = layout === 'mobile-expanded' ? openedSectionId : activeSectionId;
   const activeSection = sectionLabels.get(displayedSectionId);
+  const activeHref = activeSection?.href ?? null;
   const glassTone =
     displayedSectionId === 'hero' || displayedSectionId === 'operations' ? 'dark' : 'light';
 
+  useLayoutEffect(() => {
+    const menu = menuRef.current;
+    const indicator = menu?.querySelector<HTMLElement>('[data-header-active-indicator]');
+    if (!menu || !indicator) return;
+
+    if (layout !== 'desktop-fluid') {
+      desktopIndicatorTimelineRef.current?.kill();
+      desktopIndicatorTimelineRef.current = null;
+      clearDesktopActiveIndicator(indicator);
+      return;
+    }
+
+    const target = activeHref ? menu.querySelector<HTMLElement>(`a[href="${activeHref}"]`) : null;
+    desktopIndicatorTimelineRef.current = startDesktopActiveIndicatorMotion({
+      container: indicator.parentElement ?? menu,
+      indicator,
+      previousTimeline: desktopIndicatorTimelineRef.current,
+      reducedMotion: reducedMotionRef.current,
+      target,
+    });
+  }, [activeHref, layout, menuRef]);
+
+  useEffect(() => {
+    const menu = menuRef.current;
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    let frameId = 0;
+
+    const repositionIndicator = () => {
+      window.cancelAnimationFrame(frameId);
+      frameId = window.requestAnimationFrame(() => {
+        const indicator = menu?.querySelector<HTMLElement>('[data-header-active-indicator]');
+        if (!menu || !indicator) return;
+
+        if (layoutRef.current !== 'desktop-fluid') {
+          desktopIndicatorTimelineRef.current?.kill();
+          desktopIndicatorTimelineRef.current = null;
+          clearDesktopActiveIndicator(indicator);
+          return;
+        }
+
+        const target = menu.querySelector<HTMLElement>('a[aria-current="location"]');
+        desktopIndicatorTimelineRef.current = startDesktopActiveIndicatorMotion({
+          container: indicator.parentElement ?? menu,
+          indicator,
+          previousTimeline: desktopIndicatorTimelineRef.current,
+          reducedMotion: reducedMotion.matches,
+          resize: true,
+          target,
+        });
+      });
+    };
+
+    window.addEventListener('resize', repositionIndicator, { passive: true });
+    reducedMotion.addEventListener('change', repositionIndicator);
+
+    return () => {
+      window.cancelAnimationFrame(frameId);
+      window.removeEventListener('resize', repositionIndicator);
+      reducedMotion.removeEventListener('change', repositionIndicator);
+      desktopIndicatorTimelineRef.current?.kill();
+      desktopIndicatorTimelineRef.current = null;
+      const indicator = menu?.querySelector<HTMLElement>('[data-header-active-indicator]');
+      if (indicator) clearDesktopActiveIndicator(indicator);
+    };
+  }, [menuRef]);
+
   return {
-    activeHref: activeSection?.href ?? null,
+    activeHref,
     compactLabel: activeSection?.label ?? 'FUTUR.',
     handleMenuClose: closeMenu,
     handleNavigation,

@@ -102,14 +102,19 @@ export function HeaderSection() {
                     <span>{item.label}</span>
                     {active ? (
                       <span
-                        className={styles.activeIndicator}
-                        data-header-active-indicator
+                        className={styles.mobileActiveIndicator}
+                        data-header-mobile-active-indicator
                         aria-hidden='true'
                       />
                     ) : null}
                   </a>
                 );
               })}
+              <span
+                className={styles.activeIndicator}
+                data-header-active-indicator
+                aria-hidden='true'
+              />
             </div>
             <button
               type='button'

@@ -38,7 +38,6 @@ export function HeaderSection() {
       data-header-layout={hydrated ? layout : undefined}
       data-header-motion-phase={motionPhase === 'idle' ? undefined : motionPhase}
       data-header-glass-tone={glassTone}
-      data-header-surface={desktopFluid ? 'hero' : 'solid'}
     >
       <script>
         {`document.documentElement.dataset.headerInitialLayout=window.matchMedia('(max-width: 900px)').matches?'mobile-compact':'desktop-fluid';`}

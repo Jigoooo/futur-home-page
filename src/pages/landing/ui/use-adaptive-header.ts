@@ -136,6 +136,13 @@ export function useAdaptiveHeader({ headerRef, menuRef, toggleRef }: AdaptiveHea
       const mobileMenuTransition =
         (layoutRef.current === 'mobile-compact' && nextLayout === 'mobile-expanded') ||
         (layoutRef.current === 'mobile-expanded' && nextLayout === 'mobile-compact');
+      const leavingMobileFamily =
+        layoutRef.current !== 'desktop-fluid' && nextLayout === 'desktop-fluid';
+
+      if (leavingMobileFamily) {
+        motionTimelineRef.current?.kill();
+        motionTimelineRef.current = null;
+      }
 
       if (header && mobileMenuTransition && motionReadyRef.current) {
         const menuItems = Array.from(menuRef.current?.querySelectorAll<HTMLElement>('a') ?? []);

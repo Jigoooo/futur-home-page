@@ -428,8 +428,8 @@ function expectContinuousMobileGeometry(samples: MobileMotionSample[]) {
   expect(new Set(samples.map(({ width }) => width)).size).toBeGreaterThanOrEqual(5);
   expect(new Set(samples.map(({ height }) => height)).size).toBeGreaterThanOrEqual(5);
   expect(longestEqualGeometryRun(samples)).toBeLessThan(80);
-  const previous = samples.at(-2)!;
-  const last = samples.at(-1)!;
+  const previous = samples[samples.length - 2]!;
+  const last = samples[samples.length - 1]!;
   expect(Math.abs(last.width - previous.width)).toBeLessThan(16);
   expect(Math.abs(last.height - previous.height)).toBeLessThan(10);
 }
@@ -527,9 +527,10 @@ test('keeps desktop fluid navigation visible through continuous scroll-linked ge
   const fontSizeSamples = await fontSizeSamplesPromise;
 
   expect(new Set(shrinkingSamples.map(({ width }) => width)).size).toBeGreaterThanOrEqual(5);
-  expect(shrinkingSamples.at(-1)!.width).toBeCloseTo(1133.44, 0);
-  expect(shrinkingSamples.at(-1)!.height).toBeCloseTo(68, 0);
-  expect(shrinkingSamples.at(-1)!.radius).toBeCloseTo(24, 0);
+  const finalShrinkingSample = shrinkingSamples[shrinkingSamples.length - 1]!;
+  expect(finalShrinkingSample.width).toBeCloseTo(1133.44, 0);
+  expect(finalShrinkingSample.height).toBeCloseTo(68, 0);
+  expect(finalShrinkingSample.radius).toBeCloseTo(24, 0);
   for (let index = 1; index < shrinkingSamples.length; index += 1) {
     expect(shrinkingSamples[index]!.width).toBeLessThanOrEqual(shrinkingSamples[index - 1]!.width);
     expect(shrinkingSamples[index]!.height).toBeLessThanOrEqual(
@@ -554,9 +555,10 @@ test('keeps desktop fluid navigation visible through continuous scroll-linked ge
       restoringSamples[index - 1]!.radius,
     );
   }
-  expect(restoringSamples.at(-1)!.width).toBeCloseTo(1232, 0);
-  expect(restoringSamples.at(-1)!.height).toBeCloseTo(76, 0);
-  expect(restoringSamples.at(-1)!.radius).toBeCloseTo(28, 0);
+  const finalRestoringSample = restoringSamples[restoringSamples.length - 1]!;
+  expect(finalRestoringSample.width).toBeCloseTo(1232, 0);
+  expect(finalRestoringSample.height).toBeCloseTo(76, 0);
+  expect(finalRestoringSample.radius).toBeCloseTo(28, 0);
   expect(fontSizeSamples.every((sample) => sample.join() === initialFontSizes.join())).toBe(true);
 });
 
@@ -866,8 +868,8 @@ test('uses one shared active indicator and glides between desktop sections', asy
   expect(frames[settledIndex]!.time - activeFrame!.time).toBeLessThanOrEqual(220);
   expect(frames.length - settledIndex).toBeGreaterThanOrEqual(2);
 
-  const finalFrame = frames.at(-1)!;
-  const previousFrame = frames.at(-2)!;
+  const finalFrame = frames[frames.length - 1]!;
+  const previousFrame = frames[frames.length - 2]!;
   const stackBox = await stackLink.boundingBox();
   expect(stackBox).not.toBeNull();
   expect(finalFrame.x).toBeCloseTo(stackBox!.x, 0);
@@ -907,7 +909,7 @@ test('retargets the shared active indicator from its current desktop frame', asy
   await expect(activeLinks).toHaveCount(1);
   await expect(stackLink).not.toHaveAttribute('aria-current');
   const [stackBox, teamBox] = await Promise.all([stackLink.boundingBox(), teamLink.boundingBox()]);
-  const finalFrame = frames.at(-1)!;
+  const finalFrame = frames[frames.length - 1]!;
   expect(stackBox).not.toBeNull();
   expect(teamBox).not.toBeNull();
   expect(finalFrame.x).toBeCloseTo(teamBox!.x, 0);
@@ -1008,6 +1010,76 @@ test('keeps mobile motion lifecycle intact through scroll and resize events', as
     inlineTransform: '',
     layout: 'mobile-expanded',
     width: 370,
+  });
+});
+
+test('clears an opening mobile timeline across a real desktop breakpoint round trip', async ({
+  page,
+}) => {
+  await page.setViewportSize(mobileViewport);
+  await page.goto('/');
+  await expect(header(page)).toHaveAttribute('data-header-layout', 'mobile-compact');
+
+  await compactButton(page).click();
+  await expect(header(page)).toHaveAttribute('data-header-layout', 'mobile-expanded');
+  await expect(header(page)).toHaveAttribute('data-header-motion', 'true');
+  await page.waitForTimeout(100);
+
+  await page.setViewportSize(desktopViewport);
+  await page.waitForFunction(
+    () =>
+      document.querySelector<HTMLElement>('[data-landing-nav]')?.dataset.headerLayout ===
+      'desktop-fluid',
+    undefined,
+    { polling: 'raf' },
+  );
+  await page.setViewportSize(mobileViewport);
+  const compactHandle = await page.waitForFunction(
+    () => {
+      const element = document.querySelector<HTMLElement>('[data-landing-nav]');
+      if (!element || element.dataset.headerLayout !== 'mobile-compact') return false;
+
+      const navigation = element.querySelector<HTMLElement>('nav[aria-label="주요 메뉴"]');
+      const toggle = element.querySelector<HTMLButtonElement>('[data-header-toggle]');
+      const rect = element.getBoundingClientRect();
+      return {
+        dataMotion: element.dataset.headerMotion ?? null,
+        focusedToggle: document.activeElement === toggle,
+        headerTransform: element.style.transform,
+        height: Math.round(rect.height * 100) / 100,
+        itemStyles: Array.from(navigation?.querySelectorAll<HTMLElement>('a') ?? [], (item) => ({
+          opacity: item.style.opacity,
+          transform: item.style.transform,
+        })),
+        layout: element.dataset.headerLayout,
+        mobileHeight: element.style.getPropertyValue('--header-mobile-height'),
+        mobileWidth: element.style.getPropertyValue('--header-mobile-width'),
+        navigationHidden: navigation?.getAttribute('aria-hidden'),
+        toggleExpanded: toggle?.getAttribute('aria-expanded'),
+        toggleHidden: toggle?.getAttribute('aria-hidden'),
+        toggleTabIndex: toggle?.getAttribute('tabindex'),
+        width: Math.round(rect.width * 100) / 100,
+      };
+    },
+    undefined,
+    { polling: 'raf' },
+  );
+  const result = await compactHandle.jsonValue();
+
+  expect(result).toEqual({
+    dataMotion: null,
+    focusedToggle: true,
+    headerTransform: '',
+    height: 56,
+    itemStyles: Array.from({ length: 5 }, () => ({ opacity: '', transform: '' })),
+    layout: 'mobile-compact',
+    mobileHeight: '',
+    mobileWidth: '',
+    navigationHidden: 'true',
+    toggleExpanded: 'false',
+    toggleHidden: 'false',
+    toggleTabIndex: '0',
+    width: 220,
   });
 });
 
@@ -1695,7 +1767,7 @@ test('runs and settles the active indicator follow-through inside the open timel
   await button.click();
   const samples = await samplePromise;
   expect(samples.some(({ scaleX }) => scaleX >= 0.7 && scaleX < 0.99)).toBe(true);
-  expect(samples.at(-1)).toEqual({ inlineTransform: '', scaleX: 1 });
+  expect(samples[samples.length - 1]).toEqual({ inlineTransform: '', scaleX: 1 });
 });
 
 test('tracks section navigation and maps operations to process', async ({ page }) => {
@@ -1845,6 +1917,7 @@ test('uses a contained 3+2 menu grid from the mobile Hero', async ({ page }) => 
   const links = nav.getByRole('link');
   await expect(links).toHaveCount(5);
   await expect(links).toHaveText(menuLabels);
+  await expect(header(page)).not.toHaveAttribute('data-header-motion', 'true');
 
   const linkBoxes = await links.evaluateAll((elements) =>
     elements.map((element) => {

@@ -12,7 +12,7 @@ function getTargetId(hash: string) {
   }
 }
 
-function getLandingNavOffset() {
+export function getLandingNavOffset() {
   const nav = document.querySelector<HTMLElement>('[data-landing-nav]');
 
   if (!nav) return 0;

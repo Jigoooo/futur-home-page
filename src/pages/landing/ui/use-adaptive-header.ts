@@ -17,7 +17,7 @@ import {
   startMobileHeaderMotion,
   writeDesktopHeaderFrame,
 } from './header-motion';
-import { scrollToHashTarget } from '../lib/scroll-to-page-top';
+import { getLandingNavOffset, scrollToHashTarget } from '../lib/scroll-to-page-top';
 
 export type HeaderLayout = 'desktop-fluid' | 'mobile-compact' | 'mobile-expanded';
 
@@ -36,6 +36,7 @@ const sectionLabels = new Map([
   ['faq', { href: '#faq', label: 'FAQ' }],
 ]);
 const headerSectionProbeGuard = 8;
+const navigationLandingProbeTolerance = 1;
 
 function isPlainHashNavigation(event: MouseEvent<HTMLAnchorElement>) {
   const anchor = event.currentTarget;
@@ -53,7 +54,10 @@ function isPlainHashNavigation(event: MouseEvent<HTMLAnchorElement>) {
 
 function getVisibleSectionId(header: HTMLElement | null) {
   const sections = Array.from(document.querySelectorAll<HTMLElement>('[data-landing-section]'));
-  const viewportProbe = (header?.getBoundingClientRect().bottom ?? 0) + headerSectionProbeGuard;
+  const viewportProbe = Math.max(
+    (header?.getBoundingClientRect().bottom ?? 0) + headerSectionProbeGuard,
+    getLandingNavOffset() + navigationLandingProbeTolerance,
+  );
   const containingProbe = sections.find((section) => {
     const rect = section.getBoundingClientRect();
     return rect.top <= viewportProbe && rect.bottom > viewportProbe;

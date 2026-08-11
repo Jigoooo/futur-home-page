@@ -1066,6 +1066,24 @@ test('uses the compact CSS offset for hash targets and avoids scroll-frame layou
   }
 });
 
+test('updates the mobile active section at the compact hash landing line', async ({ page }) => {
+  await page.setViewportSize(mobileViewport);
+  await page.goto('/');
+  await scrollSectionIntoView(page, 'services');
+  await openCompactMenu(page, '서비스');
+
+  const nav = header(page).locator('nav[aria-label="주요 메뉴"]');
+  await nav.getByRole('link', { name: '기술', exact: true }).click();
+
+  await expect(header(page)).toHaveAttribute('data-header-layout', 'mobile-compact');
+  await expect(page).toHaveURL(/#stack$/);
+  await expect
+    .poll(() => page.locator('#stack').evaluate((element) => element.getBoundingClientRect().top))
+    .toBeCloseTo(82, 0);
+  await expect(nav.locator('a[href="#stack"]')).toHaveAttribute('aria-current', 'location');
+  await expectCompactLabel(compactButton(page), '기술');
+});
+
 test('keeps will-change scoped to active header transitions', async ({ page }) => {
   await page.goto('/');
   await enterCompactLayout(page);

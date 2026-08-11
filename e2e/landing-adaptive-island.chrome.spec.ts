@@ -295,6 +295,67 @@ test('keeps desktop fluid navigation visible through continuous scroll-linked ge
   expect(fontSizeSamples.every((sample) => sample.join() === initialFontSizes.join())).toBe(true);
 });
 
+test('keeps mobile motion lifecycle intact through scroll and resize events', async ({ page }) => {
+  await page.setViewportSize(mobileViewport);
+  await page.goto('/');
+  await expect(header(page)).toHaveAttribute('data-header-layout', 'mobile-compact');
+
+  const openingResultPromise = header(page).evaluate(async (element) => {
+    const layoutStartedAt = performance.now();
+    while (
+      element.dataset.headerLayout !== 'mobile-expanded' ||
+      element.dataset.headerMotion !== 'true'
+    ) {
+      if (performance.now() - layoutStartedAt >= 2_000) {
+        throw new Error('mobile-expanded motion did not start within 2 seconds');
+      }
+      await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+    }
+
+    const motionStartedAt = performance.now();
+    while (performance.now() - motionStartedAt < 100) {
+      await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+    }
+
+    element.style.setProperty('--header-fluid-shadow-alpha', '0.123');
+    let cleanupDuringMotion = false;
+    const startedAt = performance.now();
+    do {
+      window.dispatchEvent(new Event('scroll'));
+      window.dispatchEvent(new Event('resize'));
+      await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+      if (
+        element.dataset.headerMotion === 'true' &&
+        element.style.getPropertyValue('--header-fluid-shadow-alpha') === ''
+      ) {
+        cleanupDuringMotion = true;
+      }
+    } while (performance.now() - startedAt < 700);
+
+    const rect = element.getBoundingClientRect();
+    return {
+      dataMotion: element.dataset.headerMotion ?? null,
+      cleanupDuringMotion,
+      height: Math.round(rect.height * 100) / 100,
+      inlineTransform: element.style.transform,
+      layout: element.dataset.headerLayout,
+      width: Math.round(rect.width * 100) / 100,
+    };
+  });
+
+  await compactButton(page).click();
+  const result = await openingResultPromise;
+
+  expect(result).toMatchObject({
+    cleanupDuringMotion: false,
+    dataMotion: null,
+    height: 158,
+    inlineTransform: '',
+    layout: 'mobile-expanded',
+    width: 370,
+  });
+});
+
 test('applies semantic glass tint, spotlight, cursor contrast, and resilient fallbacks', async ({
   browser,
   page,

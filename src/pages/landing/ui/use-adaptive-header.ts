@@ -297,6 +297,7 @@ export function useAdaptiveHeader({ headerRef, menuRef, toggleRef }: AdaptiveHea
     let viewportWidth = window.innerWidth;
     let frameId = 0;
     let quickSetProgress: ReturnType<typeof gsap.quickTo> | null = null;
+    let desktopActive = !compactViewport.matches;
 
     const createQuickSetter = () => {
       quickSetProgress?.tween.kill();
@@ -309,11 +310,16 @@ export function useAdaptiveHeader({ headerRef, menuRef, toggleRef }: AdaptiveHea
               onUpdate: () => writeDesktopHeaderFrame(header, viewportWidth, proxy.value),
             });
     };
+    const cancelDesktopMotion = () => {
+      window.cancelAnimationFrame(frameId);
+      frameId = 0;
+      quickSetProgress?.tween.kill();
+      quickSetProgress = null;
+    };
     const writeFrame = () => {
       frameId = 0;
       if (compactViewport.matches) {
-        quickSetProgress?.tween.kill();
-        clearDesktopHeaderFrame(header);
+        cancelDesktopMotion();
         return;
       }
 
@@ -329,10 +335,7 @@ export function useAdaptiveHeader({ headerRef, menuRef, toggleRef }: AdaptiveHea
       scrollY = window.scrollY;
       viewportWidth = window.innerWidth;
       if (compactViewport.matches) {
-        window.cancelAnimationFrame(frameId);
-        frameId = 0;
-        quickSetProgress?.tween.kill();
-        clearDesktopHeaderFrame(header);
+        cancelDesktopMotion();
         return;
       }
       if (frameId) return;
@@ -344,9 +347,13 @@ export function useAdaptiveHeader({ headerRef, menuRef, toggleRef }: AdaptiveHea
     };
     const syncViewportMode = () => {
       if (compactViewport.matches) {
-        scheduleFrame();
+        const leavingDesktop = desktopActive;
+        desktopActive = false;
+        cancelDesktopMotion();
+        if (leavingDesktop) clearDesktopHeaderFrame(header);
         return;
       }
+      desktopActive = true;
       createQuickSetter();
       scheduleFrame();
     };
@@ -359,8 +366,7 @@ export function useAdaptiveHeader({ headerRef, menuRef, toggleRef }: AdaptiveHea
     scheduleFrame();
 
     return () => {
-      window.cancelAnimationFrame(frameId);
-      quickSetProgress?.tween.kill();
+      cancelDesktopMotion();
       window.removeEventListener('scroll', scheduleFrame);
       window.removeEventListener('resize', scheduleFrame);
       compactViewport.removeEventListener('change', syncViewportMode);

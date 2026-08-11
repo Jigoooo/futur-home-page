@@ -287,6 +287,31 @@ export function useAdaptiveHeader({ headerRef, menuRef, toggleRef }: AdaptiveHea
     const header = headerRef.current;
     if (!header) return;
 
+    let idleTimer = 0;
+    const markHeaderScrolling = () => {
+      if (header.dataset.headerScrolling !== 'true') {
+        header.dataset.headerScrolling = 'true';
+      }
+      window.clearTimeout(idleTimer);
+      idleTimer = window.setTimeout(() => {
+        delete header.dataset.headerScrolling;
+        idleTimer = 0;
+      }, 160);
+    };
+
+    window.addEventListener('scroll', markHeaderScrolling, { passive: true });
+
+    return () => {
+      window.clearTimeout(idleTimer);
+      delete header.dataset.headerScrolling;
+      window.removeEventListener('scroll', markHeaderScrolling);
+    };
+  }, [headerRef]);
+
+  useEffect(() => {
+    const header = headerRef.current;
+    if (!header) return;
+
     const compactViewport = window.matchMedia('(max-width: 900px)');
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
     const proxy = { value: getDesktopHeaderProgress(window.scrollY) };

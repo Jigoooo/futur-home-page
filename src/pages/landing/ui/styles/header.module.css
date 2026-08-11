@@ -53,6 +53,11 @@
   transition: border-color 0.16s var(--ease-out);
 }
 
+.nav[data-header-scrolling='true'] .glassShell {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
 .nav[data-header-glass-tone='light'] .glassShell {
   background: rgba(248, 250, 255, 0.26);
 }

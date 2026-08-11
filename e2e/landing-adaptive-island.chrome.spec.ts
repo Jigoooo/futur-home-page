@@ -39,6 +39,23 @@ async function scrollSectionIntoView(page: Page, sectionId: string) {
   });
 }
 
+async function readGlassStyle(glass: Locator) {
+  return glass.evaluate((element) => {
+    const styles = getComputedStyle(element);
+    const beforeStyles = getComputedStyle(element, '::before');
+    const afterStyles = getComputedStyle(element, '::after');
+
+    return {
+      afterBackdropFilter: afterStyles.backdropFilter,
+      backdropFilter: styles.backdropFilter,
+      backgroundColor: styles.backgroundColor,
+      beforeOpacity: beforeStyles.opacity,
+      webkitBackdropFilter:
+        styles.getPropertyValue('-webkit-backdrop-filter') || styles.backdropFilter,
+    };
+  });
+}
+
 async function enterCompactLayout(page: Page, sectionId = 'services', label = '서비스') {
   await page.setViewportSize(mobileViewport);
   await scrollSectionIntoView(page, sectionId);
@@ -589,7 +606,7 @@ test('settles interrupted mobile geometry from the current frame', async ({ page
   expect(indicatorInlineStyle).toEqual({ opacity: '', transform: '' });
 });
 
-test('applies semantic glass tint, spotlight, cursor contrast, and resilient fallbacks', async ({
+test('applies semantic clear crystal glass, spotlight, cursor contrast, and resilient fallbacks', async ({
   browser,
   page,
 }) => {
@@ -617,17 +634,20 @@ test('applies semantic glass tint, spotlight, cursor contrast, and resilient fal
     .poll(() => glass.evaluate((element) => element.style.getPropertyValue('--mx')))
     .not.toBe(firstMx);
 
+  const glassStyles: Partial<Record<'dark' | 'light', Awaited<ReturnType<typeof readGlassStyle>>>> =
+    {};
   for (const sectionId of ['services', 'operations', 'footer'] as const) {
+    const tone = sectionId === 'operations' ? 'dark' : 'light';
     await scrollSectionIntoView(page, sectionId);
-    await expect(header(page)).toHaveAttribute(
-      'data-header-glass-tone',
-      sectionId === 'operations' ? 'dark' : 'light',
-    );
-    await expect(glass).toHaveCSS(
-      'background-color',
-      sectionId === 'operations' ? 'rgba(248, 250, 255, 0.46)' : 'rgba(248, 250, 255, 0.66)',
-    );
+    await expect(header(page)).toHaveAttribute('data-header-glass-tone', tone);
+    glassStyles[tone] = await readGlassStyle(glass);
   }
+
+  expect(glassStyles.dark?.backgroundColor).toBe('rgba(248, 250, 255, 0.18)');
+  expect(glassStyles.light?.backgroundColor).toBe('rgba(248, 250, 255, 0.26)');
+  expect(glassStyles.dark?.backdropFilter).toBe('blur(20px) saturate(1.35) contrast(1.03)');
+  expect(Number(glassStyles.dark?.beforeOpacity)).toBeLessThanOrEqual(0.28);
+  expect(glassStyles.dark?.afterBackdropFilter).toBe('none');
 
   expect(
     await page.evaluate(() => {
@@ -675,18 +695,27 @@ test('applies semantic glass tint, spotlight, cursor contrast, and resilient fal
   ).toEqual({
     dark: {
       backdropFilter: 'none',
-      backgroundColor: 'rgba(248, 250, 255, 0.94)',
+      backgroundColor: 'rgba(248, 250, 255, 0.92)',
       webkitBackdropFilter: 'none',
     },
     light: {
       backdropFilter: 'none',
-      backgroundColor: 'rgba(248, 250, 255, 0.94)',
+      backgroundColor: 'rgba(248, 250, 255, 0.92)',
       webkitBackdropFilter: 'none',
     },
   });
 
   await page.emulateMedia({ contrast: 'more' });
-  await expect(glass).toHaveCSS('background-color', 'rgba(248, 250, 255, 0.94)');
+  for (const tone of ['dark', 'light'] as const) {
+    await header(page).evaluate((element, nextTone) => {
+      element.dataset.headerGlassTone = nextTone;
+    }, tone);
+    expect(await readGlassStyle(glass)).toMatchObject({
+      backdropFilter: 'none',
+      backgroundColor: 'rgba(248, 250, 255, 0.92)',
+      webkitBackdropFilter: 'none',
+    });
+  }
 
   const coarsePage = await browser.newPage({ hasTouch: true, viewport: mobileViewport });
   await coarsePage.goto('/');

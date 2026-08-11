@@ -120,7 +120,7 @@ fixed positioner와 inner glass surface의 책임을 유지하며, 모든 전환
 
   ```bash
   pnpm exec playwright test e2e/landing-adaptive-island.chrome.spec.ts \
-    --project=chromium --workers=1 --grep "desktop fluid"
+    --project=chrome --workers=1 --grep "desktop fluid"
   ```
 
   Expected: FAIL because the current Header becomes `compact`, hides its menu, and jumps directly to
@@ -251,7 +251,7 @@ fixed positioner와 inner glass surface의 책임을 유지하며, 모든 전환
 
   ```bash
   pnpm exec playwright test e2e/landing-adaptive-island.chrome.spec.ts \
-    --project=chromium --workers=1 --grep "desktop fluid"
+    --project=chrome --workers=1 --grep "desktop fluid"
   pnpm exec eslint src/pages/landing/ui/header-motion.ts \
     src/pages/landing/ui/use-adaptive-header.ts src/pages/landing/ui/header-section.tsx
   pnpm exec tsc -b --pretty false
@@ -312,7 +312,7 @@ fixed positioner와 inner glass surface의 책임을 유지하며, 모든 전환
 
   ```bash
   pnpm exec playwright test e2e/landing-adaptive-island.chrome.spec.ts \
-    --project=chromium --workers=1 --grep "mobile geometry|interrupted mobile"
+    --project=chrome --workers=1 --grep "mobile geometry|interrupted mobile"
   ```
 
   Expected: FAIL with a long `220×56px` plateau followed by the final `370×158px` jump.
@@ -474,7 +474,7 @@ fixed positioner와 inner glass surface의 책임을 유지하며, 모든 전환
 
   ```bash
   pnpm exec playwright test e2e/landing-adaptive-island.chrome.spec.ts \
-    --project=chromium --workers=1 \
+    --project=chrome --workers=1 \
     --grep "mobile geometry|interrupted mobile|keyboard|focus|no-JavaScript|reduced motion"
   pnpm exec eslint src/pages/landing/ui/header-motion.ts \
     src/pages/landing/ui/use-adaptive-header.ts src/pages/landing/ui/header-section.tsx
@@ -529,7 +529,7 @@ fixed positioner와 inner glass surface의 책임을 유지하며, 모든 전환
 
   ```bash
   pnpm exec playwright test e2e/landing-adaptive-island.chrome.spec.ts \
-    --project=chromium --workers=1 --grep "crystal glass|fallback"
+    --project=chrome --workers=1 --grep "crystal glass|fallback"
   ```
 
   Expected: FAIL on the current `0.46/0.66`, extra opaque gradients, and `0.94` fallback.
@@ -580,7 +580,7 @@ fixed positioner와 inner glass surface의 책임을 유지하며, 모든 전환
     e2e/landing-cursor.chrome.spec.ts \
     e2e/a11y/landing.static.a11y.spec.ts \
     e2e/a11y/landing.interactive.a11y.spec.ts \
-    --project=chromium --workers=1
+    --project=chrome --workers=1
   git diff --check
   ```
 
@@ -637,7 +637,7 @@ fixed positioner와 inner glass surface의 책임을 유지하며, 모든 전환
   pnpm exec playwright test e2e/landing-adaptive-island.chrome.spec.ts \
     e2e/landing-hero-cinematic.chrome.spec.ts \
     e2e/landing-runtime-errors.chrome.spec.ts \
-    --project=chromium --workers=1
+    --project=chrome --workers=1
   ```
 
   Expected: all tests PASS with no stale `hero-expanded → compact` desktop assertion.
@@ -728,7 +728,7 @@ fixed positioner와 inner glass surface의 책임을 유지하며, 모든 전환
     e2e/landing-cursor.chrome.spec.ts \
     e2e/a11y/landing.static.a11y.spec.ts \
     e2e/a11y/landing.interactive.a11y.spec.ts \
-    --project=chromium --workers=1
+    --project=chrome --workers=1
   pnpm test:e2e -- --workers=1
   pnpm lint
   pnpm build

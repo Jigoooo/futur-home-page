@@ -6,4 +6,5 @@
 
 ## Execution order
 
-1. 001을 먼저 실행한다. 현재 Header scroll-glass 최적화의 시각적 discontinuity를 보정하는 단일 계획이며 다른 계획 의존성은 없다.
+1. 001은 완료됐다. Header scroll-glass의 fade-out/Scroll Edge 진입은 160ms
+   `ease-in-out`, idle 복원은 160ms `ease-out` 계약을 사용한다.

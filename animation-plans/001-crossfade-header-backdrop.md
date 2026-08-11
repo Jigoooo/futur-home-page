@@ -1,7 +1,7 @@
 # 001 — Header live blur를 정적 글라스와 교차 전환한다
 
 - **Status**: DONE
-- **Commit**: dd0c537
+- **Commit**: dd0c537, 0121956
 - **Severity**: HIGH
 - **Category**: Performance, Interruptibility, Cohesion
 - **Estimated scope**: production 3 files, E2E 1 file
@@ -30,7 +30,7 @@
 - live backdrop을 `glassShell`과 분리된 장식 레이어로 옮긴다.
 - Apple Liquid Glass의 `Scroll Edge Effect` 원리를 따라, 스크롤 중에는 Header 아래쪽에 정적 soft-edge gradient를 함께 드러내 배경 콘텐츠가 유리 아래로 부드럽게 dissolve되는 인상을 준다. 이 레이어에는 `backdrop-filter`를 적용하지 않는다.
 - 정지 상태는 기존 `blur(20px) saturate(135%) contrast(1.03)`와 tint/rim을 그대로 유지한다.
-- 스크롤 시작 시 live backdrop 레이어의 `opacity`를 `120ms var(--ease-out)`로 `1 → 0` 전환한다.
+- 스크롤 시작 시 live backdrop 레이어의 `opacity`를 `160ms var(--ease-in-out)`로 `1 → 0` 전환한다.
 - opacity 전환이 끝난 뒤 live backdrop 레이어의 standard/WebKit `backdrop-filter`를 실제 `none`으로 바꾼다.
 - 마지막 scroll event 160ms 후에는 투명 상태에서 20px filter를 먼저 준비하고, 다음 animation frame부터 `160ms var(--ease-out)`로 `0 → 1` 복원한다.
 - 빠르게 방향을 바꾸거나 복원 중 다시 스크롤해도 CSS opacity transition이 현재 프레임에서 retarget되어 컷이나 restart가 없어야 한다.
@@ -39,7 +39,8 @@
 
 ## Repo conventions to follow
 
-- easing은 `src/styles/tokens.css`의 기존 `--ease-out`을 재사용한다.
+- fade-out/Scroll Edge 진입은 `src/styles/tokens.css`의 기존 `--ease-in-out`, 복원은
+  `--ease-out`을 재사용한다.
 - scroll lifecycle은 `src/pages/landing/ui/use-adaptive-header.ts`의 passive listener와 DOM dataset 방식을 유지한다. React state를 추가하지 않는다.
 - 장식 레이어는 `aria-hidden="true"`이며 실제 메뉴·포커스 순서에 참여하지 않는다.
 - animation은 layout 속성이 아니라 `opacity`만 사용한다.
@@ -55,7 +56,8 @@
 
 1. `e2e/landing-adaptive-island.chrome.spec.ts`에 RED 계약을 먼저 추가한다.
    - scroll 시작 직후 backdrop layer opacity가 0과 1 사이의 중간값을 실제로 거친다.
-   - 120ms 이내 opacity 0, 이후 computed filter `none`을 확인한다.
+   - 40–60ms 구간에서 backdrop opacity `>= 0.55`, Scroll Edge opacity `<= 0.45`를 확인한다.
+   - 160ms 전환 뒤 opacity 0과 computed filter `none`을 확인한다.
    - idle 복원 중 opacity가 0과 1 사이를 거쳐 160ms 이내 1, filter exact 20px을 확인한다.
    - 전환 중 반대 입력을 줘도 opacity jump가 없고 최종 marker/filter가 정리된다.
    - WebGL 70k/4-pass/DPR2와 dark/light tint/rim은 active scroll 상태에서도 유지한다.
@@ -65,7 +67,7 @@
    - unsupported/high-contrast에서는 backdrop layer filter를 `none`으로 고정하고 기존 94% fallback surface를 유지한다.
    - scroll-edge는 Header 하단 바깥에 18–28px 높이의 투명 gradient로 두고 `opacity`만 전환한다. 콘텐츠를 가리는 불투명 판이나 두 번째 glass로 만들지 않는다.
 4. `src/pages/landing/ui/use-adaptive-header.ts`의 scroll lifecycle을 두 단계로 바꾼다.
-   - enter: scrolling marker → 120ms 후 suspended marker.
+   - enter: scrolling marker → 160ms 후 suspended marker.
    - idle: suspended 제거 → 다음 rAF scrolling 제거.
    - 단일 idle timer, 단일 suspend timer, 단일 restore rAF만 사용하고 cleanup에서 모두 취소한다.
    - repeated scroll event는 marker를 반복 기록하지 않는다.
@@ -91,7 +93,8 @@
   - `git diff --check`
 - **Feel check**:
   - 포트 3000에서 Hero↔Our Services를 트랙패드로 천천히·빠르게 왕복한다.
-  - blur가 한 프레임에 사라지거나 나타나지 않고 120/160ms 동안 짧게 교차 전환되는지 확인한다.
+  - blur가 한 프레임에 사라지거나 나타나지 않고 양방향 160ms 동안 짧게 교차 전환되는지
+    확인한다.
   - 스크롤 중 Header 하단의 soft edge가 과한 흰 띠 없이 콘텐츠 경계를 살짝 dissolve하고, 정지 시 자연스럽게 사라지는지 확인한다.
   - 계속 스크롤하는 동안 정적 글라스의 tint/rim은 유지되고 WebGL 입자 밀도는 줄지 않는지 확인한다.
   - 복원 중 다시 스크롤해도 번쩍임이나 opacity restart가 없는지 확인한다.

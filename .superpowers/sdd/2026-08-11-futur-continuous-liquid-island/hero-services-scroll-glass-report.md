@@ -86,3 +86,38 @@ port 3000, 1920×1080 in-app browser에서 확인했다.
 - 이 변경은 제공된 profiling에서 비용 차이가 확인된 scroll-time blur 합성만 제거한다.
   production WebGL 경로와 particle quality는 그대로이며, 새 E2E가 70k/4-pass/DPR2 경계를
   고정한다.
+
+## Review Important round
+
+Production 변경 없이 `landing-adaptive-island.chrome.spec.ts`의 quality boundary만 강화했다.
+
+### Scroll-time Hero quality RED
+
+- 실제 scroll 직전에 `__heroDrawCalls`를 비우도록 변경했다.
+- test instrumentation에 scrolling marker가 있는 동안 draw call을 기록하지 않는 임시 mutation을
+  넣었다.
+- focused gate는 `1 failed`, exit `1`이었다. marker가 idle 전에 사라져 scroll-time frame 계약이
+  실패했다.
+- mutation을 제거하고, marker가 `true`인 rAF에서만 새
+  `TRIANGLES(3) → POINTS(70k) → POINTS(70k) → POINTS(4k)` sequence를 인정하도록 샘플링을
+  안정화했다.
+- 같은 marker 생존 snapshot에서 particle/emitter count `70000/4000`, DPR `2`, CSS 크기의 정확한
+  2배 backing canvas width/height를 다시 검증한다.
+
+### Services light glass RED
+
+- Services light scrolling selector만 `blur(20px) !important`로 되돌리는 test-local style
+  mutation을 넣었다.
+- focused gate는 expected `none`, received `blur(20px)`로 `1 failed`, exit `1`이었다.
+- mutation을 제거하고 Services 내부에서 3-rAF actual scroll burst를 수행한다. marker `true` 동안
+  filter `none`, background `rgba(248, 250, 255, 0.26)`, rim
+  `rgba(255, 255, 255, 0.58)`을 함께 검증하고 idle 뒤 exact 20px filter 복원을 확인한다.
+
+### Review GREEN
+
+- Focused repeat: `5/5` passed.
+- Full Adaptive Header: `39/39` passed.
+- Hero + runtime errors: `16/16` passed.
+- axe a11y: `11/11` passed.
+- touched-file ESLint, `pnpm exec tsc -b --pretty false`, `git diff --check`: exit `0`.
+- production diff: `0` files.

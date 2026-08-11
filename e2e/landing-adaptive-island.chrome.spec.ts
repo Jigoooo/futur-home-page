@@ -758,7 +758,12 @@ test('suspends only the Header blur while scrolling without degrading Hero rende
   expect(heroQuality.width).toBe(heroQuality.renderedWidth);
   expect(heroQuality.height).toBe(heroQuality.renderedHeight);
 
-  await page.evaluate(() => window.scrollTo({ behavior: 'instant', top: 120 }));
+  await page.evaluate(() => {
+    (
+      window as typeof window & { __heroDrawCalls: Array<{ count: number; mode: number }> }
+    ).__heroDrawCalls.length = 0;
+    window.scrollTo({ behavior: 'instant', top: 120 });
+  });
   await expect(nav).toHaveAttribute('data-header-scrolling', 'true');
   expect(await readGlassStyle(glass)).toMatchObject({
     backdropFilter: 'none',
@@ -766,6 +771,56 @@ test('suspends only the Header blur while scrolling without degrading Hero rende
     webkitBackdropFilter: '',
   });
   await expect(glass).toHaveCSS('border-color', 'rgba(151, 184, 235, 0.28)');
+
+  const scrollingHeroQuality = await canvas.evaluate(async (element) => {
+    const canvasElement = element as HTMLCanvasElement;
+    const nav = document.querySelector<HTMLElement>('[data-landing-nav]')!;
+    const drawCalls = (
+      window as typeof window & { __heroDrawCalls: Array<{ count: number; mode: number }> }
+    ).__heroDrawCalls;
+    const hasFourPassFrame = () =>
+      drawCalls.some(
+        (call, index) =>
+          call.mode === WebGL2RenderingContext.TRIANGLES &&
+          call.count === 3 &&
+          drawCalls[index + 1]?.mode === WebGL2RenderingContext.POINTS &&
+          drawCalls[index + 1]?.count === 70_000 &&
+          drawCalls[index + 2]?.mode === WebGL2RenderingContext.POINTS &&
+          drawCalls[index + 2]?.count === 70_000 &&
+          drawCalls[index + 3]?.mode === WebGL2RenderingContext.POINTS &&
+          drawCalls[index + 3]?.count === 4_000,
+      );
+
+    let observedFourPassFrameWhileScrolling = hasFourPassFrame();
+    while (nav.dataset.headerScrolling === 'true' && !observedFourPassFrameWhileScrolling) {
+      await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+      if (nav.dataset.headerScrolling === 'true') {
+        observedFourPassFrameWhileScrolling = hasFourPassFrame();
+      }
+    }
+
+    const rect = canvasElement.getBoundingClientRect();
+    return {
+      devicePixelRatio: window.devicePixelRatio,
+      emitterCount: canvasElement.dataset.particleEmitterCount,
+      hasFourPassFrame: observedFourPassFrameWhileScrolling,
+      height: canvasElement.height,
+      marker: nav.dataset.headerScrolling,
+      particleCount: canvasElement.dataset.particleCount,
+      renderedHeight: Math.round(rect.height * 2),
+      renderedWidth: Math.round(rect.width * 2),
+      width: canvasElement.width,
+    };
+  });
+  expect(scrollingHeroQuality).toMatchObject({
+    devicePixelRatio: 2,
+    emitterCount: '4000',
+    hasFourPassFrame: true,
+    marker: 'true',
+    particleCount: '70000',
+  });
+  expect(scrollingHeroQuality.width).toBe(scrollingHeroQuality.renderedWidth);
+  expect(scrollingHeroQuality.height).toBe(scrollingHeroQuality.renderedHeight);
 
   await expect(nav).not.toHaveAttribute('data-header-scrolling');
   await expect(glass).toHaveCSS('backdrop-filter', 'blur(20px) saturate(1.35) contrast(1.03)');
@@ -830,6 +885,22 @@ test('suspends only the Header blur while scrolling without degrading Hero rende
   await expect(nav).toHaveAttribute('data-header-glass-tone', 'light');
   await expect(glass).toHaveCSS('background-color', 'rgba(248, 250, 255, 0.26)');
   await expect(glass).toHaveCSS('border-color', 'rgba(255, 255, 255, 0.58)');
+  await expect(glass).toHaveCSS('backdrop-filter', 'blur(20px) saturate(1.35) contrast(1.03)');
+
+  await page.evaluate(async () => {
+    for (const delta of [8, 16, 24]) {
+      window.scrollTo({ behavior: 'instant', top: window.scrollY + delta });
+      await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+    }
+  });
+  await expect(nav).toHaveAttribute('data-header-scrolling', 'true');
+  expect(await readGlassStyle(glass)).toMatchObject({
+    backdropFilter: 'none',
+    backgroundColor: 'rgba(248, 250, 255, 0.26)',
+    webkitBackdropFilter: '',
+  });
+  await expect(glass).toHaveCSS('border-color', 'rgba(255, 255, 255, 0.58)');
+  await expect(nav).not.toHaveAttribute('data-header-scrolling');
   await expect(glass).toHaveCSS('backdrop-filter', 'blur(20px) saturate(1.35) contrast(1.03)');
 
   await page.close();

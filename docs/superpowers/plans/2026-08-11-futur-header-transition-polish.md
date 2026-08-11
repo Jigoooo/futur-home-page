@@ -9,7 +9,8 @@
 
 **Architecture:** 기존 `useAdaptiveHeader`의 desktop scroll rAF owner에 target dedupe를 추가해
 geometry progress가 실제로 바뀔 때만 GSAP와 CSS custom property를 갱신한다. Header CSS는
-`data-header-glass-tone`을 ink/border semantic authority로 사용한다. Shared indicator motion은 새
+`data-header-glass-tone`은 기존 tint/filter를 유지하면서 dark section의 white ink/cool rim과 light
+section의 navy ink/light rim을 전환한다. Shared indicator motion은 새
 `header-active-indicator.ts`가 소유하며 active href가 바뀔 때만 link geometry를 측정한다.
 
 **Tech Stack:** React 19, TypeScript 6, CSS Modules, GSAP 3.15, Playwright 1.60, axe-core
@@ -26,7 +27,7 @@ geometry progress가 실제로 바뀔 때만 GSAP와 CSS custom property를 갱�
 
 ---
 
-### Task 1: 종료된 desktop geometry write 제거와 dark surface 대비 복구
+### Task 1: 종료된 desktop geometry write 제거와 backdrop surface 대비 복구
 
 **Files:**
 
@@ -63,13 +64,19 @@ geometry progress가 실제로 바뀔 때만 GSAP와 CSS custom property를 갱�
   assert the count is `0`. Resize 1280→1180 and assert the final Header width changes once to the
   correct `1132 * 0.92` target.
 
-  Add computed-style assertions at Hero and Services:
+  Assert the semantic section-tone foreground contract without blend-mode inversion:
 
   ```ts
-  expect(heroInk).toBe('rgb(247, 250, 255)');
-  expect(heroBorder).not.toBe('rgba(255, 255, 255, 0.58)');
+  expect(heroInk).toBe('rgb(255, 255, 255)');
   expect(servicesInk).toBe('rgb(7, 24, 63)');
+  expect(stackInk).toBe('rgb(7, 24, 63)');
+  expect(teamInk).toBe('rgb(7, 24, 63)');
+  expect(mixBlendMode).toBe('normal');
+  expect(heroBorder).not.toBe('rgba(255, 255, 255, 0.58)');
   ```
+
+  Assert dark/light background alpha remains `0.18`/`0.26` and filter remains
+  `blur(20px) saturate(1.35) contrast(1.03)`. Keep the static and interactive axe gates.
 
 - [ ] **Step 2: Run the focused tests and verify RED**
 
@@ -83,27 +90,34 @@ geometry progress가 실제로 바뀔 때만 GSAP와 CSS custom property를 갱�
 
 - [ ] **Step 3: Deduplicate desktop motion targets**
 
-  In the desktop scroll effect of `use-adaptive-header.ts`, keep:
+  In the desktop scroll effect of `use-adaptive-header.ts`, keep the last target that was actually
+  sent and an explicit first-write guard:
 
   ```ts
-  let targetProgress = proxy.value;
-  let targetViewportWidth = viewportWidth;
+  let hasWrittenDesktopFrame = false;
+  let targetProgress = Number.NaN;
+  let targetViewportWidth = Number.NaN;
   ```
 
-  In `writeFrame`, return before calling `quickSetProgress` when both target values equal the next
-  values. Update the stored targets immediately before the reduced-motion write or quick setter
-  call. On resize, width inequality must still trigger one update even when progress is unchanged.
+  In `writeFrame`, return before calling `quickSetProgress` only when `hasWrittenDesktopFrame` is true
+  and both target values equal the next values. Update the stored targets and guard immediately before
+  the reduced-motion write or quick setter call. On resize, width inequality must still trigger one
+  update even when progress is unchanged. A reload restored at `scrollY > 160` must still write the
+  settled geometry on its first scheduled frame.
 
   In `updateActiveSection`, compare `nextSectionId` with `activeSectionIdRef.current` and return
-  before `setActiveSectionId` when unchanged.
+  before `setActiveSectionId` when unchanged. Replace the viewport-center probe with the actual
+  Header overlap line: `header.getBoundingClientRect().bottom + 8`. Add a test that keeps Hero dark
+  while Services is visible below that line and switches only after Services crosses it.
 
-- [ ] **Step 4: Add semantic ink and optical-border variables**
+- [ ] **Step 4: Add semantic section ink and the dark optical-border variable**
 
-  In `header.module.css`, define defaults on `.nav`:
+  Do not add `mix-blend-mode`, text shadow, or duplicate text layers. Define dark-section ink and rim
+  on `.nav`:
 
   ```css
-  --header-ink: #f7faff;
-  --header-active-ink: var(--blue-2);
+  --header-ink: #ffffff;
+  --header-active-ink: #ffffff;
   --header-rim: rgba(151, 184, 235, 0.28);
   --header-inset-highlight: rgba(255, 255, 255, 0.22);
   ```
@@ -119,9 +133,10 @@ geometry progress가 실제로 바뀔 때만 GSAP와 CSS custom property를 갱�
   }
   ```
 
-  Route `.logo`, `.navMenu`, hover/focus/active color and `.glassShell` border/inset highlight
-  through these variables. Add only color/border-color transitions using `0.16s var(--ease-out)`.
-  Preserve the existing glass background/filter and fallback selectors.
+  Route `.logo`, `.navMenu`, hover/focus/active ink through the semantic variables with only
+  `color 0.16s var(--ease-out)`. Route border/inset highlight through the rim variables and preserve
+  the existing dark/light backgrounds and filters byte-for-byte. In the unsupported/high-contrast
+  fallback, keep the existing opaque light surface and restore navy ink so text remains readable.
 
 - [ ] **Step 5: Run focused and boundary verification**
 

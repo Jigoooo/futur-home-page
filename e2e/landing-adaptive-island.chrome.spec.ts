@@ -552,6 +552,62 @@ test('switches dark surface ink from Hero white to light-section navy', async ({
   await expect(servicesLink).toHaveCSS('color', 'rgb(255, 255, 255)');
 });
 
+test('keeps dark surface ink authority until Services crosses the Header probe', async ({
+  page,
+}) => {
+  await page.goto('/');
+  const nav = header(page);
+  const services = page.locator('#services');
+  const servicesLink = nav
+    .getByRole('navigation', { name: '주요 메뉴' })
+    .getByRole('link', { name: '서비스', exact: true });
+  await expect(nav).toHaveAttribute('data-header-hydrated', 'true');
+
+  await page.evaluate(() => {
+    const headerElement = document.querySelector<HTMLElement>('[data-landing-nav]')!;
+    const servicesElement = document.querySelector<HTMLElement>('#services')!;
+    const servicesDocumentTop = servicesElement.getBoundingClientRect().top + window.scrollY;
+    window.scrollTo({
+      top: servicesDocumentTop - (headerElement.getBoundingClientRect().bottom + 80),
+      behavior: 'instant',
+    });
+  });
+  await page.waitForTimeout(260);
+
+  const beforeCrossing = await page.evaluate(() => {
+    const headerElement = document.querySelector<HTMLElement>('[data-landing-nav]')!;
+    const servicesElement = document.querySelector<HTMLElement>('#services')!;
+    return {
+      probeY: headerElement.getBoundingClientRect().bottom + 8,
+      servicesTop: servicesElement.getBoundingClientRect().top,
+    };
+  });
+  expect(beforeCrossing.servicesTop).toBeGreaterThan(beforeCrossing.probeY);
+  expect(beforeCrossing.servicesTop).toBeLessThan(desktopViewport.height * 0.5);
+  await expect(nav).toHaveAttribute('data-header-glass-tone', 'dark');
+  await expect(servicesLink).not.toHaveAttribute('aria-current');
+
+  await page.evaluate(() => {
+    const headerElement = document.querySelector<HTMLElement>('[data-landing-nav]')!;
+    const servicesElement = document.querySelector<HTMLElement>('#services')!;
+    const probeY = headerElement.getBoundingClientRect().bottom + 8;
+    window.scrollBy({
+      top: servicesElement.getBoundingClientRect().top - probeY + 1,
+      behavior: 'instant',
+    });
+  });
+  await expect
+    .poll(() =>
+      Promise.all([
+        services.evaluate((element) => element.getBoundingClientRect().top),
+        nav.evaluate((element) => element.getBoundingClientRect().bottom + 8),
+      ]).then(([servicesTop, probeY]) => servicesTop - probeY),
+    )
+    .toBeLessThanOrEqual(0);
+  await expect(nav).toHaveAttribute('data-header-glass-tone', 'light');
+  await expect(servicesLink).toHaveAttribute('aria-current', 'location');
+});
+
 test('keeps the desktop logo and five navigation links in tab order at full scroll progress', async ({
   page,
 }) => {

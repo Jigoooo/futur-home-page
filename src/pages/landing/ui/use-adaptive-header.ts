@@ -35,6 +35,7 @@ const sectionLabels = new Map([
   ['operations', { href: '#process', label: '프로세스' }],
   ['faq', { href: '#faq', label: 'FAQ' }],
 ]);
+const headerSectionProbeGuard = 8;
 
 function isPlainHashNavigation(event: MouseEvent<HTMLAnchorElement>) {
   const anchor = event.currentTarget;
@@ -50,9 +51,9 @@ function isPlainHashNavigation(event: MouseEvent<HTMLAnchorElement>) {
   );
 }
 
-function getVisibleSectionId() {
+function getVisibleSectionId(header: HTMLElement | null) {
   const sections = Array.from(document.querySelectorAll<HTMLElement>('[data-landing-section]'));
-  const viewportProbe = window.innerHeight * 0.5;
+  const viewportProbe = (header?.getBoundingClientRect().bottom ?? 0) + headerSectionProbeGuard;
   const containingProbe = sections.find((section) => {
     const rect = section.getBoundingClientRect();
     return rect.top <= viewportProbe && rect.bottom > viewportProbe;
@@ -377,7 +378,7 @@ export function useAdaptiveHeader({ headerRef, menuRef, toggleRef }: AdaptiveHea
       window.cancelAnimationFrame(frameId);
       frameId = window.requestAnimationFrame(() => {
         if (layoutRef.current === 'mobile-expanded') return;
-        const nextSectionId = getVisibleSectionId() ?? 'hero';
+        const nextSectionId = getVisibleSectionId(headerRef.current) ?? 'hero';
         if (nextSectionId === activeSectionIdRef.current) return;
 
         activeSectionIdRef.current = nextSectionId;
@@ -394,7 +395,7 @@ export function useAdaptiveHeader({ headerRef, menuRef, toggleRef }: AdaptiveHea
       window.removeEventListener('scroll', updateActiveSection);
       window.removeEventListener('resize', updateActiveSection);
     };
-  }, []);
+  }, [headerRef]);
 
   useEffect(() => {
     if (layout !== 'mobile-expanded') return undefined;

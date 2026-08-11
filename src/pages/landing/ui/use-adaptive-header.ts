@@ -337,6 +337,17 @@ export function useAdaptiveHeader({ headerRef, menuRef, toggleRef }: AdaptiveHea
     };
     const syncMotionPreference = () => {
       createQuickSetter();
+      if (reducedMotion.matches && !compactViewport.matches) {
+        scrollY = window.scrollY;
+        viewportWidth = window.innerWidth;
+        const progress = getDesktopHeaderProgress(scrollY);
+        proxy.value = progress;
+        targetProgress = progress;
+        targetViewportWidth = viewportWidth;
+        hasWrittenDesktopFrame = true;
+        writeDesktopHeaderFrame(header, viewportWidth, progress);
+        return;
+      }
       scheduleFrame();
     };
     const syncViewportMode = () => {

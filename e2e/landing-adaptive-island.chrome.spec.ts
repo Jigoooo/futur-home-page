@@ -450,51 +450,51 @@ test('avoids settled desktop geometry writes through the Hero to Services bounda
   await expect.poll(async () => (await header(page).boundingBox())?.width).toBeCloseTo(1_133.44, 0);
   await page.waitForTimeout(240);
 
-  await header(page).evaluate(async (element) => {
-    const fluidProperties = new Set([
-      '--header-fluid-width',
-      '--header-fluid-height',
-      '--header-fluid-radius',
-      '--header-fluid-shell-start',
-      '--header-fluid-shell-end',
-      '--header-fluid-menu-gap',
-      '--header-fluid-shadow-y',
-      '--header-fluid-shadow-blur',
-      '--header-fluid-shadow-alpha',
-    ]);
-    const recorded: string[] = [];
-    const originalSetProperty = CSSStyleDeclaration.prototype.setProperty;
+  try {
+    await header(page).evaluate(async (element) => {
+      const fluidProperties = new Set([
+        '--header-fluid-width',
+        '--header-fluid-height',
+        '--header-fluid-radius',
+        '--header-fluid-shell-start',
+        '--header-fluid-shell-end',
+        '--header-fluid-menu-gap',
+        '--header-fluid-shadow-y',
+        '--header-fluid-shadow-blur',
+        '--header-fluid-shadow-alpha',
+      ]);
+      const recorded: string[] = [];
+      const originalSetProperty = CSSStyleDeclaration.prototype.setProperty;
 
-    Object.assign(window, {
-      __headerGeometryRecorded: recorded,
-      __headerGeometryRestore: () => {
-        CSSStyleDeclaration.prototype.setProperty = originalSetProperty;
-      },
+      Object.assign(window, {
+        __headerGeometryRecorded: recorded,
+        __headerGeometryRestore: () => {
+          CSSStyleDeclaration.prototype.setProperty = originalSetProperty;
+        },
+      });
+
+      CSSStyleDeclaration.prototype.setProperty = function setProperty(name, value, priority) {
+        if (this === element.style && fluidProperties.has(name)) recorded.push(`${name}:${value}`);
+        return originalSetProperty.call(this, name, value, priority);
+      };
+
+      for (let index = 0; index < 30; index += 1) {
+        const top = 620 + ((1_240 - 620) * index) / 29;
+        window.scrollTo({ top, behavior: 'instant' });
+        await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+      }
+      await new Promise<void>((resolve) => window.setTimeout(resolve, 280));
     });
 
-    CSSStyleDeclaration.prototype.setProperty = function setProperty(name, value, priority) {
-      if (this === element.style && fluidProperties.has(name)) recorded.push(`${name}:${value}`);
-      return originalSetProperty.call(this, name, value, priority);
-    };
+    expect(
+      await page.evaluate(() =>
+        (
+          window as typeof window & { __headerGeometryRecorded: string[] }
+        ).__headerGeometryRecorded.slice(),
+      ),
+    ).toEqual([]);
 
-    for (let index = 0; index < 30; index += 1) {
-      const top = 620 + ((1_240 - 620) * index) / 29;
-      window.scrollTo({ top, behavior: 'instant' });
-      await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
-    }
-    await new Promise<void>((resolve) => window.setTimeout(resolve, 280));
-  });
-
-  expect(
-    await page.evaluate(() =>
-      (
-        window as typeof window & { __headerGeometryRecorded: string[] }
-      ).__headerGeometryRecorded.slice(),
-    ),
-  ).toEqual([]);
-
-  const widthBeforeResize = (await header(page).boundingBox())?.width;
-  try {
+    const widthBeforeResize = (await header(page).boundingBox())?.width;
     await page.setViewportSize({ width: 1180, height: desktopViewport.height });
     await expect
       .poll(async () => (await header(page).boundingBox())?.width)
@@ -519,6 +519,43 @@ test('avoids settled desktop geometry writes through the Hero to Services bounda
       delete instrumentedWindow.__headerGeometryRestore;
     });
   }
+});
+
+test('commits exact desktop geometry when reduced motion interrupts a quick tween', async ({
+  page,
+}) => {
+  await page.goto('/');
+  const nav = header(page);
+  await expect(nav).toHaveAttribute('data-header-hydrated', 'true');
+  await expect.poll(async () => (await nav.boundingBox())?.width).toBeCloseTo(1_232, 0);
+
+  const midTweenWidth = await page.evaluate(async () => {
+    window.scrollTo({ top: 620, behavior: 'instant' });
+    await new Promise<void>((resolve) =>
+      requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+    );
+    return document.querySelector<HTMLElement>('[data-landing-nav]')!.getBoundingClientRect().width;
+  });
+  expect(midTweenWidth).toBeGreaterThan(1_134);
+  expect(midTweenWidth).toBeLessThan(1_232);
+
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => resolve())));
+  const readGeometry = () =>
+    nav.evaluate((element) => ({
+      height: element.style.getPropertyValue('--header-fluid-height'),
+      radius: element.style.getPropertyValue('--header-fluid-radius'),
+      width: element.style.getPropertyValue('--header-fluid-width'),
+    }));
+  await expect.poll(readGeometry).toEqual({
+    height: '68px',
+    radius: '24px',
+    width: '1133.44px',
+  });
+
+  const committedGeometry = await readGeometry();
+  await page.waitForTimeout(240);
+  expect(await readGeometry()).toEqual(committedGeometry);
 });
 
 test('writes settled desktop geometry after a retained-scroll reload', async ({ page }) => {

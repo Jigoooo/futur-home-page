@@ -21,10 +21,11 @@ export function HeaderSection() {
     glassTone,
     toggleMenu,
   } = useAdaptiveHeader({ headerRef, menuRef, toggleRef });
-  const menuExpanded = layout === 'menu-expanded';
-  const menuAccessible = layout !== 'compact';
-  const logoAccessible = layout === 'hero-expanded';
-  const toggleAccessible = layout === 'compact';
+  const desktopFluid = layout === 'desktop-fluid';
+  const menuExpanded = layout === 'mobile-expanded';
+  const menuAccessible = desktopFluid || menuExpanded;
+  const logoAccessible = desktopFluid;
+  const toggleAccessible = layout === 'mobile-compact';
 
   return (
     <header
@@ -35,10 +36,10 @@ export function HeaderSection() {
       data-header-hydrated={hydrated ? 'true' : 'false'}
       data-header-layout={hydrated ? layout : undefined}
       data-header-glass-tone={glassTone}
-      data-header-surface={layout === 'hero-expanded' ? 'hero' : 'solid'}
+      data-header-surface={desktopFluid ? 'hero' : 'solid'}
     >
       <script>
-        {`document.documentElement.dataset.headerInitialLayout=window.matchMedia('(max-width: 900px)').matches?'compact':'hero-expanded';`}
+        {`document.documentElement.dataset.headerInitialLayout=window.matchMedia('(max-width: 900px)').matches?'mobile-compact':'desktop-fluid';`}
       </script>
       <div
         className={styles.glassShell}

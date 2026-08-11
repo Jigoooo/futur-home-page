@@ -174,6 +174,42 @@ async function sampleReducedMotionFrames(page: Page) {
   });
 }
 
+async function sampleHeaderFrames(page: Page, durationMs: number) {
+  return header(page).evaluate(async (element, duration) => {
+    const samples: Array<{ height: number; radius: number; width: number }> = [];
+    const startedAt = performance.now();
+
+    do {
+      const rect = element.getBoundingClientRect();
+      const glass = element.querySelector<HTMLElement>('[data-header-glass]');
+      samples.push({
+        height: Math.round(rect.height * 100) / 100,
+        radius: Number.parseFloat(getComputedStyle(glass!).borderRadius),
+        width: Math.round(rect.width * 100) / 100,
+      });
+      await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+    } while (performance.now() - startedAt < duration);
+
+    return samples;
+  }, durationMs);
+}
+
+async function sampleNavigationFontSizes(page: Page, durationMs: number) {
+  return header(page)
+    .locator('nav[aria-label="주요 메뉴"] a')
+    .evaluateAll(async (elements, duration) => {
+      const samples: string[][] = [];
+      const startedAt = performance.now();
+
+      do {
+        samples.push(elements.map((element) => getComputedStyle(element).fontSize));
+        await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+      } while (performance.now() - startedAt < duration);
+
+      return samples;
+    }, durationMs);
+}
+
 async function readHeaderGeometry(page: Page) {
   return header(page).evaluate((element) => {
     const rect = element.getBoundingClientRect();
@@ -191,60 +227,72 @@ async function readHeaderGeometry(page: Page) {
   });
 }
 
-async function readGlassStyle(page: Page) {
-  return header(page)
-    .locator('[data-header-glass]')
-    .evaluate((element) => {
-      const styles = getComputedStyle(element);
-
-      return {
-        backdropFilter: styles.backdropFilter,
-        backgroundColor: styles.backgroundColor,
-        borderRadius: styles.borderRadius,
-        boxShadow: styles.boxShadow,
-      };
-    });
-}
-
 test.beforeEach(async ({ page }) => {
   await page.setViewportSize(desktopViewport);
 });
 
-test('uses precise responsive geometry with a separate single crystal-glass surface', async ({
+test('keeps desktop fluid navigation visible through continuous scroll-linked geometry', async ({
   page,
 }) => {
   await page.goto('/');
-  await expect(header(page)).toHaveAttribute('data-header-layout', 'hero-expanded');
+  const nav = header(page).locator('nav[aria-label="주요 메뉴"]');
+  const links = nav.getByRole('link');
+  const logo = header(page).getByRole('link', { name: 'FUTUR home' });
+  const toggle = compactButton(page);
+  const initialFontSizes = await links.evaluateAll((elements) =>
+    elements.map((element) => getComputedStyle(element).fontSize),
+  );
 
-  const glass = header(page).locator('[data-header-glass]');
-  await expect(glass).toHaveCount(1);
-  await expect(header(page)).toHaveCSS('backdrop-filter', 'none');
-  expect(await header(page).evaluate((element) => element.getBoundingClientRect().top)).toBe(18);
-  expect(await readHeaderGeometry(page)).toMatchObject({ height: 76, width: 1232 });
-  expect(await readGlassStyle(page)).toMatchObject({
-    backdropFilter: 'blur(18px) saturate(1.45) contrast(1.04)',
-    backgroundColor: 'rgba(248, 250, 255, 0.46)',
-    borderRadius: '28px',
-  });
+  for (const scrollY of [0, 40, 80, 120, 160]) {
+    await page.evaluate((top) => window.scrollTo({ top, behavior: 'instant' }), scrollY);
+    await expect(header(page)).toHaveAttribute('data-header-layout', 'desktop-fluid');
+    await expect(links).toHaveCount(5);
+    for (const link of await links.all()) await expect(link).toBeVisible();
+    await expect(logo).toBeVisible();
+    await expect(toggle).toHaveAttribute('aria-hidden', 'true');
+    await expect(toggle).toHaveAttribute('tabindex', '-1');
+  }
 
-  await enterCompactLayout(page);
-  expect(await readHeaderGeometry(page)).toMatchObject({ height: 58, width: 220 });
-  expect(await readGlassStyle(page)).toMatchObject({
-    backgroundColor: 'rgba(248, 250, 255, 0.66)',
-  });
+  await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
+  await page.waitForTimeout(240);
+  const shrinkingSamplesPromise = sampleHeaderFrames(page, 360);
+  const fontSizeSamplesPromise = sampleNavigationFontSizes(page, 360);
+  await page.evaluate(() => window.scrollTo({ top: 160, behavior: 'instant' }));
+  const shrinkingSamples = await shrinkingSamplesPromise;
+  const fontSizeSamples = await fontSizeSamplesPromise;
 
-  await openCompactMenu(page, '서비스');
-  await page.waitForTimeout(800);
-  expect(await readHeaderGeometry(page)).toMatchObject({ height: 68, width: 820 });
+  expect(new Set(shrinkingSamples.map(({ width }) => width)).size).toBeGreaterThanOrEqual(5);
+  expect(shrinkingSamples.at(-1)!.width).toBeCloseTo(1133.44, 0);
+  expect(shrinkingSamples.at(-1)!.height).toBeCloseTo(68, 0);
+  expect(shrinkingSamples.at(-1)!.radius).toBeCloseTo(24, 0);
+  for (let index = 1; index < shrinkingSamples.length; index += 1) {
+    expect(shrinkingSamples[index]!.width).toBeLessThanOrEqual(shrinkingSamples[index - 1]!.width);
+    expect(shrinkingSamples[index]!.height).toBeLessThanOrEqual(
+      shrinkingSamples[index - 1]!.height,
+    );
+    expect(shrinkingSamples[index]!.radius).toBeLessThanOrEqual(
+      shrinkingSamples[index - 1]!.radius,
+    );
+  }
 
-  await page.setViewportSize(mobileViewport);
-  await page.goto('/?task4-mobile-geometry=1');
-  await expect(header(page)).toHaveAttribute('data-header-layout', 'compact');
-  expect(await header(page).evaluate((element) => element.getBoundingClientRect().top)).toBe(10);
-  expect(await readHeaderGeometry(page)).toMatchObject({ height: 56, width: 220 });
-  await openCompactMenu(page, 'FUTUR.');
-  await page.waitForTimeout(800);
-  expect(await readHeaderGeometry(page)).toMatchObject({ height: 158, width: 370 });
+  const restoringSamplesPromise = sampleHeaderFrames(page, 360);
+  await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
+  const restoringSamples = await restoringSamplesPromise;
+  for (let index = 1; index < restoringSamples.length; index += 1) {
+    expect(restoringSamples[index]!.width).toBeGreaterThanOrEqual(
+      restoringSamples[index - 1]!.width,
+    );
+    expect(restoringSamples[index]!.height).toBeGreaterThanOrEqual(
+      restoringSamples[index - 1]!.height,
+    );
+    expect(restoringSamples[index]!.radius).toBeGreaterThanOrEqual(
+      restoringSamples[index - 1]!.radius,
+    );
+  }
+  expect(restoringSamples.at(-1)!.width).toBeCloseTo(1232, 0);
+  expect(restoringSamples.at(-1)!.height).toBeCloseTo(76, 0);
+  expect(restoringSamples.at(-1)!.radius).toBeCloseTo(28, 0);
+  expect(fontSizeSamples.every((sample) => sample.join() === initialFontSizes.join())).toBe(true);
 });
 
 test('applies semantic glass tint, spotlight, cursor contrast, and resilient fallbacks', async ({

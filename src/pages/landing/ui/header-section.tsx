@@ -48,6 +48,7 @@ export function HeaderSection() {
         data-landing-spotlight='header'
         data-cursor-contrast='dark'
       >
+        <span className={styles.backdropLayer} data-header-backdrop-layer aria-hidden='true' />
         <div className={styles.motionContent} data-header-motion-content>
           <a
             href='#top'
@@ -132,6 +133,7 @@ export function HeaderSection() {
           </nav>
         </div>
       </div>
+      <span className={styles.scrollEdge} data-header-scroll-edge aria-hidden='true' />
     </header>
   );
 }

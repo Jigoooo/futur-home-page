@@ -287,23 +287,60 @@ export function useAdaptiveHeader({ headerRef, menuRef, toggleRef }: AdaptiveHea
     const header = headerRef.current;
     if (!header) return;
 
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
     let idleTimer = 0;
+    let suspendTimer = 0;
+    let restoreFrame = 0;
+
+    const cancelRestore = () => {
+      window.cancelAnimationFrame(restoreFrame);
+      restoreFrame = 0;
+    };
+    const suspendBackdrop = () => {
+      suspendTimer = 0;
+      if (header.dataset.headerScrolling !== 'true') return;
+      header.dataset.headerBackdropSuspended = 'true';
+    };
+    const scheduleBackdropSuspension = () => {
+      if (header.dataset.headerBackdropSuspended === 'true' || suspendTimer) return;
+      if (reducedMotion.matches) {
+        suspendBackdrop();
+        return;
+      }
+      suspendTimer = window.setTimeout(suspendBackdrop, 120);
+    };
+    const restoreBackdrop = () => {
+      idleTimer = 0;
+      window.clearTimeout(suspendTimer);
+      suspendTimer = 0;
+      delete header.dataset.headerBackdropSuspended;
+      if (reducedMotion.matches) {
+        delete header.dataset.headerScrolling;
+        return;
+      }
+      restoreFrame = window.requestAnimationFrame(() => {
+        restoreFrame = 0;
+        delete header.dataset.headerScrolling;
+      });
+    };
     const markHeaderScrolling = () => {
+      cancelRestore();
       if (header.dataset.headerScrolling !== 'true') {
         header.dataset.headerScrolling = 'true';
       }
+      scheduleBackdropSuspension();
       window.clearTimeout(idleTimer);
-      idleTimer = window.setTimeout(() => {
-        delete header.dataset.headerScrolling;
-        idleTimer = 0;
-      }, 160);
+      idleTimer = window.setTimeout(restoreBackdrop, 160);
     };
 
     window.addEventListener('scroll', markHeaderScrolling, { passive: true });
 
     return () => {
       window.clearTimeout(idleTimer);
+      window.clearTimeout(suspendTimer);
+      cancelRestore();
       delete header.dataset.headerScrolling;
+      delete header.dataset.headerBackdropSuspended;
       window.removeEventListener('scroll', markHeaderScrolling);
     };
   }, [headerRef]);

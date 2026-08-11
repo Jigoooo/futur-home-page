@@ -333,12 +333,9 @@ async function sampleInterruptedMobileMotion(page: Page) {
     toggle.click();
     const startedAt = performance.now();
     let reversed = false;
+    let reversalSampleIndex: number | null = null;
     do {
       const elapsed = performance.now() - startedAt;
-      if (!reversed && elapsed >= 120) {
-        reversed = true;
-        document.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, key: 'Escape' }));
-      }
       const rect = element.getBoundingClientRect();
       const items = Array.from(
         element.querySelectorAll<HTMLElement>('nav[aria-label="주요 메뉴"] a'),
@@ -354,13 +351,30 @@ async function sampleInterruptedMobileMotion(page: Page) {
         time: round(elapsed),
         width: round(rect.width),
       });
+      if (!reversed && elapsed >= 120) {
+        reversed = true;
+        reversalSampleIndex = samples.length;
+        document.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, key: 'Escape' }));
+      }
       await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
     } while (
       (!reversed || element.dataset.headerMotion === 'true') &&
       performance.now() - startedAt < 2_000
     );
 
-    return samples;
+    if (reversalSampleIndex === null) throw new Error('mobile motion never reversed');
+    const indicator = element.querySelector<HTMLElement>('[data-header-active-indicator]');
+    return {
+      indicatorInlineStyle: indicator
+        ? { opacity: indicator.style.opacity, transform: indicator.style.transform }
+        : null,
+      itemInlineStyles: Array.from(
+        element.querySelectorAll<HTMLElement>('nav[aria-label="주요 메뉴"] a'),
+        (item) => ({ opacity: item.style.opacity, transform: item.style.transform }),
+      ),
+      reversalSampleIndex,
+      samples,
+    };
   });
 }
 
@@ -535,19 +549,44 @@ test('runs continuous mobile geometry and item motion while opening and closing'
   expect(await header(page).getAttribute('style')).not.toMatch(/transform|width|height|opacity/);
 });
 
-test('settles interrupted mobile geometry from the current frame', async ({ page }) => {
-  await page.setViewportSize(mobileViewport);
-  await page.goto('/');
-  await expect(header(page)).toHaveAttribute('data-header-layout', 'mobile-compact');
+test('settles mobile expanded fallback at the capped geometry on wider phones', async ({
+  page,
+}) => {
+  for (const width of [390, 414, 480]) {
+    await page.setViewportSize({ width, height: mobileViewport.height });
+    await page.goto('/');
+    await expect(header(page)).toHaveAttribute('data-header-layout', 'mobile-compact');
+    await compactButton(page).click();
+    await expect(header(page)).toHaveAttribute('data-header-layout', 'mobile-expanded');
+    await expect(header(page)).not.toHaveAttribute('data-header-motion');
 
-  const samples = await sampleInterruptedMobileMotion(page);
+    const box = await header(page).boundingBox();
+    expect(box?.width).toBe(370);
+    expect(box?.height).toBe(158);
+  }
+});
+
+test('settles interrupted mobile geometry from the current frame', async ({ page }) => {
+  await page.goto('/');
+  await enterCompactLayout(page);
+
+  const { indicatorInlineStyle, itemInlineStyles, reversalSampleIndex, samples } =
+    await sampleInterruptedMobileMotion(page);
 
   expect(new Set(samples.map(({ width }) => width)).size).toBeGreaterThanOrEqual(5);
   expect(new Set(samples.map(({ height }) => height)).size).toBeGreaterThanOrEqual(5);
+  const beforeReversal = samples[reversalSampleIndex - 1]!;
+  const afterReversal = samples[reversalSampleIndex]!;
+  expect(Math.abs(afterReversal.width - beforeReversal.width)).toBeLessThan(16);
+  expect(Math.abs(afterReversal.height - beforeReversal.height)).toBeLessThan(10);
   expect(longestEqualGeometryRun(samples)).toBeLessThan(80);
   await expect(header(page)).toHaveAttribute('data-header-layout', 'mobile-compact');
   await expect(header(page)).not.toHaveAttribute('data-header-motion');
   expect(await header(page).getAttribute('style')).not.toMatch(/transform|width|height|opacity/);
+  expect(itemInlineStyles).toEqual(
+    Array.from({ length: 5 }, () => ({ opacity: '', transform: '' })),
+  );
+  expect(indicatorInlineStyle).toEqual({ opacity: '', transform: '' });
 });
 
 test('applies semantic glass tint, spotlight, cursor contrast, and resilient fallbacks', async ({

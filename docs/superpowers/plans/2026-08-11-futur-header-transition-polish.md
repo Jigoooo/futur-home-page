@@ -181,7 +181,9 @@ section의 navy ink/light rim을 전환한다. Shared indicator motion은 새
 - [ ] **Step 1: Add failing semantic and frame tests**
 
   Assert desktop `.menuLinks` contains exactly one `[data-header-active-indicator]`, while each link
-  contains none. Scroll Services→Stack over 220ms and collect each rAF:
+  contains no element with that desktop selector. The mobile link-local decoration uses the distinct
+  selector `[data-header-mobile-active-indicator]`. Scroll Services→Stack over 220ms and collect each
+  rAF:
 
   ```ts
   type IndicatorFrame = { opacity: number; width: number; x: number };
@@ -211,19 +213,24 @@ section의 navy ink/light rim을 전환한다. Shared indicator motion은 새
 
 - [ ] **Step 4: Render one shared desktop indicator and preserve mobile**
 
-  In `header-section.tsx`, remove the conditional indicator inside each link. After the five links,
-  render one span with `data-header-active-indicator` and `aria-hidden='true'`.
+  In `header-section.tsx`, rename the conditional link-local decoration to
+  `data-header-mobile-active-indicator` and style it only inside `@media (max-width: 900px)`. After the
+  five links, render one separate span with `data-header-active-indicator` and `aria-hidden='true'` for
+  desktop.
 
   In `use-adaptive-header.ts`, start/re-target the desktop indicator only when `activeHref`, desktop
   layout, or viewport width changes. Query the active anchor by its exact `href` inside `menuRef`.
-  When entering mobile, kill and clear desktop motion; mobile menu opening must receive `null` for
-  its old link-local indicator so existing geometry remains unchanged.
+  When entering mobile, kill and clear desktop motion. `startMobileHeaderMotion` must continue to
+  receive the active link's `[data-header-mobile-active-indicator]` so the existing 70ms mobile
+  follow-through remains unchanged.
 
 - [ ] **Step 5: Style the shared indicator**
 
   Make `.menuLinks` position relative. Set `.activeIndicator` to `left: 0`, `bottom: 7px`, `width: 0`,
   `height: 2px`, `opacity: 0`, `pointer-events: none`, and `background: var(--header-active-ink)`.
   Add a narrow inset specular pseudo-element. Do not add glow, bounce, capsule fill, or y motion.
+  Preserve the prior `left: 10px; right: 10px; bottom: 7px` geometry under a separate
+  `.mobileActiveIndicator` rule inside the mobile media query.
 
 - [ ] **Step 6: Run indicator and full Header verification**
 

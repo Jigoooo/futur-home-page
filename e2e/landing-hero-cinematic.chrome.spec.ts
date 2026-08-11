@@ -10,6 +10,7 @@ import {
 } from '../src/pages/landing/ui/hero-particle-shaders';
 
 const HERO_LABEL = 'BUILT FOR WHAT’S NEXT.';
+const desktopNavigationLabels = ['서비스', '기술', '팀', '프로세스', 'FAQ'];
 
 test('serves the hero copy and particle canvas immediately from SSR', async ({
   browser,
@@ -305,12 +306,16 @@ test('keeps desktop navigation visible while the glass tone follows the scrolled
   await expect(header).toHaveAttribute('data-header-layout', 'desktop-fluid');
   await page.evaluate(() => window.scrollTo({ top: 160, behavior: 'instant' }));
   await expect(header).toHaveAttribute('data-header-glass-tone', 'dark');
-  await expect(header.getByRole('link', { name: '서비스' })).toBeVisible();
+  for (const label of desktopNavigationLabels) {
+    await expect(header.getByRole('link', { name: label, exact: true })).toBeVisible();
+  }
 
   await page.locator('#services').evaluate((element) => {
     element.scrollIntoView({ block: 'center', behavior: 'instant' });
   });
   await expect(header).toHaveAttribute('data-header-layout', 'desktop-fluid');
   await expect(header).toHaveAttribute('data-header-glass-tone', 'light');
-  await expect(header.getByRole('link', { name: '서비스' })).toBeVisible();
+  for (const label of desktopNavigationLabels) {
+    await expect(header.getByRole('link', { name: label, exact: true })).toBeVisible();
+  }
 });

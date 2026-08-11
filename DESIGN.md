@@ -102,6 +102,10 @@ optical rim, 얇은 상단 specular, 약한 inner shadow를 소유한다. 높은
 
 - dark surface tint: `rgba(248, 250, 255, 0.18)`
 - light surface tint: `rgba(248, 250, 255, 0.26)`
+- glass tone은 현재 section surface가 소유한다. Hero 내부는 `scrollY=160` 같은 desktop 축소
+  구간에도 dark를 유지하고, Services 실제 진입부터 light로 전환한다.
+- stack, team, process, FAQ, Footer처럼 밝은 surface는 light를 사용하고 operations는 dark를
+  사용한다.
 - filter: `blur(20px) saturate(135%) contrast(1.03)`
 - border/radius: `1px` optical rim, `28px` radius
 - backdrop-filter 미지원 또는 `prefers-contrast: more`: `rgba(248, 250, 255, 0.92)`와 filter

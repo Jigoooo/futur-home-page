@@ -441,6 +441,117 @@ test('keeps desktop fluid navigation visible through continuous scroll-linked ge
   expect(fontSizeSamples.every((sample) => sample.join() === initialFontSizes.join())).toBe(true);
 });
 
+test('avoids settled desktop geometry writes through the Hero to Services boundary', async ({
+  page,
+}) => {
+  await page.goto('/');
+  await expect(header(page)).toHaveAttribute('data-header-hydrated', 'true');
+  await page.evaluate(() => window.scrollTo({ top: 620, behavior: 'instant' }));
+  await expect.poll(async () => (await header(page).boundingBox())?.width).toBeCloseTo(1_133.44, 0);
+  await page.waitForTimeout(240);
+
+  const writes = await header(page).evaluate(async (element) => {
+    const fluidProperties = new Set([
+      '--header-fluid-width',
+      '--header-fluid-height',
+      '--header-fluid-radius',
+      '--header-fluid-shell-start',
+      '--header-fluid-shell-end',
+      '--header-fluid-menu-gap',
+      '--header-fluid-shadow-y',
+      '--header-fluid-shadow-blur',
+      '--header-fluid-shadow-alpha',
+    ]);
+    const recorded: string[] = [];
+    const originalSetProperty = CSSStyleDeclaration.prototype.setProperty;
+
+    CSSStyleDeclaration.prototype.setProperty = function setProperty(name, value, priority) {
+      if (this === element.style && fluidProperties.has(name)) recorded.push(`${name}:${value}`);
+      return originalSetProperty.call(this, name, value, priority);
+    };
+
+    try {
+      for (let index = 0; index < 30; index += 1) {
+        const top = 620 + ((1_240 - 620) * index) / 29;
+        window.scrollTo({ top, behavior: 'instant' });
+        await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+      }
+      await new Promise<void>((resolve) => window.setTimeout(resolve, 280));
+      return recorded;
+    } finally {
+      CSSStyleDeclaration.prototype.setProperty = originalSetProperty;
+    }
+  });
+
+  expect(writes).toEqual([]);
+
+  const widthBeforeResize = (await header(page).boundingBox())?.width;
+  await page.setViewportSize({ width: 1180, height: desktopViewport.height });
+  await expect
+    .poll(async () => (await header(page).boundingBox())?.width)
+    .toBeCloseTo(1_132 * 0.92, 0);
+  expect((await header(page).boundingBox())?.width).not.toBe(widthBeforeResize);
+});
+
+test('writes settled desktop geometry after a retained-scroll reload', async ({ page }) => {
+  await page.goto('/');
+  await expect(header(page)).toHaveAttribute('data-header-hydrated', 'true');
+  await page.evaluate(() => window.scrollTo({ top: 620, behavior: 'instant' }));
+  await expect.poll(async () => (await header(page).boundingBox())?.width).toBeCloseTo(1_133.44, 0);
+
+  await page.reload();
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(160);
+  await expect.poll(async () => (await header(page).boundingBox())?.width).toBeCloseTo(1_133.44, 0);
+});
+
+test('switches dark surface ink from Hero white to light-section navy', async ({ page }) => {
+  await page.goto('/');
+
+  const nav = header(page);
+  const logo = nav.getByRole('link', { name: 'FUTUR home' });
+  const menu = nav.getByRole('navigation', { name: '주요 메뉴' });
+  const servicesLink = menu.getByRole('link', { name: '서비스', exact: true });
+  const stackLink = menu.getByRole('link', { name: '기술', exact: true });
+  const teamLink = menu.getByRole('link', { name: '팀', exact: true });
+  const glass = nav.locator('[data-header-glass]');
+
+  await expect(nav).toHaveAttribute('data-header-glass-tone', 'dark');
+  await expect(logo).toHaveCSS('color', 'rgb(255, 255, 255)');
+  await expect(servicesLink).toHaveCSS('color', 'rgb(255, 255, 255)');
+  await expect(logo).toHaveCSS('mix-blend-mode', 'normal');
+  await expect(logo).toHaveCSS('text-shadow', 'none');
+  await expect(servicesLink).toHaveCSS('text-shadow', 'none');
+  await expect(servicesLink).toHaveCSS('opacity', '0.9');
+  await expect(glass).toHaveCSS('background-color', 'rgba(248, 250, 255, 0.18)');
+  await expect(glass).toHaveCSS('backdrop-filter', 'blur(20px) saturate(1.35) contrast(1.03)');
+  expect(await glass.evaluate((element) => getComputedStyle(element).borderColor)).not.toBe(
+    'rgba(255, 255, 255, 0.58)',
+  );
+
+  await scrollSectionIntoView(page, 'services');
+  await expect(nav).toHaveAttribute('data-header-glass-tone', 'light');
+  await expect(servicesLink).toHaveAttribute('aria-current', 'location');
+  await expect(logo).toHaveCSS('color', 'rgb(7, 24, 63)');
+  await expect(servicesLink).toHaveCSS('color', 'rgb(30, 77, 196)');
+  await expect(glass).toHaveCSS('background-color', 'rgba(248, 250, 255, 0.26)');
+  await expect(glass).toHaveCSS('backdrop-filter', 'blur(20px) saturate(1.35) contrast(1.03)');
+
+  await scrollSectionIntoView(page, 'stack');
+  await expect(stackLink).toHaveAttribute('aria-current', 'location');
+  await expect(logo).toHaveCSS('color', 'rgb(7, 24, 63)');
+  await expect(stackLink).toHaveCSS('color', 'rgb(30, 77, 196)');
+
+  await scrollSectionIntoView(page, 'team');
+  await expect(teamLink).toHaveAttribute('aria-current', 'location');
+  await expect(logo).toHaveCSS('color', 'rgb(7, 24, 63)');
+  await expect(teamLink).toHaveCSS('color', 'rgb(30, 77, 196)');
+
+  await scrollSectionIntoView(page, 'operations');
+  await expect(nav).toHaveAttribute('data-header-glass-tone', 'dark');
+  await expect(logo).toHaveCSS('color', 'rgb(255, 255, 255)');
+  await expect(servicesLink).toHaveCSS('color', 'rgb(255, 255, 255)');
+});
+
 test('keeps the desktop logo and five navigation links in tab order at full scroll progress', async ({
   page,
 }) => {
@@ -640,12 +751,17 @@ test('applies semantic clear crystal glass, spotlight, cursor contrast, and resi
     const tone = sectionId === 'operations' ? 'dark' : 'light';
     await scrollSectionIntoView(page, sectionId);
     await expect(header(page)).toHaveAttribute('data-header-glass-tone', tone);
+    await expect(glass).toHaveCSS(
+      'background-color',
+      tone === 'dark' ? 'rgba(248, 250, 255, 0.18)' : 'rgba(248, 250, 255, 0.26)',
+    );
     glassStyles[tone] = await readGlassStyle(glass);
   }
 
   expect(glassStyles.dark?.backgroundColor).toBe('rgba(248, 250, 255, 0.18)');
   expect(glassStyles.light?.backgroundColor).toBe('rgba(248, 250, 255, 0.26)');
   expect(glassStyles.dark?.backdropFilter).toBe('blur(20px) saturate(1.35) contrast(1.03)');
+  expect(glassStyles.light?.backdropFilter).toBe('blur(20px) saturate(1.35) contrast(1.03)');
   expect(glassStyles.dark?.webkitBackdropFilter).toBe('');
   expect(Number(glassStyles.dark?.beforeOpacity)).toBeLessThanOrEqual(0.28);
   expect(glassStyles.dark?.afterBackdropFilter).toBe('none');

@@ -273,6 +273,9 @@ export function useAdaptiveHeader({ headerRef, menuRef, toggleRef }: AdaptiveHea
     const proxy = { value: getDesktopHeaderProgress(window.scrollY) };
     let scrollY = window.scrollY;
     let viewportWidth = window.innerWidth;
+    let targetProgress = proxy.value;
+    let targetViewportWidth = viewportWidth;
+    let hasWrittenDesktopFrame = false;
     let frameId = 0;
     let quickSetProgress: ReturnType<typeof gsap.quickTo> | null = null;
     let desktopActive = !compactViewport.matches;
@@ -302,7 +305,19 @@ export function useAdaptiveHeader({ headerRef, menuRef, toggleRef }: AdaptiveHea
       }
 
       const progress = getDesktopHeaderProgress(scrollY);
-      if (reducedMotion.matches) {
+      const firstDesktopFrame = !hasWrittenDesktopFrame;
+      if (
+        !firstDesktopFrame &&
+        targetProgress === progress &&
+        targetViewportWidth === viewportWidth
+      ) {
+        return;
+      }
+
+      targetProgress = progress;
+      targetViewportWidth = viewportWidth;
+      hasWrittenDesktopFrame = true;
+      if (firstDesktopFrame || reducedMotion.matches) {
         proxy.value = progress;
         writeDesktopHeaderFrame(header, viewportWidth, progress);
       } else {
@@ -328,7 +343,10 @@ export function useAdaptiveHeader({ headerRef, menuRef, toggleRef }: AdaptiveHea
         const leavingDesktop = desktopActive;
         desktopActive = false;
         cancelDesktopMotion();
-        if (leavingDesktop) clearDesktopHeaderFrame(header);
+        if (leavingDesktop) {
+          hasWrittenDesktopFrame = false;
+          clearDesktopHeaderFrame(header);
+        }
         return;
       }
       desktopActive = true;
@@ -360,6 +378,8 @@ export function useAdaptiveHeader({ headerRef, menuRef, toggleRef }: AdaptiveHea
       frameId = window.requestAnimationFrame(() => {
         if (layoutRef.current === 'mobile-expanded') return;
         const nextSectionId = getVisibleSectionId() ?? 'hero';
+        if (nextSectionId === activeSectionIdRef.current) return;
+
         activeSectionIdRef.current = nextSectionId;
         setActiveSectionId(nextSectionId);
       });

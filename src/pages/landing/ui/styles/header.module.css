@@ -1,5 +1,9 @@
 .nav {
   --landing-compact-header-offset: 92px;
+  --header-ink: #ffffff;
+  --header-active-ink: #ffffff;
+  --header-rim: rgba(151, 184, 235, 0.28);
+  --header-inset-highlight: rgba(255, 255, 255, 0.22);
   position: fixed;
   top: 18px;
   left: 50%;
@@ -10,6 +14,13 @@
   margin: 0;
   padding: 0;
   transform: translateX(-50%);
+}
+
+.nav[data-header-glass-tone='light'] {
+  --header-ink: var(--navy);
+  --header-active-ink: var(--blue);
+  --header-rim: rgba(255, 255, 255, 0.58);
+  --header-inset-highlight: rgba(255, 255, 255, 0.62);
 }
 
 .nav[data-header-motion='true'] {
@@ -29,7 +40,7 @@
   height: 100%;
   overflow: hidden;
   padding-inline: var(--header-fluid-shell-start, 22px) var(--header-fluid-shell-end, 18px);
-  border: 1px solid rgba(255, 255, 255, 0.58);
+  border: 1px solid var(--header-rim);
   border-radius: var(--header-fluid-radius, 28px);
   background: rgba(248, 250, 255, 0.18);
   -webkit-backdrop-filter: blur(20px) saturate(135%) contrast(1.03);
@@ -37,8 +48,11 @@
   box-shadow:
     0 var(--header-fluid-shadow-y, 18px) var(--header-fluid-shadow-blur, 48px)
       rgba(9, 22, 52, var(--header-fluid-shadow-alpha, 0.12)),
-    inset 0 1px 0 rgba(255, 255, 255, 0.62),
+    inset 0 1px 0 var(--header-inset-highlight),
     inset 0 -1px 0 rgba(115, 135, 174, 0.1);
+  transition:
+    background 0.16s var(--ease-out),
+    border-color 0.16s var(--ease-out);
 }
 
 .nav[data-header-glass-tone='light'] .glassShell {
@@ -72,12 +86,14 @@
   flex: 0 0 auto;
   font-size: 25px;
   font-weight: 950;
-  color: var(--navy);
+  color: var(--header-ink);
   line-height: 1;
+  transition: color 0.16s var(--ease-out);
 }
 
 .logo span {
-  color: var(--blue);
+  color: var(--header-active-ink);
+  transition: color 0.16s var(--ease-out);
 }
 
 .compactToggle {
@@ -90,9 +106,10 @@
   border: 0;
   border-radius: inherit;
   background: transparent;
-  color: var(--navy);
+  color: var(--header-ink);
   font-size: 14px;
   font-weight: 900;
+  transition: color 0.16s var(--ease-out);
 }
 
 .compactGlyph {
@@ -112,9 +129,10 @@
   min-width: 0;
   align-items: center;
   gap: 12px;
-  color: #1a2750;
+  color: var(--header-ink);
   font-size: 14px;
   font-weight: 850;
+  transition: color 0.16s var(--ease-out);
 }
 
 .menuLinks {
@@ -132,12 +150,13 @@
   padding: 0 10px;
   border-radius: 999px;
   opacity: 0.82;
+  transition: color 0.16s var(--ease-out);
 }
 
 .navMenu a:hover,
 .navMenu a:focus-visible,
 .navMenu a[aria-current='location'] {
-  color: var(--blue);
+  color: var(--header-active-ink);
   opacity: 1;
 }
 
@@ -171,6 +190,12 @@
 .logo:focus-visible {
   outline: 3px solid rgba(47, 107, 255, 0.38);
   outline-offset: 3px;
+}
+
+@media (min-width: 901px) {
+  .navMenu a {
+    opacity: 0.9;
+  }
 }
 
 @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
@@ -359,17 +384,34 @@
     background: rgba(248, 250, 255, 0.92);
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
+    transition: none;
+  }
+
+  .nav[data-header-glass-tone='dark'],
+  .nav[data-header-glass-tone='light'] {
+    --header-ink: var(--navy);
+    --header-active-ink: var(--blue);
+    --header-rim: rgba(20, 44, 94, 0.42);
+    --header-inset-highlight: rgba(255, 255, 255, 0.62);
   }
 }
 
 @media (prefers-contrast: more) {
+  .nav[data-header-glass-tone='dark'],
+  .nav[data-header-glass-tone='light'] {
+    --header-ink: var(--navy);
+    --header-active-ink: var(--blue);
+    --header-rim: rgba(20, 44, 94, 0.72);
+    --header-inset-highlight: rgba(255, 255, 255, 0.62);
+  }
+
   .nav[data-header-glass-tone='dark'] .glassShell,
   .nav[data-header-glass-tone='light'] .glassShell {
-    border-color: rgba(20, 44, 94, 0.72);
     background: rgba(248, 250, 255, 0.92);
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
     box-shadow: 0 10px 30px rgba(9, 22, 52, 0.2);
+    transition: none;
   }
 }
 

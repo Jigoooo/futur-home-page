@@ -307,11 +307,9 @@ export function useAdaptiveHeader({ headerRef, menuRef, toggleRef }: AdaptiveHea
 
       const progress = getDesktopHeaderProgress(scrollY);
       const firstDesktopFrame = !hasWrittenDesktopFrame;
-      if (
-        !firstDesktopFrame &&
-        targetProgress === progress &&
-        targetViewportWidth === viewportWidth
-      ) {
+      const progressChanged = targetProgress !== progress;
+      const viewportChanged = targetViewportWidth !== viewportWidth;
+      if (!firstDesktopFrame && !progressChanged && !viewportChanged) {
         return;
       }
 
@@ -321,6 +319,8 @@ export function useAdaptiveHeader({ headerRef, menuRef, toggleRef }: AdaptiveHea
       if (firstDesktopFrame || reducedMotion.matches) {
         proxy.value = progress;
         writeDesktopHeaderFrame(header, viewportWidth, progress);
+      } else if (viewportChanged && !progressChanged) {
+        writeDesktopHeaderFrame(header, viewportWidth, proxy.value);
       } else {
         quickSetProgress?.(progress);
       }

@@ -450,7 +450,7 @@ test('avoids settled desktop geometry writes through the Hero to Services bounda
   await expect.poll(async () => (await header(page).boundingBox())?.width).toBeCloseTo(1_133.44, 0);
   await page.waitForTimeout(240);
 
-  const writes = await header(page).evaluate(async (element) => {
+  await header(page).evaluate(async (element) => {
     const fluidProperties = new Set([
       '--header-fluid-width',
       '--header-fluid-height',
@@ -465,32 +465,60 @@ test('avoids settled desktop geometry writes through the Hero to Services bounda
     const recorded: string[] = [];
     const originalSetProperty = CSSStyleDeclaration.prototype.setProperty;
 
+    Object.assign(window, {
+      __headerGeometryRecorded: recorded,
+      __headerGeometryRestore: () => {
+        CSSStyleDeclaration.prototype.setProperty = originalSetProperty;
+      },
+    });
+
     CSSStyleDeclaration.prototype.setProperty = function setProperty(name, value, priority) {
       if (this === element.style && fluidProperties.has(name)) recorded.push(`${name}:${value}`);
       return originalSetProperty.call(this, name, value, priority);
     };
 
-    try {
-      for (let index = 0; index < 30; index += 1) {
-        const top = 620 + ((1_240 - 620) * index) / 29;
-        window.scrollTo({ top, behavior: 'instant' });
-        await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
-      }
-      await new Promise<void>((resolve) => window.setTimeout(resolve, 280));
-      return recorded;
-    } finally {
-      CSSStyleDeclaration.prototype.setProperty = originalSetProperty;
+    for (let index = 0; index < 30; index += 1) {
+      const top = 620 + ((1_240 - 620) * index) / 29;
+      window.scrollTo({ top, behavior: 'instant' });
+      await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
     }
+    await new Promise<void>((resolve) => window.setTimeout(resolve, 280));
   });
 
-  expect(writes).toEqual([]);
+  expect(
+    await page.evaluate(() =>
+      (
+        window as typeof window & { __headerGeometryRecorded: string[] }
+      ).__headerGeometryRecorded.slice(),
+    ),
+  ).toEqual([]);
 
   const widthBeforeResize = (await header(page).boundingBox())?.width;
-  await page.setViewportSize({ width: 1180, height: desktopViewport.height });
-  await expect
-    .poll(async () => (await header(page).boundingBox())?.width)
-    .toBeCloseTo(1_132 * 0.92, 0);
-  expect((await header(page).boundingBox())?.width).not.toBe(widthBeforeResize);
+  try {
+    await page.setViewportSize({ width: 1180, height: desktopViewport.height });
+    await expect
+      .poll(async () => (await header(page).boundingBox())?.width)
+      .toBeCloseTo(1_132 * 0.92, 0);
+    expect((await header(page).boundingBox())?.width).not.toBe(widthBeforeResize);
+
+    const resizeWrites = await page.evaluate(() =>
+      (
+        window as typeof window & { __headerGeometryRecorded: string[] }
+      ).__headerGeometryRecorded.slice(),
+    );
+    expect(resizeWrites).toHaveLength(9);
+    expect(new Set(resizeWrites.map((write) => write.split(':', 1)[0])).size).toBe(9);
+  } finally {
+    await page.evaluate(() => {
+      const instrumentedWindow = window as typeof window & {
+        __headerGeometryRecorded?: string[];
+        __headerGeometryRestore?: () => void;
+      };
+      instrumentedWindow.__headerGeometryRestore?.();
+      delete instrumentedWindow.__headerGeometryRecorded;
+      delete instrumentedWindow.__headerGeometryRestore;
+    });
+  }
 });
 
 test('writes settled desktop geometry after a retained-scroll reload', async ({ page }) => {
@@ -524,6 +552,9 @@ test('switches dark surface ink from Hero white to light-section navy', async ({
   await expect(servicesLink).toHaveCSS('opacity', '0.9');
   await expect(glass).toHaveCSS('background-color', 'rgba(248, 250, 255, 0.18)');
   await expect(glass).toHaveCSS('backdrop-filter', 'blur(20px) saturate(1.35) contrast(1.03)');
+  expect(await glass.evaluate((element) => getComputedStyle(element).transitionProperty)).toBe(
+    'border-color',
+  );
   expect(await glass.evaluate((element) => getComputedStyle(element).borderColor)).not.toBe(
     'rgba(255, 255, 255, 0.58)',
   );
@@ -823,7 +854,7 @@ test('applies semantic clear crystal glass, spotlight, cursor contrast, and resi
   expect(glassStyles.dark?.afterBackdropFilter).toBe('none');
 
   expect(
-    await page.evaluate(() => {
+    await page.evaluate(async () => {
       const nav = document.querySelector<HTMLElement>('[data-landing-nav]');
       const glass = nav?.querySelector<HTMLElement>('[data-header-glass]');
       if (!nav || !glass) return null;
@@ -844,20 +875,31 @@ test('applies semantic clear crystal glass, spotlight, cursor contrast, and resi
       document.head.append(forcedFallback);
 
       const originalTone = nav.dataset.headerGlassTone;
-      const computedByTone = Object.fromEntries(
-        ['dark', 'light'].map((tone) => {
-          nav.dataset.headerGlassTone = tone;
-          const styles = getComputedStyle(glass);
-          return [
-            tone,
-            {
-              backdropFilter: styles.backdropFilter,
-              backgroundColor: styles.backgroundColor,
-              webkitBackdropFilter: styles.getPropertyValue('-webkit-backdrop-filter'),
-            },
-          ];
-        }),
-      );
+      const logo = nav.querySelector<HTMLElement>('a[aria-label="FUTUR home"]');
+      const servicesLink = nav.querySelector<HTMLElement>('a[href="#services"]');
+      if (!logo || !servicesLink) return null;
+
+      const computedByTone: Record<string, Record<string, string>> = {};
+      for (const tone of ['dark', 'light']) {
+        nav.dataset.headerGlassTone = tone;
+        const originalCurrent = servicesLink.getAttribute('aria-current');
+        servicesLink.setAttribute('aria-current', 'location');
+        await new Promise<void>((resolve) => window.setTimeout(resolve, 180));
+        const activeNavigationColor = getComputedStyle(servicesLink).color;
+        if (originalCurrent) servicesLink.setAttribute('aria-current', originalCurrent);
+        else servicesLink.removeAttribute('aria-current');
+        await new Promise<void>((resolve) => window.setTimeout(resolve, 180));
+
+        const styles = getComputedStyle(glass);
+        computedByTone[tone] = {
+          activeNavigationColor,
+          backdropFilter: styles.backdropFilter,
+          backgroundColor: styles.backgroundColor,
+          logoColor: getComputedStyle(logo).color,
+          navigationColor: getComputedStyle(servicesLink).color,
+          webkitBackdropFilter: styles.getPropertyValue('-webkit-backdrop-filter'),
+        };
+      }
 
       if (originalTone) nav.dataset.headerGlassTone = originalTone;
       else delete nav.dataset.headerGlassTone;
@@ -866,13 +908,19 @@ test('applies semantic clear crystal glass, spotlight, cursor contrast, and resi
     }),
   ).toEqual({
     dark: {
+      activeNavigationColor: 'rgb(30, 77, 196)',
       backdropFilter: 'none',
       backgroundColor: 'rgba(248, 250, 255, 0.92)',
+      logoColor: 'rgb(7, 24, 63)',
+      navigationColor: 'rgb(7, 24, 63)',
       webkitBackdropFilter: '',
     },
     light: {
+      activeNavigationColor: 'rgb(30, 77, 196)',
       backdropFilter: 'none',
       backgroundColor: 'rgba(248, 250, 255, 0.92)',
+      logoColor: 'rgb(7, 24, 63)',
+      navigationColor: 'rgb(7, 24, 63)',
       webkitBackdropFilter: '',
     },
   });
@@ -886,6 +934,29 @@ test('applies semantic clear crystal glass, spotlight, cursor contrast, and resi
       backdropFilter: 'none',
       backgroundColor: 'rgba(248, 250, 255, 0.92)',
       webkitBackdropFilter: '',
+    });
+    const fallbackInk = await header(page).evaluate(async (element) => {
+      const logo = element.querySelector<HTMLElement>('a[aria-label="FUTUR home"]')!;
+      const servicesLink = element.querySelector<HTMLElement>('a[href="#services"]')!;
+      await new Promise<void>((resolve) => window.setTimeout(resolve, 180));
+      const navigation = getComputedStyle(servicesLink).color;
+      const originalCurrent = servicesLink.getAttribute('aria-current');
+      servicesLink.setAttribute('aria-current', 'location');
+      await new Promise<void>((resolve) => window.setTimeout(resolve, 180));
+      const activeNavigation = getComputedStyle(servicesLink).color;
+      if (originalCurrent) servicesLink.setAttribute('aria-current', originalCurrent);
+      else servicesLink.removeAttribute('aria-current');
+
+      return {
+        activeNavigation,
+        logo: getComputedStyle(logo).color,
+        navigation,
+      };
+    });
+    expect(fallbackInk).toEqual({
+      activeNavigation: 'rgb(30, 77, 196)',
+      logo: 'rgb(7, 24, 63)',
+      navigation: 'rgb(7, 24, 63)',
     });
   }
 

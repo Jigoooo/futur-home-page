@@ -50,9 +50,7 @@
       rgba(9, 22, 52, var(--header-fluid-shadow-alpha, 0.12)),
     inset 0 1px 0 var(--header-inset-highlight),
     inset 0 -1px 0 rgba(115, 135, 174, 0.1);
-  transition:
-    background 0.16s var(--ease-out),
-    border-color 0.16s var(--ease-out);
+  transition: border-color 0.16s var(--ease-out);
 }
 
 .nav[data-header-glass-tone='light'] .glassShell {

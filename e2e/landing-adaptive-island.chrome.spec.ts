@@ -192,7 +192,10 @@ async function sampleHeaderFrames(page: Page, durationMs: number) {
 }
 
 type DesktopIndicatorFrame = {
+  activeHref: string | null;
   opacity: number;
+  targetWidth: number;
+  targetX: number;
   time: number;
   width: number;
   x: number;
@@ -207,10 +210,13 @@ async function sampleDesktopIndicatorMotion(
     async ({ retargetId, targetId }) => {
       const root = document.querySelector<HTMLElement>('[data-landing-nav]');
       const targetSection = document.querySelector<HTMLElement>(`#${targetId}`);
+      const targetLink = root?.querySelector<HTMLElement>(`a[href="#${targetId}"]`);
       const retargetSection = retargetId
         ? document.querySelector<HTMLElement>(`#${retargetId}`)
         : null;
-      if (!root || !targetSection) throw new Error('desktop indicator fixture is incomplete');
+      if (!root || !targetSection || !targetLink) {
+        throw new Error('desktop indicator fixture is incomplete');
+      }
 
       const frames: DesktopIndicatorFrame[] = [];
       const startedAt = performance.now();
@@ -222,8 +228,14 @@ async function sampleDesktopIndicatorMotion(
         const indicator = root.querySelector<HTMLElement>('[data-header-active-indicator]');
         if (indicator) {
           const rect = indicator.getBoundingClientRect();
+          const targetRect = targetLink.getBoundingClientRect();
           frames.push({
+            activeHref:
+              root.querySelector<HTMLElement>('a[aria-current="location"]')?.getAttribute('href') ??
+              null,
             opacity: Number.parseFloat(getComputedStyle(indicator).opacity),
+            targetWidth: targetRect.width,
+            targetX: targetRect.left,
             time: performance.now() - startedAt,
             width: rect.width,
             x: rect.left,
@@ -237,12 +249,65 @@ async function sampleDesktopIndicatorMotion(
           retargetSection.scrollIntoView({ block: 'center', behavior: 'instant' });
         }
         await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
-      } while (performance.now() - startedAt < 340);
+      } while (performance.now() - startedAt < 360);
 
       return { frames, retargetSampleIndex };
     },
     { retargetId: retargetSectionId, targetId: targetSectionId },
   );
+}
+
+async function readReducedIndicatorOnNextFrame(page: Page, targetSectionId: 'stack') {
+  return page.evaluate(async (targetId) => {
+    const root = document.querySelector<HTMLElement>('[data-landing-nav]');
+    const indicator = root?.querySelector<HTMLElement>('[data-header-active-indicator]');
+    const targetSection = document.querySelector<HTMLElement>(`#${targetId}`);
+    const targetLink = root?.querySelector<HTMLElement>(`a[href="#${targetId}"]`);
+    if (!root || !indicator || !targetSection || !targetLink) {
+      throw new Error('reduced indicator fixture is incomplete');
+    }
+
+    return new Promise<{
+      activeHref: string | null;
+      opacity: string;
+      targetWidth: number;
+      targetX: number;
+      width: number;
+      x: number;
+    }>((resolve, reject) => {
+      const timeout = window.setTimeout(() => {
+        observer.disconnect();
+        reject(new Error('reduced indicator target did not become active'));
+      }, 2_000);
+      const observer = new MutationObserver(() => {
+        if (targetLink.getAttribute('aria-current') !== 'location') return;
+
+        observer.disconnect();
+        window.clearTimeout(timeout);
+        requestAnimationFrame(() => {
+          const rect = indicator.getBoundingClientRect();
+          const targetRect = targetLink.getBoundingClientRect();
+          resolve({
+            activeHref:
+              root.querySelector<HTMLElement>('a[aria-current="location"]')?.getAttribute('href') ??
+              null,
+            opacity: indicator.style.opacity,
+            targetWidth: targetRect.width,
+            targetX: targetRect.left,
+            width: rect.width,
+            x: rect.left,
+          });
+        });
+      });
+
+      observer.observe(root, {
+        attributeFilter: ['aria-current'],
+        attributes: true,
+        subtree: true,
+      });
+      targetSection.scrollIntoView({ block: 'center', behavior: 'instant' });
+    });
+  }, targetSectionId);
 }
 
 async function sampleNavigationFontSizes(page: Page, durationMs: number) {
@@ -769,11 +834,37 @@ test('uses one shared active indicator and glides between desktop sections', asy
   await expect(menuLinks.locator('a [data-header-active-indicator]')).toHaveCount(0);
   await expect(mobileIndicator).toHaveCount(1);
   await page.waitForTimeout(240);
+  const servicesBox = await servicesLink.boundingBox();
+  expect(servicesBox).not.toBeNull();
 
   const { frames } = await sampleDesktopIndicatorMotion(page, 'stack');
   await expect(stackLink).toHaveAttribute('aria-current', 'location');
   await expect(activeLinks).toHaveCount(1);
   expect(new Set(frames.map(({ x }) => Math.round(x * 10) / 10)).size).toBeGreaterThanOrEqual(4);
+  expect(frames[0]!.x).toBeCloseTo(servicesBox!.x, 0);
+  expect(frames[0]!.width).toBeCloseTo(servicesBox!.width, 0);
+
+  const activeFrame = frames.find(({ activeHref }) => activeHref === '#stack');
+  const settledIndex = frames.findIndex(
+    (frame, index) =>
+      frame.activeHref === '#stack' &&
+      Math.abs(frame.x - frame.targetX) <= 0.5 &&
+      Math.abs(frame.width - frame.targetWidth) <= 0.5 &&
+      frames
+        .slice(index)
+        .every(
+          (laterFrame) =>
+            laterFrame.activeHref === '#stack' &&
+            Math.abs(laterFrame.x - laterFrame.targetX) <= 0.5 &&
+            Math.abs(laterFrame.width - laterFrame.targetWidth) <= 0.5 &&
+            Math.abs(laterFrame.x - frame.x) <= 0.02 &&
+            Math.abs(laterFrame.width - frame.width) <= 0.02,
+        ),
+  );
+  expect(activeFrame).toBeDefined();
+  expect(settledIndex).toBeGreaterThanOrEqual(0);
+  expect(frames[settledIndex]!.time - activeFrame!.time).toBeLessThanOrEqual(220);
+  expect(frames.length - settledIndex).toBeGreaterThanOrEqual(2);
 
   const finalFrame = frames.at(-1)!;
   const previousFrame = frames.at(-2)!;
@@ -811,11 +902,18 @@ test('retargets the shared active indicator from its current desktop frame', asy
 
   const teamLink = header(page).locator('a[href="#team"]');
   await expect(teamLink).toHaveAttribute('aria-current', 'location');
-  const teamBox = await teamLink.boundingBox();
+  const stackLink = header(page).locator('a[href="#stack"]');
+  const activeLinks = header(page).locator('a[aria-current="location"]');
+  await expect(activeLinks).toHaveCount(1);
+  await expect(stackLink).not.toHaveAttribute('aria-current');
+  const [stackBox, teamBox] = await Promise.all([stackLink.boundingBox(), teamLink.boundingBox()]);
   const finalFrame = frames.at(-1)!;
+  expect(stackBox).not.toBeNull();
   expect(teamBox).not.toBeNull();
   expect(finalFrame.x).toBeCloseTo(teamBox!.x, 0);
   expect(finalFrame.width).toBeCloseTo(teamBox!.width, 0);
+  expect(Math.abs(finalFrame.x - stackBox!.x)).toBeGreaterThan(1);
+  expect(Math.abs(finalFrame.width - stackBox!.width)).toBeGreaterThan(1);
 });
 
 test('settles the shared active indicator immediately for reduced motion and excludes mobile', async ({
@@ -823,21 +921,22 @@ test('settles the shared active indicator immediately for reduced motion and exc
 }) => {
   const reducedPage = await browser.newPage({ reducedMotion: 'reduce', viewport: desktopViewport });
   await reducedPage.goto('/');
-  await scrollSectionIntoView(reducedPage, 'stack');
+  await scrollSectionIntoView(reducedPage, 'services');
 
   const reducedNav = header(reducedPage).getByRole('navigation', { name: '주요 메뉴' });
   const reducedIndicator = reducedNav.locator('[data-header-active-indicator]');
   const reducedStackLink = reducedNav.locator('a[href="#stack"]');
+  await expect(reducedNav.locator('a[href="#services"]')).toHaveAttribute(
+    'aria-current',
+    'location',
+  );
+  const nextFrame = await readReducedIndicatorOnNextFrame(reducedPage, 'stack');
+  expect(nextFrame.activeHref).toBe('#stack');
+  expect(nextFrame.x).toBeCloseTo(nextFrame.targetX, 0);
+  expect(nextFrame.width).toBeCloseTo(nextFrame.targetWidth, 0);
+  expect(nextFrame.opacity).toBe('0.82');
   await expect(reducedStackLink).toHaveAttribute('aria-current', 'location');
-  const [indicatorBox, stackBox] = await Promise.all([
-    reducedIndicator.boundingBox(),
-    reducedStackLink.boundingBox(),
-  ]);
-  expect(indicatorBox).not.toBeNull();
-  expect(stackBox).not.toBeNull();
-  expect(indicatorBox!.x).toBeCloseTo(stackBox!.x, 0);
-  expect(indicatorBox!.width).toBeCloseTo(stackBox!.width, 0);
-  expect(await reducedIndicator.evaluate((element) => element.style.opacity)).toBe('0.82');
+  await expect(reducedIndicator).toHaveCSS('opacity', '0.82');
   await reducedPage.close();
 
   const mobilePage = await browser.newPage({ viewport: mobileViewport });

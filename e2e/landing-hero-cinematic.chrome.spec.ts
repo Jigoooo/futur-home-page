@@ -291,7 +291,9 @@ test('keeps the hero reveal within 650ms and retains two explicit rows on mobile
   await expect(page.locator('[data-landing-hero]')).not.toHaveCSS('overflow-x', 'visible');
 });
 
-test('transitions the header from the hero surface after the 48px sentinel', async ({ page }) => {
+test('keeps desktop navigation visible while the glass tone follows the scrolled surface', async ({
+  page,
+}) => {
   await page.goto('/');
 
   const header = page.locator('[data-landing-nav]');
@@ -300,11 +302,15 @@ test('transitions the header from the hero surface after the 48px sentinel', asy
 
     return element && Object.keys(element).some((key) => key.startsWith('__reactProps$'));
   });
-  await expect(header).toHaveAttribute('data-header-surface', 'hero');
+  await expect(header).toHaveAttribute('data-header-layout', 'desktop-fluid');
+  await page.evaluate(() => window.scrollTo({ top: 160, behavior: 'instant' }));
+  await expect(header).toHaveAttribute('data-header-glass-tone', 'dark');
+  await expect(header.getByRole('link', { name: '서비스' })).toBeVisible();
 
-  await page.evaluate(() => window.scrollTo({ top: 96, behavior: 'instant' }));
-  await expect(header).toHaveAttribute('data-header-surface', 'solid');
-
-  await page.evaluate(() => window.scrollTo(0, 0));
-  await expect(header).toHaveAttribute('data-header-surface', 'hero');
+  await page.locator('#services').evaluate((element) => {
+    element.scrollIntoView({ block: 'center', behavior: 'instant' });
+  });
+  await expect(header).toHaveAttribute('data-header-layout', 'desktop-fluid');
+  await expect(header).toHaveAttribute('data-header-glass-tone', 'light');
+  await expect(header.getByRole('link', { name: '서비스' })).toBeVisible();
 });

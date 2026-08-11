@@ -25,11 +25,16 @@ radius:
 이 문서는 현재 랜딩의 최종 디자인 권위다. 구현 순서는
 `src/pages/landing/ui/landing-page.tsx`, 토큰은 `src/styles/tokens.css`, 개별 형태와 반응형
 규칙은 각 CSS Module을 따른다. `docs/futur_react_docs_package/DESIGN.md`는 역사적 참고자료이며
-충돌 시 이 문서, Adaptive Island 설계 문서, 현재 소스 순으로 판단한다.
+충돌 시 이 문서, 현재 소스 순으로 판단한다.
 
-Hero의 particle surface와 ring/dot cursor는 시네마틱 구현을 유지한다. Header는 세 상태의
-Adaptive Island이고, Hero 이후에는 클래식 B2B 문서 표면을 사용한다. 삭제된 시네마틱 본문
-장면, 문의 폼 UI, merge/mask/path stage를 다시 만들지 않는다.
+`docs/superpowers/specs/2026-08-11-futur-continuous-liquid-island-design.md`는
+`docs/superpowers/specs/2026-08-11-futur-adaptive-island-header-design.md`의 Header 상태, motion,
+glass 계약만 대체한다. 공개 문의 UI 제거와 server/model/config/mail/legal 보존을 포함한 나머지
+Adaptive Island 경계는 그대로 유효하다.
+
+Hero의 particle surface와 ring/dot cursor는 시네마틱 구현을 유지한다. Header는 데스크톱의
+연속형 상태와 모바일의 두 상태를 분리하고, Hero 이후에는 클래식 B2B 문서 표면을 사용한다.
+삭제된 시네마틱 본문 장면, 문의 폼 UI, merge/mask/path stage를 다시 만들지 않는다.
 
 ## Final Page Order
 
@@ -63,14 +68,18 @@ particle lifecycle과 독립적으로 SSR에서 읽을 수 있다.
   사용하되 Hero 높이, 대비, headline과 설명을 유지한다.
 - 공개 Hero CTA와 `#contact` 링크는 없다.
 
-## Adaptive Island
+## Continuous Liquid Island
 
-Header root의 `data-header-layout`은 `hero-expanded`, `compact`, `menu-expanded` 세 값만 가진다.
+Header root의 `data-header-layout`은 데스크톱에서 `desktop-fluid`, 모바일에서
+`mobile-compact | mobile-expanded`를 사용한다.
 
-- 데스크톱 `1280×720`: Hero의 `hero-expanded`는 `1232×76px`, top `18px`; Hero 이탈 뒤
-  `compact`는 `220×58px`; 열린 메뉴는 `820×68px`다.
-- 모바일 `390×844`: Hero부터 `compact`이며 `220×56px`, top `10px`; 열린 메뉴는
-  `370×158px`이고 화면 좌우 `10px`을 남긴다.
+- 데스크톱 `1280×720`: `desktop-fluid`는 top `18px`, 시작 `1232×76px`, radius `28px`다.
+  `scrollY 0 → 160px` 진행률에 따라 visual width scale `1 → 0.92`, visual width
+  `1232 → 약 1133px`, visual height `76 → 약 68px`, radius `28 → 24px`로 연속 축소된다.
+  로고와 서비스, 기술, 팀, 프로세스, FAQ 링크는 전 구간에 항상 보이고 tab order에 남는다.
+  Compact toggle과 close control은 사용하지 않는다.
+- 모바일 `390×844`: Hero부터 `mobile-compact`이며 `220×56px`, top `10px`; 열린
+  `mobile-expanded`는 `370×158px`이고 화면 좌우 `10px`을 남긴다.
 - 모바일 메뉴는 6-track CSS grid에서 각 링크가 2 track을 차지해 `3+2` 두 행으로 보인다.
 - Compact 화면 라벨은 Hero/Footer `FUTUR.`, services `서비스`, stack `기술`, team `팀`,
   process/operations `프로세스`, faq `FAQ`다.
@@ -87,26 +96,31 @@ JavaScript 비활성 상태에서는 logo와 다섯 링크를 정적으로 노�
 
 ## Crystal Glass and Motion
 
-fixed outer Header는 위치와 Flip geometry만 소유하고, 단일 inner `data-header-glass` surface가
-배경, optical rim, inset highlight, shadow, specular와 progressive lower-edge blur/mask를
-소유한다. 중첩 glass card는 만들지 않는다.
+fixed outer Header는 위치와 hit area를 소유하고, 단일 inner `data-header-glass` surface가 배경,
+optical rim, 얇은 상단 specular, 약한 inner shadow를 소유한다. 높은 opacity의 중첩 glass card나
+전체 표면 흰색 gradient는 만들지 않는다.
 
-- dark surface tint: `rgba(248, 250, 255, 0.46)`
-- light surface tint: `rgba(248, 250, 255, 0.66)`
-- filter: `blur(18px) saturate(145%) contrast(1.04)`
+- dark surface tint: `rgba(248, 250, 255, 0.18)`
+- light surface tint: `rgba(248, 250, 255, 0.26)`
+- filter: `blur(20px) saturate(135%) contrast(1.03)`
 - border/radius: `1px` optical rim, `28px` radius
-- backdrop-filter 미지원 또는 `prefers-contrast: more`: `rgba(248, 250, 255, 0.94)`와 filter
+- backdrop-filter 미지원 또는 `prefers-contrast: more`: `rgba(248, 250, 255, 0.92)`와 filter
   `none`
 
 fine pointer와 normal motion에서만 `--mx/--my` spotlight가 움직인다. coarse pointer와 reduced
 motion에서는 정적 중심값을 사용한다. header glass는 dark cursor contrast, navy toggle/close는
 light cursor contrast를 선언한다.
 
-일반 모션은 기존 GSAP Flip을 사용한다. open은 `70ms` squash 뒤 `420ms` morph, menu item
-`30ms` stagger, active indicator `70ms` follow-through다. close는 `360ms`다. 새 전환 전에 기존
-tween/Flip을 중단하고 inline transform/opacity를 정리한다. `will-change`는
-`data-header-motion='true'` 구간에만 존재한다. reduced motion에서는 GSAP를 실행하지 않고 CSS
-animation/transition duration과 delay도 `0s`다.
+데스크톱은 `scrollY / 160` 진행률을 한 번의 `requestAnimationFrame`에서 반영하고 약
+`180~240ms` follow response로 현재 값에서 자연스럽게 반전한다. scroll frame마다 React state나
+layout width/height를 쓰지 않으며 typography 크기는 유지한다.
+
+모바일은 한 animation owner가 shell geometry와 menu item을 함께 제어한다. open은 `320ms`,
+bounded `power3.inOut`, menu item `opacity 0 → 1`, `translateY(6px) → 0`, `28ms` stagger다.
+close는 `280ms`이며 menu opacity를 먼저 낮춘다. 반대 입력은 현재 computed geometry에서 즉시
+새 timeline을 시작한다. 종료 후 transform/width/height/opacity inline style을 정리하고
+`will-change`는 `data-header-motion='true'` 구간에만 둔다. reduced motion에서는 상태와 desktop
+진행률을 animation 없이 즉시 반영하고 CSS animation/transition duration과 delay도 `0s`다.
 
 Hash target offset은 expanded rect가 아니라 CSS의 compact 기준값을 사용한다. desktop은
 `92px`, mobile은 `82px`이며 target heading은 Header 아래에 남는다.

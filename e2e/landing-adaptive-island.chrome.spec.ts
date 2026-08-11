@@ -50,8 +50,7 @@ async function readGlassStyle(glass: Locator) {
       backdropFilter: styles.backdropFilter,
       backgroundColor: styles.backgroundColor,
       beforeOpacity: beforeStyles.opacity,
-      webkitBackdropFilter:
-        styles.getPropertyValue('-webkit-backdrop-filter') || styles.backdropFilter,
+      webkitBackdropFilter: styles.getPropertyValue('-webkit-backdrop-filter'),
     };
   });
 }
@@ -96,27 +95,6 @@ async function expectFocusRestoredOnCompactCommit(page: Page, button: Locator) {
     }),
   ).toEqual({ focusInsideHiddenNav: false, toggleFocused: true });
   await expect(button).toHaveAttribute('aria-expanded', 'false');
-}
-
-async function returnToHeroLayout(page: Page) {
-  await page.setViewportSize(desktopViewport);
-  await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
-  await expect(header(page)).toHaveAttribute('data-header-layout', 'desktop-fluid');
-}
-
-async function expectFocusTransferredToVisibleHeroControl(page: Page) {
-  await page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => resolve())));
-  expect(
-    await header(page).evaluate((element) => {
-      const active = document.activeElement;
-      const logo = element.querySelector('a[aria-label="FUTUR home"]');
-      const firstNavigationLink = element.querySelector('nav[aria-label="주요 메뉴"] a');
-      return {
-        focusedVisibleHeroControl: active === logo || active === firstNavigationLink,
-        focusedHiddenToggle: active === element.querySelector('[data-header-toggle]'),
-      };
-    }),
-  ).toEqual({ focusedVisibleHeroControl: true, focusedHiddenToggle: false });
 }
 
 async function holdAnimationFrames(page: Page) {
@@ -463,6 +441,28 @@ test('keeps desktop fluid navigation visible through continuous scroll-linked ge
   expect(fontSizeSamples.every((sample) => sample.join() === initialFontSizes.join())).toBe(true);
 });
 
+test('keeps the desktop logo and five navigation links in tab order at full scroll progress', async ({
+  page,
+}) => {
+  await page.goto('/');
+  await page.evaluate(() => window.scrollTo({ top: 160, behavior: 'instant' }));
+  await expect(header(page)).toHaveAttribute('data-header-layout', 'desktop-fluid');
+
+  const tabOrder = [
+    header(page).getByRole('link', { name: 'FUTUR home' }),
+    ...menuLabels.map((label) =>
+      header(page)
+        .getByRole('navigation', { name: '주요 메뉴' })
+        .getByRole('link', { name: label, exact: true }),
+    ),
+  ];
+
+  for (const control of tabOrder) {
+    await page.keyboard.press('Tab');
+    await expect(control).toBeFocused();
+  }
+});
+
 test('keeps mobile motion lifecycle intact through scroll and resize events', async ({ page }) => {
   await page.setViewportSize(mobileViewport);
   await page.goto('/');
@@ -646,6 +646,7 @@ test('applies semantic clear crystal glass, spotlight, cursor contrast, and resi
   expect(glassStyles.dark?.backgroundColor).toBe('rgba(248, 250, 255, 0.18)');
   expect(glassStyles.light?.backgroundColor).toBe('rgba(248, 250, 255, 0.26)');
   expect(glassStyles.dark?.backdropFilter).toBe('blur(20px) saturate(1.35) contrast(1.03)');
+  expect(glassStyles.dark?.webkitBackdropFilter).toBe('');
   expect(Number(glassStyles.dark?.beforeOpacity)).toBeLessThanOrEqual(0.28);
   expect(glassStyles.dark?.afterBackdropFilter).toBe('none');
 
@@ -680,8 +681,7 @@ test('applies semantic clear crystal glass, spotlight, cursor contrast, and resi
             {
               backdropFilter: styles.backdropFilter,
               backgroundColor: styles.backgroundColor,
-              webkitBackdropFilter:
-                styles.getPropertyValue('-webkit-backdrop-filter') || styles.backdropFilter,
+              webkitBackdropFilter: styles.getPropertyValue('-webkit-backdrop-filter'),
             },
           ];
         }),
@@ -696,12 +696,12 @@ test('applies semantic clear crystal glass, spotlight, cursor contrast, and resi
     dark: {
       backdropFilter: 'none',
       backgroundColor: 'rgba(248, 250, 255, 0.92)',
-      webkitBackdropFilter: 'none',
+      webkitBackdropFilter: '',
     },
     light: {
       backdropFilter: 'none',
       backgroundColor: 'rgba(248, 250, 255, 0.92)',
-      webkitBackdropFilter: 'none',
+      webkitBackdropFilter: '',
     },
   });
 
@@ -713,7 +713,7 @@ test('applies semantic clear crystal glass, spotlight, cursor contrast, and resi
     expect(await readGlassStyle(glass)).toMatchObject({
       backdropFilter: 'none',
       backgroundColor: 'rgba(248, 250, 255, 0.92)',
-      webkitBackdropFilter: 'none',
+      webkitBackdropFilter: '',
     });
   }
 
@@ -836,7 +836,7 @@ test('keeps will-change scoped to active header transitions', async ({ page }) =
   ).toEqual([]);
 });
 
-test('moves from the desktop Hero header to Compact and Menu Expanded layouts', async ({
+test('keeps desktop fluid navigation and exposes Compact controls only on mobile', async ({
   page,
 }) => {
   await page.goto('/');
@@ -877,62 +877,6 @@ test('restores toggle focus when a base transition hides focused Hero controls',
   await expect(servicesLink).toBeFocused();
   await page.setViewportSize(mobileViewport);
   await expectFocusRestoredOnCompactCommit(page, button);
-});
-
-test('moves focused Compact toggle to a visible Hero control including after Escape close', async ({
-  page,
-}) => {
-  await page.goto('/');
-  await enterCompactLayout(page);
-  const button = compactButton(page);
-
-  await button.focus();
-  await expect(button).toBeFocused();
-  await returnToHeroLayout(page);
-  await expectFocusTransferredToVisibleHeroControl(page);
-
-  await enterCompactLayout(page);
-  await openCompactMenu(page, '서비스');
-  await page.keyboard.press('Escape');
-  await expectCompactMenuClosed(page, button, '서비스');
-  await returnToHeroLayout(page);
-  await expectFocusTransferredToVisibleHeroControl(page);
-});
-
-test('cancels a Hero focus transfer on rapid reverse or outside ownership', async ({ page }) => {
-  await page.goto('/');
-  await enterCompactLayout(page);
-  const button = compactButton(page);
-  await button.focus();
-  await expect(button).toBeFocused();
-  await holdAnimationFrames(page);
-  const outsideOwner = page.locator('#hero-focus-owner');
-  await page.evaluate(() => {
-    const owner = document.createElement('button');
-    owner.id = 'hero-focus-owner';
-    owner.textContent = 'Outside Hero focus owner';
-    owner.style.position = 'fixed';
-    owner.style.inset = '0 auto auto 0';
-    document.body.append(owner);
-  });
-
-  await returnToHeroLayout(page);
-  await page.setViewportSize(mobileViewport);
-  await expect(header(page)).toHaveAttribute('data-header-layout', 'mobile-compact');
-  await outsideOwner.focus();
-  await expect(outsideOwner).toBeFocused();
-  await restoreAnimationFrames(page);
-  await page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => resolve())));
-  await expect(outsideOwner).toBeFocused();
-
-  await button.focus();
-  await holdAnimationFrames(page);
-  await returnToHeroLayout(page);
-  await outsideOwner.focus();
-  await expect(outsideOwner).toBeFocused();
-  await restoreAnimationFrames(page);
-  await page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => resolve())));
-  await expect(outsideOwner).toBeFocused();
 });
 
 test('does not reuse an interrupted compact focus return after ownership moves outside', async ({
@@ -1058,7 +1002,7 @@ test('hydrates mobile directly into Compact without a 158px painted frame', asyn
   expect(samples.some(({ height }) => height >= 150)).toBe(false);
 });
 
-test('disables both backdrop-filter implementations on the high-contrast glass overlay', async ({
+test('reports the unsupported WebKit filter alias independently in high contrast', async ({
   page,
 }) => {
   await page.emulateMedia({ contrast: 'more' });
@@ -1071,11 +1015,10 @@ test('disables both backdrop-filter implementations on the high-contrast glass o
         const styles = getComputedStyle(element, '::after');
         return {
           backdropFilter: styles.backdropFilter,
-          webkitBackdropFilter:
-            styles.getPropertyValue('-webkit-backdrop-filter') || styles.backdropFilter,
+          webkitBackdropFilter: styles.getPropertyValue('-webkit-backdrop-filter'),
         };
       }),
-  ).toEqual({ backdropFilter: 'none', webkitBackdropFilter: 'none' });
+  ).toEqual({ backdropFilter: 'none', webkitBackdropFilter: '' });
 });
 
 test('opens the Compact menu with click, Enter, and Space', async ({ page }) => {

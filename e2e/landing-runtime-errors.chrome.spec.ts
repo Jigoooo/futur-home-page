@@ -24,13 +24,19 @@ test('initial load and primary interactions emit no runtime errors', async ({ pa
   await page.waitForTimeout(350);
   await animatedButton.dispatchEvent('pointerout', { pointerType: 'mouse' });
   await page.waitForTimeout(350);
-  const headerToggle = page.locator('[data-header-toggle]');
-  await headerToggle.click();
-  await expect(headerToggle).toHaveAttribute('aria-expanded', 'true');
+
   await page
     .getByRole('navigation', { name: '주요 메뉴' })
     .getByRole('link', { name: '서비스' })
     .click();
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/');
+  await waitForLandingHydration(page);
+  const headerToggle = page.locator('[data-header-toggle]');
+  await expect(headerToggle).toBeVisible();
+  await headerToggle.click();
+  await expect(headerToggle).toHaveAttribute('aria-expanded', 'true');
   await page.locator('#faq button').first().hover();
   await page.mouse.move(0, 0);
 

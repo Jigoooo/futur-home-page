@@ -1,5 +1,4 @@
 import gsap from 'gsap';
-import { Flip } from 'gsap/Flip';
 import {
   type MouseEvent,
   type RefObject,
@@ -13,11 +12,12 @@ import {
 import {
   clearDesktopHeaderFrame,
   getDesktopHeaderProgress,
+  type HeaderMotionPhase,
+  type MobileHeaderLayout,
+  startMobileHeaderMotion,
   writeDesktopHeaderFrame,
 } from './header-motion';
 import { scrollToHashTarget } from '../lib/scroll-to-page-top';
-
-gsap.registerPlugin(Flip);
 
 export type HeaderLayout = 'desktop-fluid' | 'mobile-compact' | 'mobile-expanded';
 
@@ -35,14 +35,6 @@ const sectionLabels = new Map([
   ['operations', { href: '#process', label: '프로세스' }],
   ['faq', { href: '#faq', label: 'FAQ' }],
 ]);
-
-function clearMotionStyles(header: HTMLElement) {
-  delete header.dataset.headerMotion;
-  gsap.set(header, { clearProps: 'all' });
-  gsap.set(header.querySelectorAll('*'), {
-    clearProps: 'opacity,transform,transformOrigin',
-  });
-}
 
 function isPlainHashNavigation(event: MouseEvent<HTMLAnchorElement>) {
   const anchor = event.currentTarget;
@@ -78,6 +70,7 @@ function getVisibleSectionId() {
 
 export function useAdaptiveHeader({ headerRef, menuRef, toggleRef }: AdaptiveHeaderRefs) {
   const [layout, setLayout] = useState<HeaderLayout>('desktop-fluid');
+  const [motionPhase, setMotionPhase] = useState<HeaderMotionPhase>('idle');
   const [activeSectionId, setActiveSectionId] = useState('hero');
   const [hydrated, setHydrated] = useState(false);
   const [openedSectionId, setOpenedSectionId] = useState('hero');
@@ -89,18 +82,27 @@ export function useAdaptiveHeader({ headerRef, menuRef, toggleRef }: AdaptiveHea
   const focusReturnFrameRef = useRef(0);
   const focusReturnGenerationRef = useRef(0);
   const focusReturnTokenRef = useRef<number | null>(null);
-  const pendingFlipRef = useRef<ReturnType<typeof Flip.getState> | null>(null);
+  const focusReturnTargetRef = useRef<'desktop' | 'toggle' | null>(null);
+  const headerFocusOwnershipRef = useRef(true);
   const motionTimelineRef = useRef<gsap.core.Timeline | null>(null);
 
   const cancelToggleFocusReturn = useCallback(() => {
     focusReturnGenerationRef.current += 1;
     focusReturnTokenRef.current = null;
+    focusReturnTargetRef.current = null;
     window.cancelAnimationFrame(focusReturnFrameRef.current);
   }, []);
 
   const scheduleToggleFocusReturn = useCallback(() => {
     focusReturnGenerationRef.current += 1;
     focusReturnTokenRef.current = focusReturnGenerationRef.current;
+    focusReturnTargetRef.current = 'toggle';
+  }, []);
+
+  const scheduleDesktopFocusReturn = useCallback(() => {
+    focusReturnGenerationRef.current += 1;
+    focusReturnTokenRef.current = focusReturnGenerationRef.current;
+    focusReturnTargetRef.current = 'desktop';
   }, []);
 
   const updateLayout = useCallback(
@@ -108,24 +110,53 @@ export function useAdaptiveHeader({ headerRef, menuRef, toggleRef }: AdaptiveHea
       if (layoutRef.current === nextLayout) return;
 
       const header = headerRef.current;
-      if (nextLayout !== 'mobile-compact') cancelToggleFocusReturn();
+      const headerOwnsFocus =
+        headerFocusOwnershipRef.current && (header?.contains(document.activeElement) ?? false);
+      if (nextLayout === 'mobile-expanded') {
+        cancelToggleFocusReturn();
+      } else if (
+        layoutRef.current === 'desktop-fluid' &&
+        nextLayout === 'mobile-compact' &&
+        headerOwnsFocus
+      ) {
+        scheduleToggleFocusReturn();
+      } else if (nextLayout === 'desktop-fluid' && headerOwnsFocus) {
+        scheduleDesktopFocusReturn();
+      }
       const mobileMenuTransition =
         (layoutRef.current === 'mobile-compact' && nextLayout === 'mobile-expanded') ||
         (layoutRef.current === 'mobile-expanded' && nextLayout === 'mobile-compact');
 
-      if (header && mobileMenuTransition && motionReadyRef.current && !reducedMotionRef.current) {
-        motionTimelineRef.current?.kill();
-        motionTimelineRef.current = null;
-        gsap.killTweensOf([header, ...header.querySelectorAll('*')]);
-        Flip.killFlipsOf(header);
-        clearMotionStyles(header);
-        pendingFlipRef.current = Flip.getState(header);
+      if (header && mobileMenuTransition && motionReadyRef.current) {
+        const menuItems = Array.from(menuRef.current?.querySelectorAll<HTMLElement>('a') ?? []);
+        const indicator = header.querySelector<HTMLElement>('[data-header-active-indicator]');
+        let timeline: gsap.core.Timeline | null = null;
+        timeline = startMobileHeaderMotion({
+          header,
+          indicator,
+          menuItems,
+          onComplete: () => {
+            if (motionTimelineRef.current === timeline) motionTimelineRef.current = null;
+          },
+          onPhaseChange: setMotionPhase,
+          previousTimeline: motionTimelineRef.current,
+          reducedMotion: reducedMotionRef.current,
+          target: nextLayout as MobileHeaderLayout,
+          viewportWidth: window.innerWidth,
+        });
+        motionTimelineRef.current = timeline;
       }
 
       layoutRef.current = nextLayout;
       setLayout(nextLayout);
     },
-    [cancelToggleFocusReturn, headerRef],
+    [
+      cancelToggleFocusReturn,
+      headerRef,
+      menuRef,
+      scheduleDesktopFocusReturn,
+      scheduleToggleFocusReturn,
+    ],
   );
 
   const restoreToggleFocus = scheduleToggleFocusReturn;
@@ -137,87 +168,33 @@ export function useAdaptiveHeader({ headerRef, menuRef, toggleRef }: AdaptiveHea
   }, [restoreToggleFocus, updateLayout]);
 
   useLayoutEffect(() => {
-    const flipState = pendingFlipRef.current;
-    const header = headerRef.current;
-    if (!flipState || !header || reducedMotionRef.current) return;
-
-    pendingFlipRef.current = null;
-    header.dataset.headerMotion = 'true';
-    const opening = layout === 'mobile-expanded';
-    const menuItems = menuRef.current?.querySelectorAll('a, button') ?? [];
-    const motionContent = header.querySelector<HTMLElement>('[data-header-motion-content]');
-    const indicator = header.querySelector<HTMLElement>('[data-header-active-indicator]');
-    const flip = Flip.from(flipState, {
-      targets: header,
-      duration: opening ? 0.42 : 0.36,
-      ease: 'power3.inOut',
-      nested: true,
-      paused: true,
-      prune: true,
-      scale: true,
-    });
-    const timeline = gsap.timeline();
-    const finish = () => {
-      clearMotionStyles(header);
-      if (motionTimelineRef.current === timeline) motionTimelineRef.current = null;
-    };
-    timeline.eventCallback('onComplete', finish);
-    timeline.eventCallback('onInterrupt', finish);
-    motionTimelineRef.current = timeline;
-
-    if (opening) {
-      if (motionContent) {
-        timeline.fromTo(
-          motionContent,
-          { scaleX: 0.96, scaleY: 1.03 },
-          { scaleX: 1, scaleY: 1, duration: 0.07, ease: 'power2.out' },
-          0,
-        );
-      }
-      timeline.add(flip, 0.07);
-      timeline.fromTo(
-        menuItems,
-        { opacity: 0, y: 4 },
-        { opacity: 1, y: 0, duration: 0.22, stagger: 0.03, ease: 'power2.out' },
-        0.16,
-      );
-      if (indicator) {
-        timeline.fromTo(
-          indicator,
-          { scaleX: 0.72 },
-          { scaleX: 1, duration: 0.07, ease: 'power2.out' },
-          0.49,
-        );
-      }
-    } else {
-      timeline.add(flip, 0);
-    }
-
-    return () => {
-      timeline.kill();
-      finish();
-    };
-  }, [headerRef, layout, menuRef]);
-
-  useLayoutEffect(() => {
     const focusReturnToken = focusReturnTokenRef.current;
-    if (layout !== 'mobile-compact' || focusReturnToken === null) return;
+    const focusReturnTarget = focusReturnTargetRef.current;
+    const targetLayout = focusReturnTarget === 'desktop' ? 'desktop-fluid' : 'mobile-compact';
+    if (layout !== targetLayout || focusReturnToken === null) return;
 
     window.cancelAnimationFrame(focusReturnFrameRef.current);
     focusReturnFrameRef.current = window.requestAnimationFrame(() => {
       if (
         focusReturnTokenRef.current !== focusReturnToken ||
         focusReturnGenerationRef.current !== focusReturnToken ||
-        layoutRef.current !== 'mobile-compact'
+        layoutRef.current !== targetLayout
       ) {
         return;
       }
       focusReturnTokenRef.current = null;
+      focusReturnTargetRef.current = null;
+      if (focusReturnTarget === 'desktop') {
+        const logo = headerRef.current?.querySelector<HTMLElement>('a[aria-label="FUTUR home"]');
+        const firstNavigationLink = menuRef.current?.querySelector<HTMLElement>('a');
+        (logo ?? firstNavigationLink)?.focus({ preventScroll: true });
+        return;
+      }
       toggleRef.current?.focus({ preventScroll: true });
     });
 
     return () => window.cancelAnimationFrame(focusReturnFrameRef.current);
-  }, [layout, toggleRef]);
+  }, [headerRef, layout, menuRef, toggleRef]);
 
   useLayoutEffect(() => {
     if (layout !== 'mobile-expanded') return;
@@ -241,24 +218,25 @@ export function useAdaptiveHeader({ headerRef, menuRef, toggleRef }: AdaptiveHea
       if (reducedMotion.matches && headerRef.current) {
         motionTimelineRef.current?.kill();
         motionTimelineRef.current = null;
-        gsap.killTweensOf([headerRef.current, ...headerRef.current.querySelectorAll('*')]);
-        Flip.killFlipsOf(headerRef.current);
-        clearMotionStyles(headerRef.current);
       }
     };
     const trackHeaderFocus = (event: FocusEvent) => {
       const target = event.target;
       const header = headerRef.current;
-      if (target instanceof Node && !header?.contains(target)) cancelToggleFocusReturn();
+      if (!(target instanceof Node)) return;
+      headerFocusOwnershipRef.current = Boolean(header?.contains(target));
+      if (!headerFocusOwnershipRef.current) cancelToggleFocusReturn();
     };
     const releaseHeaderFocus = (event: FocusEvent) => {
       const nextTarget = event.relatedTarget;
       if (!(nextTarget instanceof Node) || headerRef.current?.contains(nextTarget)) return;
+      headerFocusOwnershipRef.current = false;
       cancelToggleFocusReturn();
     };
     const releaseHeaderPointer = (event: PointerEvent) => {
       const target = event.target;
       if (!(target instanceof Node) || headerRef.current?.contains(target)) return;
+      headerFocusOwnershipRef.current = false;
       cancelToggleFocusReturn();
     };
     compactViewport.addEventListener('change', syncBaseLayout);
@@ -495,6 +473,7 @@ export function useAdaptiveHeader({ headerRef, menuRef, toggleRef }: AdaptiveHea
     hydrated,
     layout,
     glassTone,
+    motionPhase,
     toggleMenu,
   };
 }

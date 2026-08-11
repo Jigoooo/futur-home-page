@@ -40,8 +40,9 @@ async function scrollSectionIntoView(page: Page, sectionId: string) {
 }
 
 async function enterCompactLayout(page: Page, sectionId = 'services', label = '서비스') {
+  await page.setViewportSize(mobileViewport);
   await scrollSectionIntoView(page, sectionId);
-  await expect(header(page)).toHaveAttribute('data-header-layout', 'compact');
+  await expect(header(page)).toHaveAttribute('data-header-layout', 'mobile-compact');
   const button = compactButton(page);
   await expect(button).toBeVisible();
   await expectCompactLabel(button, label);
@@ -50,20 +51,20 @@ async function enterCompactLayout(page: Page, sectionId = 'services', label = '�
 async function openCompactMenu(page: Page, label: string) {
   const button = compactButton(page);
   await button.click();
-  await expect(header(page)).toHaveAttribute('data-header-layout', 'menu-expanded');
+  await expect(header(page)).toHaveAttribute('data-header-layout', 'mobile-expanded');
   await expectExpandedController(page, label);
   return button;
 }
 
 async function expectCompactMenuClosed(page: Page, button: Locator, label: string) {
-  await expect(header(page)).toHaveAttribute('data-header-layout', 'compact');
+  await expect(header(page)).toHaveAttribute('data-header-layout', 'mobile-compact');
   await expect(button).toHaveAttribute('aria-expanded', 'false');
   await expectCompactLabel(button, label);
   await expect(button).toBeFocused();
 }
 
 async function expectFocusRestoredOnCompactCommit(page: Page, button: Locator) {
-  await expect(header(page)).toHaveAttribute('data-header-layout', 'compact');
+  await expect(header(page)).toHaveAttribute('data-header-layout', 'mobile-compact');
   await page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => resolve())));
 
   expect(
@@ -81,8 +82,9 @@ async function expectFocusRestoredOnCompactCommit(page: Page, button: Locator) {
 }
 
 async function returnToHeroLayout(page: Page) {
+  await page.setViewportSize(desktopViewport);
   await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
-  await expect(header(page)).toHaveAttribute('data-header-layout', 'hero-expanded');
+  await expect(header(page)).toHaveAttribute('data-header-layout', 'desktop-fluid');
 }
 
 async function expectFocusTransferredToVisibleHeroControl(page: Page) {
@@ -227,6 +229,141 @@ async function readHeaderGeometry(page: Page) {
   });
 }
 
+type MobileMotionSample = {
+  height: number;
+  inlineTransform: string;
+  itemOpacity: number[];
+  itemTranslateY: number[];
+  time: number;
+  width: number;
+};
+
+async function sampleMobileMotion(page: Page, targetLayout: 'mobile-compact' | 'mobile-expanded') {
+  return header(page).evaluate(async (element, target) => {
+    const round = (value: number) => Math.round(value * 100) / 100;
+    const startedWaitingAt = performance.now();
+
+    while (element.dataset.headerLayout !== target || element.dataset.headerMotion !== 'true') {
+      if (performance.now() - startedWaitingAt >= 2_000) {
+        throw new Error(`${target} motion did not start within 2 seconds`);
+      }
+      await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+    }
+
+    const startedAt = performance.now();
+    const samples: MobileMotionSample[] = [];
+    do {
+      const rect = element.getBoundingClientRect();
+      const items = Array.from(
+        element.querySelectorAll<HTMLElement>('nav[aria-label="주요 메뉴"] a'),
+      );
+      samples.push({
+        height: round(rect.height),
+        inlineTransform: element.style.transform,
+        itemOpacity: items.map((item) => Number.parseFloat(getComputedStyle(item).opacity)),
+        itemTranslateY: items.map((item) => {
+          const transform = getComputedStyle(item).transform;
+          return round(transform === 'none' ? 0 : new DOMMatrix(transform).m42);
+        }),
+        time: round(performance.now() - startedAt),
+        width: round(rect.width),
+      });
+      await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+    } while (element.dataset.headerMotion === 'true' && performance.now() - startedAt < 2_000);
+
+    const rect = element.getBoundingClientRect();
+    samples.push({
+      height: round(rect.height),
+      inlineTransform: element.style.transform,
+      itemOpacity: Array.from(
+        element.querySelectorAll<HTMLElement>('nav[aria-label="주요 메뉴"] a'),
+        (item) => Number.parseFloat(getComputedStyle(item).opacity),
+      ),
+      itemTranslateY: Array.from(
+        element.querySelectorAll<HTMLElement>('nav[aria-label="주요 메뉴"] a'),
+        (item) => {
+          const transform = getComputedStyle(item).transform;
+          return round(transform === 'none' ? 0 : new DOMMatrix(transform).m42);
+        },
+      ),
+      time: round(performance.now() - startedAt),
+      width: round(rect.width),
+    });
+    return samples;
+  }, targetLayout);
+}
+
+function longestEqualGeometryRun(samples: MobileMotionSample[]) {
+  let longest = 0;
+  let runStartedAt = samples[0]?.time ?? 0;
+
+  for (let index = 1; index < samples.length; index += 1) {
+    const current = samples[index]!;
+    const previous = samples[index - 1]!;
+    if (current.width !== previous.width || current.height !== previous.height) {
+      runStartedAt = current.time;
+      continue;
+    }
+    longest = Math.max(longest, current.time - runStartedAt);
+  }
+
+  return longest;
+}
+
+function expectContinuousMobileGeometry(samples: MobileMotionSample[]) {
+  expect(new Set(samples.map(({ width }) => width)).size).toBeGreaterThanOrEqual(5);
+  expect(new Set(samples.map(({ height }) => height)).size).toBeGreaterThanOrEqual(5);
+  expect(longestEqualGeometryRun(samples)).toBeLessThan(80);
+  const previous = samples.at(-2)!;
+  const last = samples.at(-1)!;
+  expect(Math.abs(last.width - previous.width)).toBeLessThan(16);
+  expect(Math.abs(last.height - previous.height)).toBeLessThan(10);
+}
+
+async function sampleInterruptedMobileMotion(page: Page) {
+  return header(page).evaluate(async (element) => {
+    const round = (value: number) => Math.round(value * 100) / 100;
+    const samples: MobileMotionSample[] = [];
+    const toggle = element.querySelector<HTMLButtonElement>('[data-header-toggle]');
+    if (!toggle) throw new Error('mobile header toggle is missing');
+
+    await new Promise<void>((resolve) =>
+      requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+    );
+    toggle.click();
+    const startedAt = performance.now();
+    let reversed = false;
+    do {
+      const elapsed = performance.now() - startedAt;
+      if (!reversed && elapsed >= 120) {
+        reversed = true;
+        document.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, key: 'Escape' }));
+      }
+      const rect = element.getBoundingClientRect();
+      const items = Array.from(
+        element.querySelectorAll<HTMLElement>('nav[aria-label="주요 메뉴"] a'),
+      );
+      samples.push({
+        height: round(rect.height),
+        inlineTransform: element.style.transform,
+        itemOpacity: items.map((item) => Number.parseFloat(getComputedStyle(item).opacity)),
+        itemTranslateY: items.map((item) => {
+          const transform = getComputedStyle(item).transform;
+          return round(transform === 'none' ? 0 : new DOMMatrix(transform).m42);
+        }),
+        time: round(elapsed),
+        width: round(rect.width),
+      });
+      await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+    } while (
+      (!reversed || element.dataset.headerMotion === 'true') &&
+      performance.now() - startedAt < 2_000
+    );
+
+    return samples;
+  });
+}
+
 test.beforeEach(async ({ page }) => {
   await page.setViewportSize(desktopViewport);
 });
@@ -354,6 +491,63 @@ test('keeps mobile motion lifecycle intact through scroll and resize events', as
     layout: 'mobile-expanded',
     width: 370,
   });
+});
+
+test('runs continuous mobile geometry and item motion while opening and closing', async ({
+  page,
+}) => {
+  await page.setViewportSize(mobileViewport);
+  await page.goto('/');
+  await expect(header(page)).toHaveAttribute('data-header-layout', 'mobile-compact');
+
+  const openingSamplesPromise = sampleMobileMotion(page, 'mobile-expanded');
+  await compactButton(page).click();
+  const openingSamples = await openingSamplesPromise;
+  expectContinuousMobileGeometry(openingSamples);
+  expect(Math.min(...openingSamples.flatMap(({ itemOpacity }) => itemOpacity))).toBeLessThan(0.1);
+  expect(
+    Math.max(...openingSamples.flatMap(({ itemTranslateY }) => itemTranslateY)),
+  ).toBeGreaterThan(2);
+  const links = header(page).locator('nav[aria-label="주요 메뉴"] a');
+  await expect(links).toHaveCount(5);
+  const rowSizes = Object.values(
+    (
+      await links.evaluateAll((elements) =>
+        elements.map((element) => Math.round(element.getBoundingClientRect().top)),
+      )
+    ).reduce<Record<number, number>>((rows, top) => {
+      rows[top] = (rows[top] ?? 0) + 1;
+      return rows;
+    }, {}),
+  );
+  expect(rowSizes).toEqual([3, 2]);
+
+  const closingSamplesPromise = sampleMobileMotion(page, 'mobile-compact');
+  await page.keyboard.press('Escape');
+  const closingSamples = await closingSamplesPromise;
+  expectContinuousMobileGeometry(closingSamples);
+  expect(Math.min(...closingSamples.flatMap(({ itemOpacity }) => itemOpacity))).toBeLessThan(0.1);
+  expect(Math.min(...closingSamples.flatMap(({ itemTranslateY }) => itemTranslateY))).toBeLessThan(
+    -1,
+  );
+
+  await expect(header(page)).not.toHaveAttribute('data-header-motion');
+  expect(await header(page).getAttribute('style')).not.toMatch(/transform|width|height|opacity/);
+});
+
+test('settles interrupted mobile geometry from the current frame', async ({ page }) => {
+  await page.setViewportSize(mobileViewport);
+  await page.goto('/');
+  await expect(header(page)).toHaveAttribute('data-header-layout', 'mobile-compact');
+
+  const samples = await sampleInterruptedMobileMotion(page);
+
+  expect(new Set(samples.map(({ width }) => width)).size).toBeGreaterThanOrEqual(5);
+  expect(new Set(samples.map(({ height }) => height)).size).toBeGreaterThanOrEqual(5);
+  expect(longestEqualGeometryRun(samples)).toBeLessThan(80);
+  await expect(header(page)).toHaveAttribute('data-header-layout', 'mobile-compact');
+  await expect(header(page)).not.toHaveAttribute('data-header-motion');
+  expect(await header(page).getAttribute('style')).not.toMatch(/transform|width|height|opacity/);
 });
 
 test('applies semantic glass tint, spotlight, cursor contrast, and resilient fallbacks', async ({
@@ -484,7 +678,7 @@ test('uses the compact CSS offset for hash targets and avoids scroll-frame layou
     const page = await browser.newPage({ reducedMotion: 'reduce', viewport });
     await page.goto('/');
     await scrollSectionIntoView(page, 'services');
-    await openCompactMenu(page, '서비스');
+    if (viewport.width <= 900) await openCompactMenu(page, '서비스');
 
     const expectedOffset = viewport.width <= 900 ? 82 : 92;
     await expect(header(page)).toHaveCSS('--landing-compact-header-offset', `${expectedOffset}px`);
@@ -579,7 +773,7 @@ test('moves from the desktop Hero header to Compact and Menu Expanded layouts', 
 }) => {
   await page.goto('/');
 
-  await expect(header(page)).toHaveAttribute('data-header-layout', 'hero-expanded');
+  await expect(header(page)).toHaveAttribute('data-header-layout', 'desktop-fluid');
 
   await enterCompactLayout(page);
   const button = compactButton(page);
@@ -589,7 +783,7 @@ test('moves from the desktop Hero header to Compact and Menu Expanded layouts', 
   await expect(page.locator(`#${controlledMenuId}`)).toHaveCount(1);
 
   await button.click();
-  await expect(header(page)).toHaveAttribute('data-header-layout', 'menu-expanded');
+  await expect(header(page)).toHaveAttribute('data-header-layout', 'mobile-expanded');
   await expectExpandedController(page, '서비스');
 });
 
@@ -607,13 +801,13 @@ test('restores toggle focus when a base transition hides focused Hero controls',
   await expectFocusRestoredOnCompactCommit(page, button);
 
   await page.setViewportSize(desktopViewport);
-  await expect(header(page)).toHaveAttribute('data-header-layout', 'hero-expanded');
+  await expect(header(page)).toHaveAttribute('data-header-layout', 'desktop-fluid');
   const servicesLink = header(page)
     .getByRole('navigation', { name: '주요 메뉴' })
     .getByRole('link', { name: '서비스', exact: true });
   await servicesLink.focus();
   await expect(servicesLink).toBeFocused();
-  await scrollSectionIntoView(page, 'services');
+  await page.setViewportSize(mobileViewport);
   await expectFocusRestoredOnCompactCommit(page, button);
 });
 
@@ -655,9 +849,9 @@ test('cancels a Hero focus transfer on rapid reverse or outside ownership', asyn
   });
 
   await returnToHeroLayout(page);
-  await scrollSectionIntoView(page, 'services');
-  await expect(header(page)).toHaveAttribute('data-header-layout', 'compact');
-  await outsideOwner.click();
+  await page.setViewportSize(mobileViewport);
+  await expect(header(page)).toHaveAttribute('data-header-layout', 'mobile-compact');
+  await outsideOwner.focus();
   await expect(outsideOwner).toBeFocused();
   await restoreAnimationFrames(page);
   await page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => resolve())));
@@ -666,7 +860,7 @@ test('cancels a Hero focus transfer on rapid reverse or outside ownership', asyn
   await button.focus();
   await holdAnimationFrames(page);
   await returnToHeroLayout(page);
-  await outsideOwner.click();
+  await outsideOwner.focus();
   await expect(outsideOwner).toBeFocused();
   await restoreAnimationFrames(page);
   await page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => resolve())));
@@ -684,9 +878,9 @@ test('does not reuse an interrupted compact focus return after ownership moves o
   await holdAnimationFrames(page);
 
   await page.setViewportSize(mobileViewport);
-  await expect(header(page)).toHaveAttribute('data-header-layout', 'compact');
+  await expect(header(page)).toHaveAttribute('data-header-layout', 'mobile-compact');
   await page.setViewportSize(desktopViewport);
-  await expect(header(page)).toHaveAttribute('data-header-layout', 'hero-expanded');
+  await expect(header(page)).toHaveAttribute('data-header-layout', 'desktop-fluid');
 
   const outsideOwner = page.locator('#focus-owner');
   await page.evaluate(() => {
@@ -702,7 +896,7 @@ test('does not reuse an interrupted compact focus return after ownership moves o
   await restoreAnimationFrames(page);
 
   await page.setViewportSize(mobileViewport);
-  await expect(header(page)).toHaveAttribute('data-header-layout', 'compact');
+  await expect(header(page)).toHaveAttribute('data-header-layout', 'mobile-compact');
   await page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => resolve())));
   await expect(outsideOwner).toBeFocused();
 });
@@ -719,16 +913,16 @@ test('does not reuse an interrupted compact focus return after an outside pointe
   await holdAnimationFrames(page);
 
   await page.setViewportSize(mobileViewport);
-  await expect(header(page)).toHaveAttribute('data-header-layout', 'compact');
+  await expect(header(page)).toHaveAttribute('data-header-layout', 'mobile-compact');
   await page.setViewportSize(desktopViewport);
-  await expect(header(page)).toHaveAttribute('data-header-layout', 'hero-expanded');
+  await expect(header(page)).toHaveAttribute('data-header-layout', 'desktop-fluid');
   await page.evaluate(() => {
     document.body.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
   });
   await restoreAnimationFrames(page);
 
   await page.setViewportSize(mobileViewport);
-  await expect(header(page)).toHaveAttribute('data-header-layout', 'compact');
+  await expect(header(page)).toHaveAttribute('data-header-layout', 'mobile-compact');
   await page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => resolve())));
   await expect(button).not.toBeFocused();
 });
@@ -770,7 +964,7 @@ test('hydrates mobile directly into Compact without a 158px painted frame', asyn
   });
 
   await page.goto('/');
-  await expect(header(page)).toHaveAttribute('data-header-layout', 'compact');
+  await expect(header(page)).toHaveAttribute('data-header-layout', 'mobile-compact');
   await expect
     .poll(() =>
       page.evaluate(
@@ -829,14 +1023,14 @@ test('opens the Compact menu with click, Enter, and Space', async ({ page }) => 
       await button.press(activation);
     }
 
-    await expect(header(page)).toHaveAttribute('data-header-layout', 'menu-expanded');
+    await expect(header(page)).toHaveAttribute('data-header-layout', 'mobile-expanded');
     await expectExpandedController(page, '서비스');
     await page.keyboard.press('Escape');
     await expectCompactMenuClosed(page, button, '서비스');
   }
 });
 
-test('settles exact desktop geometry and clears transforms after interrupted reverse input', async ({
+test('settles exact mobile geometry and clears transforms after interrupted reverse input', async ({
   page,
 }) => {
   await page.goto('/');
@@ -846,11 +1040,11 @@ test('settles exact desktop geometry and clears transforms after interrupted rev
   await button.click();
   await page.waitForTimeout(800);
   expect(await readHeaderGeometry(page)).toEqual({
-    height: 68,
+    height: 158,
     inlineTransform: '',
     scaleX: 1,
     scaleY: 1,
-    width: 820,
+    width: 370,
   });
 
   await page.keyboard.press('Escape');
@@ -862,7 +1056,7 @@ test('settles exact desktop geometry and clears transforms after interrupted rev
 
   await expectCompactMenuClosed(page, button, '서비스');
   expect(await readHeaderGeometry(page)).toEqual({
-    height: 58,
+    height: 56,
     inlineTransform: '',
     scaleX: 1,
     scaleY: 1,
@@ -875,7 +1069,7 @@ test('removes hidden Header controls from keyboard order and moves focus into th
 }) => {
   await page.setViewportSize(mobileViewport);
   await page.goto('/');
-  await expect(header(page)).toHaveAttribute('data-header-layout', 'compact');
+  await expect(header(page)).toHaveAttribute('data-header-layout', 'mobile-compact');
 
   const logo = header(page).getByRole('link', { name: 'FUTUR home', includeHidden: true });
   const button = compactButton(page);
@@ -891,7 +1085,7 @@ test('removes hidden Header controls from keyboard order and moves focus into th
   await expect(button).toHaveAttribute('tabindex', '-1');
   await expect(closeButton).toHaveAttribute('aria-hidden', 'false');
   await page.keyboard.press('Shift+Tab');
-  await expect(header(page)).toHaveAttribute('data-header-layout', 'menu-expanded');
+  await expect(header(page)).toHaveAttribute('data-header-layout', 'mobile-expanded');
   await expect(faqLink).toBeFocused();
 
   await page.keyboard.press('Escape');
@@ -916,7 +1110,7 @@ test('runs and settles the active indicator follow-through inside the open timel
     const root = document.querySelector<HTMLElement>('[data-landing-nav]');
     if (!root) return [];
 
-    while (root.dataset.headerLayout !== 'menu-expanded') {
+    while (root.dataset.headerLayout !== 'mobile-expanded') {
       await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
     }
 
@@ -944,6 +1138,7 @@ test('runs and settles the active indicator follow-through inside the open timel
 });
 
 test('tracks section navigation and maps operations to process', async ({ page }) => {
+  await page.setViewportSize(mobileViewport);
   await page.goto('/');
 
   const nav = header(page).locator('nav[aria-label="주요 메뉴"]');
@@ -1014,10 +1209,10 @@ test('closes the expanded menu and returns focus for every dismissal path', asyn
   button = await openCompactMenu(page, '서비스');
   const openedAt = await page.evaluate(() => window.scrollY);
   await page.evaluate((top) => window.scrollTo({ top, behavior: 'instant' }), openedAt + 23);
-  await expect(header(page)).toHaveAttribute('data-header-layout', 'menu-expanded');
+  await expect(header(page)).toHaveAttribute('data-header-layout', 'mobile-expanded');
   await expectExpandedController(page, '서비스');
   await page.evaluate((top) => window.scrollTo({ top, behavior: 'instant' }), openedAt + 24);
-  await expect(header(page)).toHaveAttribute('data-header-layout', 'compact');
+  await expect(header(page)).toHaveAttribute('data-header-layout', 'mobile-compact');
   await expect(button).toHaveAttribute('aria-expanded', 'false');
   await expect(button).toHaveAccessibleName(/주요 메뉴 열기/);
   await expect(button).toBeFocused();
@@ -1060,7 +1255,7 @@ test('restores toggle focus by the next frame for every compact dismissal commit
     document.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, key: 'Escape' }));
     toggle?.click();
   });
-  await expect(header(page)).toHaveAttribute('data-header-layout', 'menu-expanded');
+  await expect(header(page)).toHaveAttribute('data-header-layout', 'mobile-expanded');
   await page.waitForTimeout(500);
   expect(
     await header(page).evaluate((element) => {
@@ -1079,7 +1274,7 @@ test('uses a contained 3+2 menu grid from the mobile Hero', async ({ page }) => 
   await page.setViewportSize(mobileViewport);
   await page.goto('/');
 
-  await expect(header(page)).toHaveAttribute('data-header-layout', 'compact');
+  await expect(header(page)).toHaveAttribute('data-header-layout', 'mobile-compact');
   const button = compactButton(page);
   await expect(button).toBeVisible();
   await expectCompactLabel(button, 'FUTUR.');
@@ -1132,7 +1327,7 @@ test('completes Compact transitions immediately when reduced motion is requested
   const button = compactButton(page);
   await button.click();
   const frameSamples = await sampleReducedMotionFrames(page);
-  await expect(header(page)).toHaveAttribute('data-header-layout', 'menu-expanded');
+  await expect(header(page)).toHaveAttribute('data-header-layout', 'mobile-expanded');
   await expectExpandedController(page, '서비스');
 
   expect(frameSamples.elapsedMs).toBeGreaterThanOrEqual(700);
@@ -1165,7 +1360,7 @@ test('completes Compact transitions immediately when reduced motion is requested
   await page.close();
 });
 
-test('keeps five navigation destinations and core content available without JavaScript', async ({
+test('keeps five navigation destinations and core content available in no-JavaScript mode', async ({
   browser,
 }) => {
   const page = await browser.newPage({ javaScriptEnabled: false, viewport: mobileViewport });

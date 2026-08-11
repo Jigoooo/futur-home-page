@@ -19,6 +19,7 @@ export function HeaderSection() {
     hydrated,
     layout,
     glassTone,
+    motionPhase,
     toggleMenu,
   } = useAdaptiveHeader({ headerRef, menuRef, toggleRef });
   const desktopFluid = layout === 'desktop-fluid';
@@ -35,6 +36,7 @@ export function HeaderSection() {
       data-landing-nav
       data-header-hydrated={hydrated ? 'true' : 'false'}
       data-header-layout={hydrated ? layout : undefined}
+      data-header-motion-phase={motionPhase === 'idle' ? undefined : motionPhase}
       data-header-glass-tone={glassTone}
       data-header-surface={desktopFluid ? 'hero' : 'solid'}
     >

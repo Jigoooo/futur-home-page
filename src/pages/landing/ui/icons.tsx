@@ -5,6 +5,7 @@ import {
   Monitor,
   Server,
   ShieldCheck,
+  Sparkles,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -20,6 +21,7 @@ const ICONS: Record<IconName, LucideIcon> = {
   desktop: Monitor,
   link: LinkIcon,
   shield: ShieldCheck,
+  sparkles: Sparkles,
   system: Server,
 };
 

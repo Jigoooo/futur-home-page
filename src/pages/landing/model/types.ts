@@ -15,12 +15,24 @@ export interface BriefStage {
   description: string;
 }
 
-export type IconName = 'check' | 'clock' | 'desktop' | 'link' | 'shield' | 'system';
+export type IconName = 'check' | 'clock' | 'desktop' | 'link' | 'shield' | 'sparkles' | 'system';
+
+export type ServiceKey = 'web' | 'system' | 'api' | 'ai' | 'operations';
 
 export interface ServiceItem {
+  key: ServiceKey;
   title: string;
   description: string;
   icon: IconName;
+  scopes: [string, string, string];
+}
+
+export interface ServicePhase {
+  key: 'build' | 'connect' | 'operate';
+  index: string;
+  label: 'BUILD' | 'CONNECT' | 'OPERATE';
+  title: string;
+  services: ServiceItem[];
 }
 
 export interface StackGroup {

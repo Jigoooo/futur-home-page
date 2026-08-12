@@ -28,28 +28,28 @@ export function TeamSection() {
             </p>
           </div>
           <div
-            className={cx(
-              styles.roleGrid,
-              sharedStyles.twoColumnList,
-              sharedStyles.reveal,
-              sharedStyles.revealRight,
-            )}
+            className={cx(styles.roleGrid, sharedStyles.twoColumnList)}
             data-landing-reveal='right'
+            data-team-role-grid
           >
             {teamRoles.map((role) => (
-              <article key={role.badge} className={styles.roleCard}>
-                <div className={styles.roleTop}>
-                  <div className={styles.roleBadge}>{role.badge}</div>
-                </div>
+              <article
+                key={role.badge}
+                className={styles.roleCard}
+                data-team-role-card={role.badge}
+              >
+                <span className={styles.roleIndex} data-team-role-index>
+                  {role.badge}
+                </span>
                 <h3>{role.title}</h3>
                 <p className={styles.roleJob}>{role.responsibility}</p>
-                <div className={styles.tags}>
+                <ul className={styles.roleScopes} aria-label={`${role.title} 역할 범위`}>
                   {role.tags.map((tag) => (
-                    <span key={tag} className={styles.tag}>
+                    <li key={tag} data-team-role-scope>
                       {tag}
-                    </span>
+                    </li>
                   ))}
-                </div>
+                </ul>
               </article>
             ))}
           </div>

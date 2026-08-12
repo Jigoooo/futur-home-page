@@ -1,6 +1,5 @@
-import { services } from '../config';
-import { Icon } from './icons';
 import { cx } from './lib/cx';
+import { ServicesCapabilityMap } from './services-capability-map';
 import styles from './styles/services.module.css';
 import sharedStyles from './styles/shared.module.css';
 
@@ -15,44 +14,24 @@ export function ServicesSection() {
       <div className={sharedStyles.container} data-classic-surface>
         <div className={cx(styles.serviceLayout, sharedStyles.gridLayout)}>
           <div
-            className={cx(sharedStyles.reveal, sharedStyles.revealLeft)}
+            className={cx(styles.serviceLead, sharedStyles.reveal, sharedStyles.revealLeft)}
             data-landing-reveal='left'
           >
-            <span className={sharedStyles.kicker}>Our Services</span>
             <h2 className={sharedStyles.sectionTitle}>
-              <span className={sharedStyles.nowrap}>비즈니스에 필요한</span>
+              기술보다 먼저,
               <br />
-              개발 과정을
-              <br className={sharedStyles.desktopBreak} /> 한 흐름으로.
+              쓰임을 생각합니다.
             </h2>
             <p className={sharedStyles.sectionDesc}>
-              화면만 만드는 것이 아니라, 사용 방식·데이터·운영까지 연결해 실제로 굴러가는 서비스를
-              만듭니다.
+              사용자와 운영자가 실제로 마주하는 흐름을 살피고, 필요한 기능과 시스템을 그에 맞게
+              설계합니다.
             </p>
           </div>
           <div
-            className={cx(
-              styles.serviceList,
-              sharedStyles.twoColumnList,
-              sharedStyles.reveal,
-              sharedStyles.revealRight,
-            )}
+            className={cx(styles.capabilityFlow, sharedStyles.reveal, sharedStyles.revealRight)}
             data-landing-reveal='right'
           >
-            {services.map((service) => (
-              <article
-                key={service.title}
-                className={styles.serviceCard}
-                data-landing-card
-                data-landing-spotlight='card'
-              >
-                <div className={styles.serviceIcon} data-landing-service-icon>
-                  <Icon name={service.icon} />
-                </div>
-                <h3>{service.title}</h3>
-                <p>{service.description}</p>
-              </article>
-            ))}
+            <ServicesCapabilityMap />
           </div>
         </div>
       </div>

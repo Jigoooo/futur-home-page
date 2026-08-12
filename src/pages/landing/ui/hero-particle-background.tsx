@@ -11,6 +11,9 @@ type NavigatorWithConnection = Navigator & {
   connection?: NetworkInformation;
 };
 
+const HERO_PARTICLE_STOP_RATIO = 0.16;
+const HERO_PARTICLE_RESUME_RATIO = 0.24;
+
 function shouldUseStaticBackground() {
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const saveData = (navigator as NavigatorWithConnection).connection?.saveData === true;
@@ -81,10 +84,15 @@ export function HeroParticleBackground() {
 
     const intersectionObserver = new IntersectionObserver(
       ([entry]) => {
-        isHeroVisible = entry?.isIntersecting ?? true;
+        const visibleRatio = entry?.intersectionRatio ?? 1;
+        if (isHeroVisible && visibleRatio <= HERO_PARTICLE_STOP_RATIO) {
+          isHeroVisible = false;
+        } else if (!isHeroVisible && visibleRatio >= HERO_PARTICLE_RESUME_RATIO) {
+          isHeroVisible = true;
+        }
         syncPlayback();
       },
-      { threshold: 0.02 },
+      { threshold: [HERO_PARTICLE_STOP_RATIO, HERO_PARTICLE_RESUME_RATIO] },
     );
     intersectionObserver.observe(canvas);
 

@@ -94,6 +94,36 @@ test('renders a changing WebGL2 particle field and reacts to pointer movement', 
   await expect(canvas).toHaveAttribute('data-pointer-active', 'false');
 });
 
+test('pauses before the Hero to Services boundary and resumes with visibility hysteresis', async ({
+  page,
+}) => {
+  await page.goto('/');
+
+  const canvas = page.locator('canvas[data-hero-particles]');
+  await expect(canvas).toHaveAttribute('data-particle-state', 'ready');
+  await expect(canvas).toHaveAttribute('data-particle-rendering', 'running');
+
+  const scrollToVisibleRatio = async (visibleRatio: number) => {
+    await canvas.evaluate((element, ratio) => {
+      const canvasElement = element as HTMLCanvasElement;
+      document.documentElement.style.scrollBehavior = 'auto';
+      window.scrollTo({ behavior: 'instant', top: canvasElement.offsetHeight * (1 - ratio) });
+    }, visibleRatio);
+  };
+
+  await scrollToVisibleRatio(0.14);
+  await expect(canvas).toHaveAttribute('data-particle-rendering', 'stopped');
+
+  await scrollToVisibleRatio(0.2);
+  await expect(canvas).toHaveAttribute('data-particle-rendering', 'stopped');
+
+  await scrollToVisibleRatio(0.26);
+  await expect(canvas).toHaveAttribute('data-particle-rendering', 'running');
+
+  await scrollToVisibleRatio(0.2);
+  await expect(canvas).toHaveAttribute('data-particle-rendering', 'running');
+});
+
 test('runs the dense parametric particle pipeline on the dark hero surface', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto('/');

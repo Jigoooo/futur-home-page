@@ -133,7 +133,6 @@ export function HeaderSection() {
           </nav>
         </div>
       </div>
-      <span className={styles.scrollEdge} data-header-scroll-edge aria-hidden='true' />
     </header>
   );
 }

@@ -106,7 +106,9 @@ optical rim, 얇은 상단 specular, 약한 inner shadow를 소유한다. 높은
   구간에도 dark를 유지하고, Services 실제 진입부터 light로 전환한다.
 - stack, team, process, FAQ, Footer처럼 밝은 surface는 light를 사용하고 operations는 dark를
   사용한다.
-- filter: `blur(20px) saturate(135%) contrast(1.03)`
+- filter: `blur(12px) saturate(135%) contrast(1.03)`
+- blur는 스크롤 상태와 무관하게 유지한다. 스크롤 중 filter를 끄거나 별도 Scroll Edge 표면으로
+  교체하지 않는다.
 - border/radius: `1px` optical rim, `28px` radius
 - backdrop-filter 미지원 또는 `prefers-contrast: more`: `rgba(248, 250, 255, 0.92)`와 filter
   `none`

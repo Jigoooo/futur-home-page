@@ -704,546 +704,50 @@ test('writes settled desktop geometry after a retained-scroll reload', async ({ 
   await expect.poll(async () => (await header(page).boundingBox())?.width).toBeCloseTo(1_133.44, 0);
 });
 
-test('suspends only the Header blur while scrolling without degrading Hero rendering', async ({
-  browser,
-}) => {
-  const page = await browser.newPage({
-    deviceScaleFactor: 2,
-    viewport: { height: 1080, width: 1920 },
-  });
-  await page.addInitScript(() => {
-    const drawArrays = WebGL2RenderingContext.prototype.drawArrays;
-    const drawCalls: Array<{ count: number; mode: number }> = [];
+test('keeps the Header blur visually continuous while scrolling', async ({ browser }) => {
+  for (const viewport of [desktopViewport, mobileViewport]) {
+    const page = await browser.newPage({ viewport });
+    await page.goto('/');
 
-    WebGL2RenderingContext.prototype.drawArrays = function (...args) {
-      drawCalls.push({ count: args[2], mode: args[0] });
-      if (drawCalls.length > 80) drawCalls.shift();
-      return drawArrays.apply(this, args);
-    };
-    (window as typeof window & { __heroDrawCalls: typeof drawCalls }).__heroDrawCalls = drawCalls;
-  });
-  await page.goto('/');
+    const nav = header(page);
+    const backdrop = nav.locator('[data-header-backdrop-layer]');
+    await expect(nav).toHaveAttribute('data-header-hydrated', 'true');
+    await expect(nav.locator('[data-header-scroll-edge]')).toHaveCount(0);
 
-  const nav = header(page);
-  const glass = nav.locator('[data-header-glass]');
-  const backdrop = nav.locator('[data-header-backdrop-layer]');
-  const scrollEdge = nav.locator('[data-header-scroll-edge]');
-  const canvas = page.locator('#hero canvas[data-hero-particles]');
-  await expect(nav).toHaveAttribute('data-header-hydrated', 'true');
-  await expect(canvas).toHaveAttribute('data-particle-state', 'ready');
-  await expect(canvas).toHaveAttribute('data-particle-count', '70000');
-  await expect(canvas).toHaveAttribute('data-particle-emitter-count', '4000');
-  await expect(nav).not.toHaveAttribute('data-header-scrolling');
-  await expect(backdrop).toHaveAttribute('aria-hidden', 'true');
-  await expect(backdrop).toHaveCSS('backdrop-filter', 'blur(20px) saturate(1.35) contrast(1.03)');
-  await expect(backdrop).toHaveCSS('opacity', '1');
-  await expect(scrollEdge).toHaveAttribute('aria-hidden', 'true');
-  await expect(scrollEdge).toHaveCSS('backdrop-filter', 'none');
-  await expect(scrollEdge).toHaveCSS('opacity', '0');
-  const scrollEdgeHeight = await scrollEdge.evaluate((element) =>
-    Number.parseFloat(getComputedStyle(element).height),
-  );
-  expect(scrollEdgeHeight).toBeGreaterThanOrEqual(18);
-  expect(scrollEdgeHeight).toBeLessThanOrEqual(28);
-  await expect(glass).toHaveCSS('background-color', 'rgba(248, 250, 255, 0.18)');
-  await expect(glass).toHaveCSS('border-color', 'rgba(151, 184, 235, 0.28)');
+    const samples = await backdrop.evaluate(async (element) => {
+      const nav = element.closest<HTMLElement>('[data-landing-nav]')!;
+      const values: Array<{
+        filter: string;
+        opacity: string;
+        scrolling: string | undefined;
+        suspended: string | undefined;
+      }> = [];
 
-  const heroQuality = await canvas.evaluate((element) => {
-    const canvasElement = element as HTMLCanvasElement;
-    const rect = canvasElement.getBoundingClientRect();
-    const drawCalls = (
-      window as typeof window & { __heroDrawCalls: Array<{ count: number; mode: number }> }
-    ).__heroDrawCalls;
-    const hasFourPassFrame = drawCalls.some(
-      (call, index) =>
-        call.mode === WebGL2RenderingContext.TRIANGLES &&
-        call.count === 3 &&
-        drawCalls[index + 1]?.mode === WebGL2RenderingContext.POINTS &&
-        drawCalls[index + 1]?.count === 70_000 &&
-        drawCalls[index + 2]?.mode === WebGL2RenderingContext.POINTS &&
-        drawCalls[index + 2]?.count === 70_000 &&
-        drawCalls[index + 3]?.mode === WebGL2RenderingContext.POINTS &&
-        drawCalls[index + 3]?.count === 4_000,
-    );
-
-    return {
-      context: canvasElement.getContext('webgl2') ? 'webgl2' : 'none',
-      devicePixelRatio: window.devicePixelRatio,
-      hasFourPassFrame,
-      height: canvasElement.height,
-      renderedHeight: Math.round(rect.height * 2),
-      renderedWidth: Math.round(rect.width * 2),
-      width: canvasElement.width,
-    };
-  });
-  expect(heroQuality).toMatchObject({
-    context: 'webgl2',
-    devicePixelRatio: 2,
-    hasFourPassFrame: true,
-  });
-  expect(heroQuality.width).toBe(heroQuality.renderedWidth);
-  expect(heroQuality.height).toBe(heroQuality.renderedHeight);
-
-  await page.evaluate(() => {
-    (
-      window as typeof window & { __heroDrawCalls: Array<{ count: number; mode: number }> }
-    ).__heroDrawCalls.length = 0;
-  });
-  const fadeOutSamples = await backdrop.evaluate(async (element) => {
-    const nav = element.closest<HTMLElement>('[data-landing-nav]')!;
-    const scrollEdge = nav.querySelector<HTMLElement>('[data-header-scroll-edge]')!;
-    const startedScrolling = new Promise<number>((resolve) => {
-      window.addEventListener('scroll', () => resolve(performance.now()), { once: true });
-    });
-    const samples: Array<{
-      backdropFilter: string;
-      edgeOpacity: number;
-      elapsedMs: number;
-      opacity: number;
-      scrolling: boolean;
-      suspended: boolean;
-    }> = [];
-    let nextTop = window.scrollY + 8;
-    window.scrollTo({ behavior: 'instant', top: nextTop });
-    const startedAt = await startedScrolling;
-    let lastNudgeAt = startedAt;
-
-    while (performance.now() - startedAt < 210) {
-      await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
-      const now = performance.now();
-      if (now - lastNudgeAt >= 40) {
-        nextTop += 2;
-        window.scrollTo({ behavior: 'instant', top: nextTop });
-        lastNudgeAt = now;
-      }
-      const styles = getComputedStyle(element);
-      samples.push({
-        backdropFilter: styles.backdropFilter,
-        edgeOpacity: Number(getComputedStyle(scrollEdge).opacity),
-        elapsedMs: now - startedAt,
-        opacity: Number(styles.opacity),
-        scrolling: nav.dataset.headerScrolling === 'true',
-        suspended: nav.dataset.headerBackdropSuspended === 'true',
-      });
-    }
-
-    return samples;
-  });
-  await expect(nav).toHaveAttribute('data-header-scrolling', 'true');
-  await expect(nav).toHaveAttribute('data-header-backdrop-suspended', 'true');
-  await expect(scrollEdge).toHaveCSS('backdrop-filter', 'none');
-  await expect(scrollEdge).toHaveCSS('opacity', '1');
-  expect(fadeOutSamples).toContainEqual(
-    expect.objectContaining({
-      backdropFilter: 'blur(20px) saturate(1.35) contrast(1.03)',
-      scrolling: true,
-      suspended: false,
-    }),
-  );
-  const fadeOutMidpoint = fadeOutSamples.find(
-    ({ elapsedMs }) => elapsedMs >= 40 && elapsedMs <= 60,
-  );
-  expect(fadeOutMidpoint).toBeDefined();
-  expect(fadeOutMidpoint?.backdropFilter).toBe('blur(20px) saturate(1.35) contrast(1.03)');
-  expect(fadeOutMidpoint?.opacity).toBeGreaterThanOrEqual(0.55);
-  expect(fadeOutMidpoint?.edgeOpacity).toBeLessThanOrEqual(0.45);
-  expect(fadeOutMidpoint?.suspended).toBe(false);
-  const firstSuspendedSample = fadeOutSamples.find(({ suspended }) => suspended);
-  expect(firstSuspendedSample).toBeDefined();
-  expect(firstSuspendedSample?.elapsedMs).toBeGreaterThanOrEqual(145);
-  expect(firstSuspendedSample?.elapsedMs).toBeLessThanOrEqual(200);
-  expect(firstSuspendedSample?.backdropFilter).toBe('none');
-  expect(firstSuspendedSample?.opacity).toBeLessThanOrEqual(0.01);
-  const steadySuspendedSample = fadeOutSamples.find(
-    ({ elapsedMs, suspended }) => elapsedMs >= 175 && suspended,
-  );
-  expect(steadySuspendedSample?.backdropFilter).toBe('none');
-  expect(steadySuspendedSample?.opacity).toBe(0);
-  expect(await readBackdropStyle(backdrop)).toMatchObject({
-    backdropFilter: 'none',
-    opacity: 0,
-    webkitBackdropFilter: '',
-  });
-  await expect(glass).toHaveCSS('background-color', 'rgba(248, 250, 255, 0.18)');
-  await expect(glass).toHaveCSS('border-color', 'rgba(151, 184, 235, 0.28)');
-
-  const scrollingHeroQuality = await canvas.evaluate(async (element) => {
-    const canvasElement = element as HTMLCanvasElement;
-    const nav = document.querySelector<HTMLElement>('[data-landing-nav]')!;
-    const drawCalls = (
-      window as typeof window & { __heroDrawCalls: Array<{ count: number; mode: number }> }
-    ).__heroDrawCalls;
-    const hasFourPassFrame = () =>
-      drawCalls.some(
-        (call, index) =>
-          call.mode === WebGL2RenderingContext.TRIANGLES &&
-          call.count === 3 &&
-          drawCalls[index + 1]?.mode === WebGL2RenderingContext.POINTS &&
-          drawCalls[index + 1]?.count === 70_000 &&
-          drawCalls[index + 2]?.mode === WebGL2RenderingContext.POINTS &&
-          drawCalls[index + 2]?.count === 70_000 &&
-          drawCalls[index + 3]?.mode === WebGL2RenderingContext.POINTS &&
-          drawCalls[index + 3]?.count === 4_000,
-      );
-
-    let observedFourPassFrameWhileScrolling = hasFourPassFrame();
-    while (nav.dataset.headerScrolling === 'true' && !observedFourPassFrameWhileScrolling) {
-      await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
-      if (nav.dataset.headerScrolling === 'true') {
-        observedFourPassFrameWhileScrolling = hasFourPassFrame();
-      }
-    }
-
-    const rect = canvasElement.getBoundingClientRect();
-    return {
-      devicePixelRatio: window.devicePixelRatio,
-      emitterCount: canvasElement.dataset.particleEmitterCount,
-      hasFourPassFrame: observedFourPassFrameWhileScrolling,
-      height: canvasElement.height,
-      marker: nav.dataset.headerScrolling,
-      particleCount: canvasElement.dataset.particleCount,
-      renderedHeight: Math.round(rect.height * 2),
-      renderedWidth: Math.round(rect.width * 2),
-      width: canvasElement.width,
-    };
-  });
-  expect(scrollingHeroQuality).toMatchObject({
-    devicePixelRatio: 2,
-    emitterCount: '4000',
-    hasFourPassFrame: true,
-    marker: 'true',
-    particleCount: '70000',
-  });
-  expect(scrollingHeroQuality.width).toBe(scrollingHeroQuality.renderedWidth);
-  expect(scrollingHeroQuality.height).toBe(scrollingHeroQuality.renderedHeight);
-
-  const restoreSamples = await backdrop.evaluate(async (element) => {
-    const nav = element.closest<HTMLElement>('[data-landing-nav]')!;
-    const samples: Array<{
-      backdropFilter: string;
-      opacity: number;
-      scrolling: boolean;
-      suspended: boolean;
-    }> = [];
-
-    while (
-      nav.dataset.headerScrolling === 'true' ||
-      nav.dataset.headerBackdropSuspended === 'true' ||
-      Number(getComputedStyle(element).opacity) < 0.999
-    ) {
-      await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
-      const styles = getComputedStyle(element);
-      samples.push({
-        backdropFilter: styles.backdropFilter,
-        opacity: Number(styles.opacity),
-        scrolling: nav.dataset.headerScrolling === 'true',
-        suspended: nav.dataset.headerBackdropSuspended === 'true',
-      });
-      if (samples.length > 40) throw new Error('Header backdrop did not restore');
-    }
-
-    return samples;
-  });
-  await expect(nav).not.toHaveAttribute('data-header-scrolling');
-  await expect(nav).not.toHaveAttribute('data-header-backdrop-suspended');
-  await expect(scrollEdge).toHaveCSS('opacity', '0');
-  expect(
-    restoreSamples.some(
-      ({ backdropFilter, opacity, scrolling, suspended }) =>
-        backdropFilter === 'blur(20px) saturate(1.35) contrast(1.03)' &&
-        opacity > 0.05 &&
-        opacity < 0.95 &&
-        !scrolling &&
-        !suspended,
-    ),
-  ).toBe(true);
-  expect(await readBackdropStyle(backdrop)).toMatchObject({
-    backdropFilter: 'blur(20px) saturate(1.35) contrast(1.03)',
-    opacity: 1,
-  });
-
-  const scrollLifecycle = await nav.evaluate(async (element) => {
-    const markerValues: Array<string | null> = [];
-    let lastScrollAt = 0;
-    let suspendedBackdropFilter = '';
-    const trackScroll = () => {
-      lastScrollAt = performance.now();
-    };
-    window.addEventListener('scroll', trackScroll, { passive: true });
-
-    return new Promise<{
-      idleDelayMs: number;
-      markerValues: Array<string | null>;
-      suspendedBackdropFilter: string;
-    }>((resolve, reject) => {
-      const timeout = window.setTimeout(() => {
-        observer.disconnect();
-        window.removeEventListener('scroll', trackScroll);
-        reject(new Error('Header scrolling marker did not settle'));
-      }, 1_000);
-      const observer = new MutationObserver((records) => {
-        const marker = element.getAttribute('data-header-scrolling');
-        if (records.some((record) => record.attributeName === 'data-header-scrolling')) {
-          markerValues.push(marker);
-        }
-        if (element.dataset.headerBackdropSuspended === 'true') {
-          suspendedBackdropFilter = getComputedStyle(
-            element.querySelector<HTMLElement>('[data-header-backdrop-layer]')!,
-          ).backdropFilter;
-        }
-        if (marker === 'true') return;
-        if (!lastScrollAt) return;
-
-        window.clearTimeout(timeout);
-        observer.disconnect();
-        window.removeEventListener('scroll', trackScroll);
-        resolve({
-          idleDelayMs: performance.now() - lastScrollAt,
-          markerValues,
-          suspendedBackdropFilter,
+      for (const top of [0, 80, 160, 320]) {
+        window.scrollTo({ behavior: 'instant', top });
+        await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+        const styles = getComputedStyle(element);
+        values.push({
+          filter: styles.backdropFilter,
+          opacity: styles.opacity,
+          scrolling: nav.dataset.headerScrolling,
+          suspended: nav.dataset.headerBackdropSuspended,
         });
-      });
-      observer.observe(element, {
-        attributeFilter: ['data-header-backdrop-suspended', 'data-header-scrolling'],
-      });
+      }
 
-      void (async () => {
-        for (const top of [180, 240, 300]) {
-          window.scrollTo({ behavior: 'instant', top });
-          await new Promise<void>((resolveFrame) => requestAnimationFrame(() => resolveFrame()));
-        }
-      })();
+      return values;
     });
-  });
-  expect(scrollLifecycle.markerValues).toEqual(['true', null]);
-  expect(scrollLifecycle.suspendedBackdropFilter).toBe('none');
-  expect(scrollLifecycle.idleDelayMs).toBeGreaterThanOrEqual(140);
-  expect(scrollLifecycle.idleDelayMs).toBeLessThanOrEqual(200);
-  await expect(backdrop).toHaveCSS('backdrop-filter', 'blur(20px) saturate(1.35) contrast(1.03)');
-  await expect(backdrop).toHaveCSS('opacity', '1');
 
-  await scrollSectionIntoView(page, 'services');
-  await expect(nav).not.toHaveAttribute('data-header-scrolling');
-  await expect(nav).toHaveAttribute('data-header-glass-tone', 'light');
-  await expect(glass).toHaveCSS('background-color', 'rgba(248, 250, 255, 0.26)');
-  await expect(glass).toHaveCSS('border-color', 'rgba(255, 255, 255, 0.58)');
-  await expect(backdrop).toHaveCSS('backdrop-filter', 'blur(20px) saturate(1.35) contrast(1.03)');
-
-  await page.evaluate(async () => {
-    for (const delta of [2, 2, 2, 2, 2, 2]) {
-      window.scrollTo({ behavior: 'instant', top: window.scrollY + delta });
-      await new Promise<void>((resolve) => window.setTimeout(resolve, 40));
-    }
-  });
-  await expect(nav).toHaveAttribute('data-header-scrolling', 'true');
-  await expect(nav).toHaveAttribute('data-header-backdrop-suspended', 'true');
-  expect(await readBackdropStyle(backdrop)).toMatchObject({
-    backdropFilter: 'none',
-    opacity: 0,
-    webkitBackdropFilter: '',
-  });
-  await expect(glass).toHaveCSS('background-color', 'rgba(248, 250, 255, 0.26)');
-  await expect(glass).toHaveCSS('border-color', 'rgba(255, 255, 255, 0.58)');
-  await expect(nav).not.toHaveAttribute('data-header-scrolling');
-  await expect(backdrop).toHaveCSS('backdrop-filter', 'blur(20px) saturate(1.35) contrast(1.03)');
-  await expect(backdrop).toHaveCSS('opacity', '1');
-
-  await page.close();
-});
-
-test('retargets the Header backdrop crossfade from its current frame', async ({ page }) => {
-  await page.goto('/');
-
-  const nav = header(page);
-  const backdrop = nav.locator('[data-header-backdrop-layer]');
-  await expect(nav).toHaveAttribute('data-header-hydrated', 'true');
-
-  const interruption = await backdrop.evaluate(async (element) => {
-    const nav = element.closest<HTMLElement>('[data-landing-nav]')!;
-    window.scrollTo({ behavior: 'instant', top: 120 });
-
-    const deadline = performance.now() + 500;
-    let before = 0;
-    while (performance.now() < deadline) {
-      await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
-      const opacity = Number(getComputedStyle(element).opacity);
-      if (nav.dataset.headerScrolling !== 'true' && opacity > 0.05 && opacity < 0.95) {
-        before = opacity;
-        break;
-      }
-    }
-    if (!before) throw new Error('Header backdrop did not enter its restore crossfade');
-
-    window.scrollTo({ behavior: 'instant', top: 128 });
-    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
-    const after = Number(getComputedStyle(element).opacity);
-
-    while (
-      nav.dataset.headerScrolling === 'true' ||
-      nav.dataset.headerBackdropSuspended === 'true' ||
-      Number(getComputedStyle(element).opacity) < 0.999
-    ) {
-      await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
-      if (performance.now() > deadline + 600) throw new Error('Retargeted backdrop did not settle');
-    }
-
-    const styles = getComputedStyle(element);
-    return {
-      after,
-      before,
-      finalFilter: styles.backdropFilter,
-      finalOpacity: Number(styles.opacity),
-      scrolling: nav.dataset.headerScrolling,
-      suspended: nav.dataset.headerBackdropSuspended,
-    };
-  });
-
-  expect(interruption.before).toBeGreaterThan(0.05);
-  expect(interruption.before).toBeLessThan(0.95);
-  expect(interruption.after).toBeGreaterThan(0.02);
-  expect(Math.abs(interruption.after - interruption.before)).toBeLessThan(0.3);
-  expect(interruption.finalFilter).toBe('blur(20px) saturate(1.35) contrast(1.03)');
-  expect(interruption.finalOpacity).toBeGreaterThan(0.999);
-  expect(interruption.scrolling).toBeUndefined();
-  expect(interruption.suspended).toBeUndefined();
-});
-
-test('keeps the mobile Header backdrop crossfade continuous and the scroll edge contained', async ({
-  page,
-}) => {
-  await page.setViewportSize(mobileViewport);
-  await page.goto('/');
-
-  const nav = header(page);
-  const backdrop = nav.locator('[data-header-backdrop-layer]');
-  await expect(nav).toHaveAttribute('data-header-hydrated', 'true');
-
-  const lifecycle = await backdrop.evaluate(async (element) => {
-    const nav = element.closest<HTMLElement>('[data-landing-nav]')!;
-    const scrollEdge = nav.querySelector<HTMLElement>('[data-header-scroll-edge]')!;
-    const startedScrolling = new Promise<number>((resolve) => {
-      window.addEventListener('scroll', () => resolve(performance.now()), { once: true });
-    });
-    const fadeOutSamples: Array<{
-      edgeOpacity: number;
-      elapsedMs: number;
-      filter: string;
-      opacity: number;
-      suspended: boolean;
-    }> = [];
-    let nextTop = window.scrollY + 8;
-    window.scrollTo({ behavior: 'instant', top: nextTop });
-    const startedAt = await startedScrolling;
-    let lastNudgeAt = startedAt;
-
-    while (performance.now() - startedAt < 210) {
-      await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
-      const now = performance.now();
-      if (now - lastNudgeAt >= 40) {
-        nextTop += 2;
-        window.scrollTo({ behavior: 'instant', top: nextTop });
-        lastNudgeAt = now;
-      }
-      const styles = getComputedStyle(element);
-      fadeOutSamples.push({
-        edgeOpacity: Number(getComputedStyle(scrollEdge).opacity),
-        elapsedMs: now - startedAt,
-        filter: styles.backdropFilter,
-        opacity: Number(styles.opacity),
-        suspended: nav.dataset.headerBackdropSuspended === 'true',
-      });
-    }
-
-    const restoreDeadline = performance.now() + 700;
-    let restoreBeforeInterruption = 0;
-    while (performance.now() < restoreDeadline) {
-      await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
-      const opacity = Number(getComputedStyle(element).opacity);
-      if (nav.dataset.headerScrolling !== 'true' && opacity > 0.05 && opacity < 0.95) {
-        restoreBeforeInterruption = opacity;
-        break;
-      }
-    }
-    if (!restoreBeforeInterruption) {
-      throw new Error('Mobile Header backdrop did not enter its restore crossfade');
-    }
-
-    window.scrollTo({ behavior: 'instant', top: window.scrollY + 8 });
-    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
-    const restoreAfterInterruption = Number(getComputedStyle(element).opacity);
-
-    const settleDeadline = performance.now() + 900;
-    while (
-      nav.dataset.headerScrolling === 'true' ||
-      nav.dataset.headerBackdropSuspended === 'true' ||
-      Number(getComputedStyle(element).opacity) < 0.9999
-    ) {
-      await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
-      if (performance.now() > settleDeadline) {
-        throw new Error('Interrupted mobile Header backdrop did not settle');
-      }
-    }
-
-    const edgeRect = scrollEdge.getBoundingClientRect();
-    const navRect = nav.getBoundingClientRect();
-    const finalStyles = getComputedStyle(element);
-    return {
-      edge: {
-        bottom: edgeRect.bottom,
-        filter: getComputedStyle(scrollEdge).backdropFilter,
-        height: edgeRect.height,
-        left: edgeRect.left,
-        navBottom: navRect.bottom,
-        right: edgeRect.right,
-        top: edgeRect.top,
-        viewportWidth: window.innerWidth,
-      },
-      fadeOutSamples,
-      final: {
-        filter: finalStyles.backdropFilter,
-        opacity: Number(finalStyles.opacity),
-        scrolling: nav.dataset.headerScrolling,
-        suspended: nav.dataset.headerBackdropSuspended,
-      },
-      restoreAfterInterruption,
-      restoreBeforeInterruption,
-    };
-  });
-
-  const fadeOutMidpoint = lifecycle.fadeOutSamples.find(
-    ({ elapsedMs }) => elapsedMs >= 40 && elapsedMs <= 60,
-  );
-  expect(fadeOutMidpoint).toBeDefined();
-  expect(fadeOutMidpoint?.filter).toBe('blur(20px) saturate(1.35) contrast(1.03)');
-  expect(fadeOutMidpoint?.opacity).toBeGreaterThanOrEqual(0.55);
-  expect(fadeOutMidpoint?.edgeOpacity).toBeLessThanOrEqual(0.45);
-  const firstSuspendedSample = lifecycle.fadeOutSamples.find(({ suspended }) => suspended);
-  expect(firstSuspendedSample?.elapsedMs).toBeGreaterThanOrEqual(145);
-  expect(firstSuspendedSample?.filter).toBe('none');
-  expect(firstSuspendedSample?.opacity).toBeLessThanOrEqual(0.01);
-  const steadySuspendedSample = lifecycle.fadeOutSamples.find(
-    ({ elapsedMs, suspended }) => elapsedMs >= 175 && suspended,
-  );
-  expect(steadySuspendedSample?.filter).toBe('none');
-  expect(steadySuspendedSample?.opacity).toBe(0);
-  expect(lifecycle.restoreBeforeInterruption).toBeGreaterThan(0.05);
-  expect(lifecycle.restoreBeforeInterruption).toBeLessThan(0.95);
-  expect(
-    Math.abs(lifecycle.restoreAfterInterruption - lifecycle.restoreBeforeInterruption),
-  ).toBeLessThan(0.3);
-  expect(lifecycle.edge.filter).toBe('none');
-  expect(lifecycle.edge.height).toBeGreaterThanOrEqual(18);
-  expect(lifecycle.edge.height).toBeLessThanOrEqual(28);
-  expect(lifecycle.edge.left).toBeGreaterThanOrEqual(0);
-  expect(lifecycle.edge.right).toBeLessThanOrEqual(lifecycle.edge.viewportWidth);
-  expect(lifecycle.edge.top).toBeCloseTo(lifecycle.edge.navBottom - 4, 0);
-  expect(lifecycle.edge.bottom).toBeGreaterThan(lifecycle.edge.navBottom);
-  expect(lifecycle.final).toMatchObject({
-    filter: 'blur(20px) saturate(1.35) contrast(1.03)',
-    scrolling: undefined,
-    suspended: undefined,
-  });
-  expect(lifecycle.final.opacity).toBeGreaterThan(0.999);
+    expect(samples).toEqual(
+      Array.from({ length: 4 }, () => ({
+        filter: 'blur(12px) saturate(1.35) contrast(1.03)',
+        opacity: '1',
+        scrolling: undefined,
+        suspended: undefined,
+      })),
+    );
+    await page.close();
+  }
 });
 
 test('switches dark surface ink from Hero white to light-section navy', async ({ page }) => {
@@ -1266,7 +770,7 @@ test('switches dark surface ink from Hero white to light-section navy', async ({
   await expect(servicesLink).toHaveCSS('text-shadow', 'none');
   await expect(servicesLink).toHaveCSS('opacity', '0.9');
   await expect(glass).toHaveCSS('background-color', 'rgba(248, 250, 255, 0.18)');
-  await expect(backdrop).toHaveCSS('backdrop-filter', 'blur(20px) saturate(1.35) contrast(1.03)');
+  await expect(backdrop).toHaveCSS('backdrop-filter', 'blur(12px) saturate(1.35) contrast(1.03)');
   expect(await glass.evaluate((element) => getComputedStyle(element).transitionProperty)).toBe(
     'border-color',
   );
@@ -1280,7 +784,7 @@ test('switches dark surface ink from Hero white to light-section navy', async ({
   await expect(logo).toHaveCSS('color', 'rgb(7, 24, 63)');
   await expect(servicesLink).toHaveCSS('color', 'rgb(30, 77, 196)');
   await expect(glass).toHaveCSS('background-color', 'rgba(248, 250, 255, 0.26)');
-  await expect(backdrop).toHaveCSS('backdrop-filter', 'blur(20px) saturate(1.35) contrast(1.03)');
+  await expect(backdrop).toHaveCSS('backdrop-filter', 'blur(12px) saturate(1.35) contrast(1.03)');
 
   await scrollSectionIntoView(page, 'stack');
   await expect(stackLink).toHaveAttribute('aria-current', 'location');
@@ -1730,7 +1234,6 @@ test('applies semantic clear crystal glass, spotlight, cursor contrast, and resi
 
   const glass = header(page).locator('[data-header-glass]');
   const backdrop = header(page).locator('[data-header-backdrop-layer]');
-  const scrollEdge = header(page).locator('[data-header-scroll-edge]');
   const toggle = compactButton(page);
   const close = header(page).locator('[data-header-close]');
   await expect(glass).toHaveAttribute('data-landing-spotlight', 'header');
@@ -1765,7 +1268,6 @@ test('applies semantic clear crystal glass, spotlight, cursor contrast, and resi
       'background-color',
       tone === 'dark' ? 'rgba(248, 250, 255, 0.18)' : 'rgba(248, 250, 255, 0.26)',
     );
-    await expect(header(page)).not.toHaveAttribute('data-header-scrolling');
     await expect(backdrop).toHaveCSS('opacity', '1');
     glassStyles[tone] = await readGlassStyle(glass);
     backdropStyles[tone] = await readBackdropStyle(backdrop);
@@ -1775,8 +1277,8 @@ test('applies semantic clear crystal glass, spotlight, cursor contrast, and resi
   expect(glassStyles.light?.backgroundColor).toBe('rgba(248, 250, 255, 0.26)');
   expect(glassStyles.dark?.backdropFilter).toBe('none');
   expect(glassStyles.light?.backdropFilter).toBe('none');
-  expect(backdropStyles.dark?.backdropFilter).toBe('blur(20px) saturate(1.35) contrast(1.03)');
-  expect(backdropStyles.light?.backdropFilter).toBe('blur(20px) saturate(1.35) contrast(1.03)');
+  expect(backdropStyles.dark?.backdropFilter).toBe('blur(12px) saturate(1.35) contrast(1.03)');
+  expect(backdropStyles.light?.backdropFilter).toBe('blur(12px) saturate(1.35) contrast(1.03)');
   expect(backdropStyles.dark?.opacity).toBe(1);
   expect(backdropStyles.light?.opacity).toBe(1);
   expect(glassStyles.dark?.webkitBackdropFilter).toBe('');
@@ -1788,8 +1290,7 @@ test('applies semantic clear crystal glass, spotlight, cursor contrast, and resi
       const nav = document.querySelector<HTMLElement>('[data-landing-nav]');
       const glass = nav?.querySelector<HTMLElement>('[data-header-glass]');
       const backdrop = nav?.querySelector<HTMLElement>('[data-header-backdrop-layer]');
-      const scrollEdge = nav?.querySelector<HTMLElement>('[data-header-scroll-edge]');
-      if (!nav || !glass || !backdrop || !scrollEdge) return null;
+      if (!nav || !glass || !backdrop) return null;
 
       const fallback = Array.from(document.styleSheets)
         .flatMap((sheet) => Array.from(sheet.cssRules))
@@ -1807,7 +1308,6 @@ test('applies semantic clear crystal glass, spotlight, cursor contrast, and resi
       document.head.append(forcedFallback);
 
       const originalTone = nav.dataset.headerGlassTone;
-      const originalScrolling = nav.dataset.headerScrolling;
       const logo = nav.querySelector<HTMLElement>('a[aria-label="FUTUR home"]');
       const servicesLink = nav.querySelector<HTMLElement>('a[href="#services"]');
       if (!logo || !servicesLink) return null;
@@ -1815,7 +1315,6 @@ test('applies semantic clear crystal glass, spotlight, cursor contrast, and resi
       const computedByTone: Record<string, Record<string, string>> = {};
       for (const tone of ['dark', 'light']) {
         nav.dataset.headerGlassTone = tone;
-        nav.dataset.headerScrolling = 'true';
         const originalCurrent = servicesLink.getAttribute('aria-current');
         servicesLink.setAttribute('aria-current', 'location');
         await new Promise<void>((resolve) => window.setTimeout(resolve, 180));
@@ -1826,7 +1325,6 @@ test('applies semantic clear crystal glass, spotlight, cursor contrast, and resi
 
         const styles = getComputedStyle(glass);
         const backdropStyles = getComputedStyle(backdrop);
-        const scrollEdgeStyles = getComputedStyle(scrollEdge);
         computedByTone[tone] = {
           activeNavigationColor,
           backdropFilter: styles.backdropFilter,
@@ -1834,20 +1332,14 @@ test('applies semantic clear crystal glass, spotlight, cursor contrast, and resi
           backdropLayerOpacity: backdropStyles.opacity,
           backdropLayerTransitionDuration: backdropStyles.transitionDuration,
           backgroundColor: styles.backgroundColor,
-          headerScrolling: nav.dataset.headerScrolling ?? '',
           logoColor: getComputedStyle(logo).color,
           navigationColor: getComputedStyle(servicesLink).color,
-          scrollEdgeFilter: scrollEdgeStyles.backdropFilter,
-          scrollEdgeOpacity: scrollEdgeStyles.opacity,
-          scrollEdgeTransitionDuration: scrollEdgeStyles.transitionDuration,
           webkitBackdropFilter: styles.getPropertyValue('-webkit-backdrop-filter'),
         };
       }
 
       if (originalTone) nav.dataset.headerGlassTone = originalTone;
       else delete nav.dataset.headerGlassTone;
-      if (originalScrolling) nav.dataset.headerScrolling = originalScrolling;
-      else delete nav.dataset.headerScrolling;
       forcedFallback.remove();
       return computedByTone;
     }),
@@ -1859,12 +1351,8 @@ test('applies semantic clear crystal glass, spotlight, cursor contrast, and resi
       backdropLayerOpacity: '0',
       backdropLayerTransitionDuration: '0s',
       backgroundColor: 'rgba(248, 250, 255, 0.92)',
-      headerScrolling: 'true',
       logoColor: 'rgb(7, 24, 63)',
       navigationColor: 'rgb(7, 24, 63)',
-      scrollEdgeFilter: 'none',
-      scrollEdgeOpacity: '0',
-      scrollEdgeTransitionDuration: '0s',
       webkitBackdropFilter: '',
     },
     light: {
@@ -1874,12 +1362,8 @@ test('applies semantic clear crystal glass, spotlight, cursor contrast, and resi
       backdropLayerOpacity: '0',
       backdropLayerTransitionDuration: '0s',
       backgroundColor: 'rgba(248, 250, 255, 0.92)',
-      headerScrolling: 'true',
       logoColor: 'rgb(7, 24, 63)',
       navigationColor: 'rgb(7, 24, 63)',
-      scrollEdgeFilter: 'none',
-      scrollEdgeOpacity: '0',
-      scrollEdgeTransitionDuration: '0s',
       webkitBackdropFilter: '',
     },
   });
@@ -1888,7 +1372,6 @@ test('applies semantic clear crystal glass, spotlight, cursor contrast, and resi
   for (const tone of ['dark', 'light'] as const) {
     await header(page).evaluate((element, nextTone) => {
       element.dataset.headerGlassTone = nextTone;
-      element.dataset.headerScrolling = 'true';
     }, tone);
     expect(await readGlassStyle(glass)).toMatchObject({
       backdropFilter: 'none',
@@ -1901,9 +1384,6 @@ test('applies semantic clear crystal glass, spotlight, cursor contrast, and resi
       transitionDuration: '0s',
       webkitBackdropFilter: '',
     });
-    await expect(scrollEdge).toHaveCSS('backdrop-filter', 'none');
-    await expect(scrollEdge).toHaveCSS('opacity', '0');
-    await expect(scrollEdge).toHaveCSS('transition-duration', '0s');
     const fallbackInk = await header(page).evaluate(async (element) => {
       const logo = element.querySelector<HTMLElement>('a[aria-label="FUTUR home"]')!;
       const servicesLink = element.querySelector<HTMLElement>('a[href="#services"]')!;
@@ -1928,8 +1408,6 @@ test('applies semantic clear crystal glass, spotlight, cursor contrast, and resi
       navigation: 'rgb(7, 24, 63)',
     });
   }
-  await header(page).evaluate((element) => delete element.dataset.headerScrolling);
-
   const coarsePage = await browser.newPage({ hasTouch: true, viewport: mobileViewport });
   await coarsePage.goto('/');
   const coarseGlass = coarsePage.locator('[data-header-glass]');
@@ -1947,7 +1425,6 @@ test('applies semantic clear crystal glass, spotlight, cursor contrast, and resi
   const reducedGlass = reducedPage.locator('[data-header-glass]');
   const reducedNav = header(reducedPage);
   const reducedBackdrop = reducedNav.locator('[data-header-backdrop-layer]');
-  const reducedScrollEdge = reducedNav.locator('[data-header-scroll-edge]');
   await expect(reducedNav).toHaveAttribute('data-header-hydrated', 'true');
   await reducedPage.mouse.move(140, 32);
   await reducedPage.waitForTimeout(100);
@@ -1958,32 +1435,26 @@ test('applies semantic clear crystal glass, spotlight, cursor contrast, and resi
       window.scrollTo({ behavior: 'instant', top: 120 });
       await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
       const backdrop = element.querySelector<HTMLElement>('[data-header-backdrop-layer]')!;
-      const scrollEdge = element.querySelector<HTMLElement>('[data-header-scroll-edge]')!;
       return {
         backdropFilter: getComputedStyle(backdrop).backdropFilter,
         backdropOpacity: getComputedStyle(backdrop).opacity,
-        scrollEdgeFilter: getComputedStyle(scrollEdge).backdropFilter,
-        scrollEdgeOpacity: getComputedStyle(scrollEdge).opacity,
         scrolling: element.dataset.headerScrolling,
         suspended: element.dataset.headerBackdropSuspended,
       };
     }),
   ).toEqual({
-    backdropFilter: 'none',
-    backdropOpacity: '0',
-    scrollEdgeFilter: 'none',
-    scrollEdgeOpacity: '1',
-    scrolling: 'true',
-    suspended: 'true',
+    backdropFilter: 'blur(12px) saturate(1.35) contrast(1.03)',
+    backdropOpacity: '1',
+    scrolling: undefined,
+    suspended: undefined,
   });
   await expect(reducedNav).not.toHaveAttribute('data-header-scrolling');
   await expect(reducedNav).not.toHaveAttribute('data-header-backdrop-suspended');
   await expect(reducedBackdrop).toHaveCSS(
     'backdrop-filter',
-    'blur(20px) saturate(1.35) contrast(1.03)',
+    'blur(12px) saturate(1.35) contrast(1.03)',
   );
   await expect(reducedBackdrop).toHaveCSS('opacity', '1');
-  await expect(reducedScrollEdge).toHaveCSS('opacity', '0');
   await reducedPage.close();
 });
 

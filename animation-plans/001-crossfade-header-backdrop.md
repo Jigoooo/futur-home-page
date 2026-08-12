@@ -1,12 +1,15 @@
 # 001 — Header live blur를 정적 글라스와 교차 전환한다
 
-- **Status**: DONE
+- **Status**: SUPERSEDED by [002](./002-persistent-header-blur.md)
 - **Commit**: dd0c537, 0121956
 - **Severity**: HIGH
 - **Category**: Performance, Interruptibility, Cohesion
 - **Estimated scope**: production 3 files, E2E 1 file
 
 ## Problem
+
+> 이 계획은 구현 후 사용자 시각 검토에서 blur가 사라졌다 복원되는 변화 자체가 더 어색하다고
+> 판정되어 폐기됐다. 현재 계약은 002를 따른다.
 
 `src/pages/landing/ui/styles/header.module.css:46`의 live `backdrop-filter`를 스크롤 시작과 동시에 `none`으로 바꾸면서 합성 비용은 줄었지만, 정지 상태의 20px frosted glass와 스크롤 상태의 선명한 배경이 한 프레임에 교체된다.
 

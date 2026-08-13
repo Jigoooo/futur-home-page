@@ -6,13 +6,10 @@ import { FooterSection } from './footer-section';
 import { HeaderSection } from './header-section';
 import { HeroSection } from './hero-section';
 import { LandingScrollbar } from './landing-scrollbar';
-import { OperationsPolicySection } from './operations-policy-section';
-import { ProcessSection } from './process-section';
 import { ServicesSection } from './services-section';
-import { StackSection } from './stack-section';
 import scrollTopStyles from './styles/scroll-top.module.css';
 import sharedStyles from './styles/shared.module.css';
-import { TeamSection } from './team-section';
+import { TechnologySection } from './technology-section';
 import { useInViewReveal } from './use-in-view-reveal';
 import { scrollToPageTop } from '../lib/scroll-to-page-top';
 
@@ -95,10 +92,7 @@ export function LandingPage() {
         <HeaderSection />
         <HeroSection />
         <ServicesSection />
-        <StackSection />
-        <TeamSection />
-        <ProcessSection />
-        <OperationsPolicySection />
+        <TechnologySection />
         <FaqSection />
         <FooterSection />
         <LandingScrollbar />

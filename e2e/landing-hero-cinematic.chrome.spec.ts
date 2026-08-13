@@ -10,7 +10,7 @@ import {
 } from '../src/pages/landing/ui/hero-particle-shaders';
 
 const HERO_LABEL = 'BUILT FOR WHAT’S NEXT.';
-const desktopNavigationLabels = ['서비스', '기술', '팀', '프로세스', 'FAQ'];
+const desktopNavigationLabels = ['서비스', '기술', 'FAQ', '문의'];
 
 test('serves the hero copy and particle canvas immediately from SSR', async ({
   browser,
@@ -122,6 +122,36 @@ test('pauses before the Hero to Services boundary and resumes with visibility hy
 
   await scrollToVisibleRatio(0.2);
   await expect(canvas).toHaveAttribute('data-particle-rendering', 'running');
+});
+
+test('fades only the particle layer across the Hero exit interval', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto('/');
+
+  const hero = page.locator('[data-landing-hero]');
+  const canvas = page.locator('canvas[data-hero-particles]');
+  await expect(canvas).toHaveAttribute('data-particle-state', 'ready');
+  const scrollToVisibleRatio = async (visibleRatio: number) => {
+    await hero.evaluate((element, ratio) => {
+      document.documentElement.style.scrollBehavior = 'auto';
+      window.scrollTo({
+        behavior: 'instant',
+        top: element.getBoundingClientRect().height * (1 - ratio),
+      });
+    }, visibleRatio);
+  };
+
+  await scrollToVisibleRatio(0.62);
+  await expect(canvas).toHaveCSS('opacity', '1');
+
+  await scrollToVisibleRatio(0.39);
+  await expect
+    .poll(() => canvas.evaluate((element) => Number.parseFloat(getComputedStyle(element).opacity)))
+    .toBeCloseTo(0.5, 1);
+
+  await scrollToVisibleRatio(0.16);
+  await expect(canvas).toHaveCSS('opacity', '0');
+  await expect(hero.getByRole('heading', { level: 1, name: HERO_LABEL })).toHaveCSS('opacity', '1');
 });
 
 test('runs the dense parametric particle pipeline on the dark hero surface', async ({ page }) => {

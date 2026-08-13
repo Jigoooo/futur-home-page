@@ -41,6 +41,7 @@ body {
   background: var(--landing-canvas-background);
   background-attachment: fixed;
   font-family: var(--font-body);
+  font-weight: 450;
   letter-spacing: 0;
   text-rendering: geometricprecision;
   -webkit-font-smoothing: antialiased;

@@ -1,7 +1,6 @@
 import { Link } from '@tanstack/react-router';
-import { Mail, MapPin } from 'lucide-react';
 
-import { services } from '../config';
+import { serviceCapabilities } from '../config';
 import styles from './styles/footer.module.css';
 import sharedStyles from './styles/shared.module.css';
 import { mailHref } from '../lib/company-links';
@@ -9,20 +8,23 @@ import { COMPANY_INFOS } from '@/entities/company';
 
 export function FooterSection() {
   return (
-    <footer className={styles.footer} id='footer' data-landing-section data-cursor-contrast='dark'>
+    <footer
+      className={styles.footer}
+      id='footer'
+      data-landing-section
+      data-header-surface='dark'
+      data-cursor-contrast='light'
+    >
       <div className={sharedStyles.container}>
         <div className={styles.footerTop}>
-          <div>
-            <h2>FUTUR와 다음 프로젝트를 시작해보세요.</h2>
-            <p>기술을 어렵게 보이지 않게, 필요한 결과를 명확하게 만들겠습니다.</p>
-          </div>
-          <div className={styles.footerContact}>
-            <span className={styles.footerContactLabel}>새 프로젝트 문의</span>
-            <a className={styles.footerPill} href={mailHref} data-landing-interactive='round'>
-              <Mail aria-hidden='true' />
-              {COMPANY_INFOS.EMAIL}
-            </a>
-          </div>
+          <h2>필요한 변화가 있다면, 그 시작부터 함께합니다.</h2>
+          <p>
+            새로운 아이디어도, 이미 운영 중인 시스템의 문제도 괜찮습니다. 현재 상황과 필요한 기능을
+            알려주세요.
+          </p>
+          <a className={styles.primaryEmail} href={mailHref}>
+            {COMPANY_INFOS.EMAIL}
+          </a>
         </div>
 
         <div className={styles.footerGrid}>
@@ -30,17 +32,15 @@ export function FooterSection() {
             <h3>
               FUTUR<span>.</span>
             </h3>
-            <p>아이디어를 현실의 서비스로 만드는 SI·외주 개발 파트너.</p>
+            <p>서비스와 시스템을 만들고, 필요한 기술을 연결해 운영까지 이어갑니다.</p>
           </div>
 
           <div>
             <strong>문의</strong>
             <div className={styles.contactItem}>
-              <Mail aria-hidden='true' />
               <a href={mailHref}>{COMPANY_INFOS.EMAIL}</a>
             </div>
             <div className={styles.contactItem}>
-              <MapPin aria-hidden='true' />
               <address>{COMPANY_INFOS.ADDRESS}</address>
             </div>
           </div>
@@ -48,8 +48,8 @@ export function FooterSection() {
           <nav aria-label='서비스 탐색'>
             <strong>서비스 탐색</strong>
             <div className={styles.serviceLinks}>
-              {services.map((service) => (
-                <a key={service.title} href='#services'>
+              {serviceCapabilities.map((service) => (
+                <a key={service.title} href={`#service-${service.key}`}>
                   {service.title}
                 </a>
               ))}

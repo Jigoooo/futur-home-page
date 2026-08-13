@@ -1,376 +1,428 @@
-.serviceLayout {
-  grid-template-columns: minmax(300px, 350px) minmax(0, 1fr);
-  gap: clamp(76px, 7vw, 112px);
+.services {
+  background: #090b10;
 }
 
-.capabilityFlow {
-  min-width: 0;
-  container-type: inline-size;
-}
-
-.capabilityMap {
+.intro {
   position: relative;
-  overflow: hidden;
-  margin: 0;
-  padding: 0;
-  border: 1px solid color-mix(in srgb, var(--line) 84%, #b9c9e4);
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.72);
-  box-shadow: none;
-  list-style: none;
+  display: flex;
+  min-height: 64svh;
+  align-items: center;
+  background: linear-gradient(180deg, #202523 0%, #090b10 100%);
+  color: #f3f1ec;
 }
 
-.capabilityMap::before,
-.capabilityMap::after {
-  content: '';
-  position: absolute;
-  z-index: 0;
-  top: 58px;
-  bottom: 58px;
-  left: 43px;
-  width: 1px;
-  pointer-events: none;
+.introContent {
+  width: min(1400px, calc(100% - 64px));
+  margin-inline: auto;
+  padding-block: clamp(132px, 14svh, 188px);
 }
 
-.capabilityMap::before {
-  background: #dce5f4;
+.intro h2,
+.intro p {
+  opacity: 1;
+  transform: none;
 }
 
-.capabilityMap::after {
-  background: #316cff;
-  transform: scaleY(1);
-  transform-origin: top;
-  transition: transform 0.64s var(--ease) 0.12s;
+.intro h2 {
+  max-width: 860px;
+  color: #ffffff;
+  font-size: clamp(42px, 5.2vw, 72px);
+  line-height: 1.1;
+  font-weight: 800;
+  letter-spacing: -0.032em;
+  text-wrap: balance;
+  transition:
+    opacity 0.62s var(--ease-out),
+    transform 0.62s var(--ease-out);
+}
+
+.intro p {
+  max-width: 690px;
+  margin-top: 34px;
+  color: rgba(235, 239, 246, 0.7);
+  font-weight: 480;
+  text-wrap: pretty;
+  transition:
+    opacity 0.52s var(--ease-out) 0.09s,
+    transform 0.52s var(--ease-out) 0.09s;
 }
 
 :global(body[data-landing-ready='true'])
-  .capabilityFlow:not([data-landing-visible='true'])
-  .capabilityMap::after {
-  transform: scaleY(0);
-}
-
-.capabilityFlow[data-landing-visible='true'] .capabilityMap::after {
-  transform: scaleY(1);
-}
-
-.phase {
-  position: relative;
-  z-index: 1;
-  display: grid;
-  grid-template-columns: 46px minmax(156px, 0.78fr) minmax(0, 1.35fr);
-  gap: 24px;
-  align-items: start;
-  padding: 34px 30px 36px 20px;
-  background-color: transparent;
-  opacity: 1;
-  transform: none;
-  transition:
-    background-color 0.2s ease,
-    opacity 0.48s var(--ease),
-    transform 0.48s var(--ease);
-}
-
-:global(body[data-landing-ready='true']) .capabilityFlow:not([data-landing-visible='true']) .phase {
+  .introContent:not([data-landing-visible='true'])
+  :is(h2, p) {
   opacity: 0;
-  transform: translate3d(0, 12px, 0);
+  transform: translate3d(0, 20px, 0);
 }
 
-.capabilityFlow[data-landing-visible='true'] .phase {
+.introContent[data-landing-visible='true'] :is(h2, p) {
   opacity: 1;
   transform: translate3d(0, 0, 0);
 }
 
-.capabilityFlow[data-landing-visible='true'] .phase:nth-child(2) {
-  transition-delay: 0.07s;
+.serviceLayout {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+  align-items: start;
+  background: #090b10;
 }
 
-.capabilityFlow[data-landing-visible='true'] .phase:nth-child(3) {
-  transition-delay: 0.14s;
+.serviceIndex {
+  position: sticky;
+  top: 0;
+  display: flex;
+  width: 100%;
+  height: 100svh;
+  align-items: center;
+  padding: max(112px, 13svh) clamp(38px, 5vw, 82px) max(70px, 8svh);
+  background: #090b10;
+  color: #f5f7fb;
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity 0.44s var(--ease-out),
+    transform 0.44s var(--ease-out);
 }
 
-.phase:hover {
-  background-color: rgba(49, 108, 255, 0.045);
+.serviceIndex ol {
+  width: 100%;
 }
 
-.phaseMarker {
+.serviceIndex li + li {
+  margin-top: clamp(18px, 2.4svh, 28px);
+}
+
+.progressItem {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  gap: 14px;
+  align-items: baseline;
+  color: rgba(255, 255, 255, 0.48);
+  font-size: clamp(17px, 1.55vw, 22px);
+  line-height: 1.45;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  opacity: 1;
+  transform: none;
+  transition:
+    color 0.24s ease,
+    opacity 0.42s var(--ease-out),
+    transform 0.42s var(--ease-out);
+}
+
+.progressItem > span:first-child {
+  color: inherit;
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.08em;
+}
+
+.progressItem[data-current='true'] {
+  color: #ffffff;
+}
+
+:global(body[data-landing-ready='true']) .serviceIndex:not([data-landing-visible='true']) {
+  opacity: 0;
+  transform: translate3d(0, 12px, 0);
+}
+
+:global(body[data-landing-ready='true'])
+  .serviceIndex:not([data-landing-visible='true'])
+  .progressItem {
+  opacity: 0;
+  transform: translate3d(0, 12px, 0);
+}
+
+.serviceIndex[data-landing-visible='true'],
+.serviceIndex[data-landing-visible='true'] .progressItem {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+}
+
+.progressItem:nth-child(2) {
+  transition-delay: 0s, 0.06s, 0.06s;
+}
+
+.progressItem:nth-child(3) {
+  transition-delay: 0s, 0.12s, 0.12s;
+}
+
+.progressItem:nth-child(4) {
+  transition-delay: 0s, 0.18s, 0.18s;
+}
+
+.serviceChapters {
+  min-width: 0;
+  background: #fbfcff;
+}
+
+.serviceChapter {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  min-height: 82svh;
+  flex-direction: column;
+  justify-content: center;
+  overflow: clip;
+  padding: clamp(92px, 9vw, 148px) clamp(46px, 7vw, 112px);
+  background: #fbfcff;
+  scroll-margin-top: 104px;
+}
+
+.serviceChapter:first-child::before {
+  content: '';
+  position: absolute;
+  z-index: 3;
+  inset: 0;
+  pointer-events: none;
+  background: #090b10;
+  transform: translate3d(-100%, 0, 0);
+  transition: none;
+}
+
+:global(body[data-landing-ready='true'])
+  .serviceChapter:first-child:not([data-landing-visible='true'])::before {
+  transform: translate3d(0, 0, 0);
+}
+
+.serviceChapter:first-child[data-landing-visible='true']::before {
+  transform: translate3d(-100%, 0, 0);
+  transition: transform 0.82s var(--ease-in-out);
+}
+
+.serviceChapter::after {
+  content: '';
+  position: absolute;
+  z-index: 0;
+  right: clamp(46px, 7vw, 112px);
+  bottom: 0;
+  left: clamp(46px, 7vw, 112px);
+  height: 1px;
+  background: #dfe4ed;
+}
+
+.serviceChapter:last-child::after {
+  display: none;
+}
+
+.chapterIndex,
+.serviceChapter h3,
+.serviceChapter p,
+.serviceChapter ul {
   position: relative;
   z-index: 1;
-}
-
-.phaseMarker span {
-  display: grid;
-  width: 46px;
-  height: 46px;
-  place-items: center;
-  border: 1px solid #d8e3f4;
-  border-radius: 50%;
-  background: #fff;
-  color: #52617d;
-  font-size: 11px;
-  font-weight: 850;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 0.05em;
-  box-shadow: none;
-  transition:
-    color 0.26s ease,
-    border-color 0.26s ease,
-    background-color 0.2s ease;
-}
-
-.phase:hover .phaseMarker span {
-  border-color: #316cff;
-  background: #316cff;
-  color: #fff;
-  box-shadow: none;
-}
-
-.phaseHeader {
-  padding-top: 3px;
-}
-
-.phaseLabel {
-  display: block;
-  margin-bottom: 10px;
-  color: #315fce;
-  font-size: 11px;
-  font-weight: 900;
-  letter-spacing: 0.16em;
-}
-
-.phaseHeader h3 {
-  max-width: 220px;
-  margin: 0;
-  color: var(--navy);
-  font-size: clamp(18px, 1.45vw, 21px);
-  line-height: 1.45;
-  font-weight: 850;
-  letter-spacing: -0.025em;
-  text-wrap: balance;
-}
-
-.phaseServices {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 22px;
-}
-
-.serviceItem {
-  display: grid;
-  min-width: 0;
-  grid-template-columns: 36px minmax(0, 1fr);
-  gap: 13px;
-  align-items: start;
-}
-
-.serviceItem + .serviceItem {
-  padding-left: 22px;
-  border-left: 1px solid var(--line-2);
-}
-
-.serviceIcon {
-  display: grid;
-  width: 36px;
-  height: 36px;
-  place-items: center;
-  border: 1px solid #d9e2f0;
-  border-radius: 8px;
-  background: transparent;
-  color: #316cff;
-  transition:
-    border-color 0.2s ease,
-    color 0.2s ease;
-}
-
-.phase:hover .serviceIcon {
-  border-color: #9cb8f8;
-  background: transparent;
+  opacity: 1;
   transform: none;
 }
 
-.serviceIcon svg {
-  width: 19px;
-  height: 19px;
-  stroke: currentColor;
-  stroke-width: 2;
-  stroke-linecap: round;
-  stroke-linejoin: round;
+.chapterIndex {
+  color: #46536c;
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.1em;
+  transition:
+    opacity 0.52s var(--ease-out),
+    transform 0.52s var(--ease-out);
 }
 
-.serviceCopy h4 {
-  margin: 1px 0 8px;
-  color: #101d43;
-  font-size: 17px;
-  line-height: 1.4;
-  font-weight: 900;
-  letter-spacing: -0.02em;
+.serviceChapter h3 {
+  max-width: 720px;
+  margin: 28px 0 0;
+  color: var(--navy);
+  font-size: clamp(42px, 5vw, 72px);
+  line-height: 1.1;
+  font-weight: 800;
+  letter-spacing: -0.032em;
+  text-wrap: balance;
+  transition:
+    opacity 0.65s var(--ease-out) 0.08s,
+    transform 0.65s var(--ease-out) 0.08s;
 }
 
-.serviceCopy p {
-  margin: 0;
-  color: #65718a;
-  font-size: 14px;
-  line-height: 1.72;
+.serviceChapter p {
+  max-width: 660px;
+  margin: 34px 0 0;
+  color: #59657b;
+  font-size: clamp(16px, 1.45vw, 19px);
+  line-height: 1.82;
+  font-weight: 480;
   text-wrap: pretty;
+  transition:
+    opacity 0.52s var(--ease-out) 0.16s,
+    transform 0.52s var(--ease-out) 0.16s;
 }
 
-@container (max-width: 960px) {
-  .phase {
-    grid-template-columns: 46px minmax(0, 1fr);
-  }
+.serviceChapter ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 28px;
+  margin-top: 42px;
+  color: #1c2944;
+  font-size: 14px;
+  line-height: 1.65;
+  font-weight: 700;
+  transition:
+    opacity 0.52s var(--ease-out) 0.24s,
+    transform 0.52s var(--ease-out) 0.24s;
+}
 
-  .phaseHeader,
-  .phaseServices {
-    grid-column: 2;
-  }
+.serviceChapter:first-child .chapterIndex {
+  transition-delay: 0.18s;
+}
 
-  .phaseHeader h3 {
-    max-width: none;
-  }
+.serviceChapter:first-child h3 {
+  transition-delay: 0.26s;
+}
+
+.serviceChapter:first-child p {
+  transition-delay: 0.34s;
+}
+
+.serviceChapter:first-child ul {
+  transition-delay: 0.42s;
+}
+
+.serviceChapter li {
+  position: relative;
+  padding-left: 14px;
+}
+
+.serviceChapter li::before {
+  content: '';
+  position: absolute;
+  top: 0.78em;
+  left: 0;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #2f62d8;
+}
+
+:global(body[data-landing-ready='true'])
+  .serviceChapter:not([data-landing-visible='true'])
+  :is(.chapterIndex, h3, p, ul) {
+  opacity: 0;
+  transform: translate3d(0, 24px, 0);
+}
+
+.serviceChapter[data-landing-visible='true'] :is(.chapterIndex, h3, p, ul) {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
 }
 
 @media (max-width: 1180px) {
-  .serviceLayout {
-    grid-template-columns: 1fr;
-    gap: 72px;
+  .intro {
+    min-height: 58svh;
   }
 
-  .serviceLayout > :first-child {
-    max-width: 620px;
+  .introContent {
+    width: min(100% - 52px, 1040px);
+    padding-block: 124px;
+  }
+
+  .serviceLayout {
+    grid-template-columns: 1fr;
+  }
+
+  .serviceIndex {
+    display: none;
+  }
+
+  .serviceChapter {
+    min-height: 68svh;
+    padding-inline: max(26px, calc((100vw - 1040px) / 2));
+  }
+
+  .serviceChapter::after {
+    right: max(26px, calc((100vw - 1040px) / 2));
+    left: max(26px, calc((100vw - 1040px) / 2));
   }
 }
 
 @media (max-width: 900px) {
-  .capabilityMap {
-    border-radius: 16px;
+  .introContent {
+    width: min(100% - 36px, 720px);
   }
 
-  .capabilityMap::before,
-  .capabilityMap::after {
-    left: 38px;
+  .intro h2 {
+    font-size: clamp(38px, 8vw, 58px);
   }
 
-  .phase {
-    grid-template-columns: 44px minmax(0, 1fr);
-    gap: 18px;
-    padding: 30px 24px 32px 16px;
+  .serviceChapter {
+    padding-inline: max(18px, calc((100vw - 684px) / 2));
   }
 
-  .phaseMarker span {
-    width: 44px;
-    height: 44px;
-  }
-
-  .phaseHeader {
-    grid-column: 2;
-  }
-
-  .phaseHeader h3 {
-    max-width: none;
-  }
-
-  .phaseServices {
-    grid-column: 2;
-  }
-}
-
-@media (max-width: 640px) {
-  .phaseServices {
-    grid-template-columns: 1fr;
-    gap: 16px;
-  }
-
-  .serviceItem + .serviceItem {
-    padding-top: 16px;
-    padding-left: 0;
-    border-top: 1px solid var(--line-2);
-    border-left: 0;
+  .serviceChapter::after {
+    right: max(18px, calc((100vw - 684px) / 2));
+    left: max(18px, calc((100vw - 684px) / 2));
   }
 }
 
 @media (max-width: 560px) {
-  .serviceLead p {
+  .intro {
+    min-height: 0;
+  }
+
+  .introContent {
+    width: calc(100% - 28px);
+    padding-block: 104px 112px;
+  }
+
+  .intro h2 {
+    font-size: clamp(36px, 11vw, 48px);
+  }
+
+  .intro p {
     margin-top: 28px;
   }
 
-  .serviceLayout {
-    gap: 52px;
+  .serviceChapter {
+    min-height: 0;
+    padding: 104px 18px 112px;
+    scroll-margin-top: 88px;
   }
 
-  .capabilityMap {
-    border-radius: 14px;
+  .serviceChapter::after {
+    right: 18px;
+    left: 18px;
   }
 
-  .capabilityMap::before,
-  .capabilityMap::after {
-    top: 50px;
-    bottom: 50px;
-    left: 33px;
+  .serviceChapter h3 {
+    margin-top: 22px;
+    font-size: clamp(36px, 11vw, 46px);
   }
 
-  .phase {
-    grid-template-columns: 42px minmax(0, 1fr);
-    gap: 15px;
-    padding: 26px 14px 28px 12px;
-  }
-
-  .phaseMarker span {
-    width: 42px;
-    height: 42px;
-  }
-
-  .phaseHeader h3 {
-    font-size: 18px;
-  }
-
-  .serviceItem {
-    grid-template-columns: 38px minmax(0, 1fr);
-    gap: 11px;
-  }
-
-  .serviceIcon {
-    width: 38px;
-    height: 38px;
-    border-radius: 8px;
-  }
-
-  .serviceCopy h4 {
+  .serviceChapter p {
+    margin-top: 28px;
     font-size: 16px;
   }
-}
 
-@media (hover: none), (pointer: coarse) {
-  .phase:hover {
-    background-color: transparent;
-  }
-
-  .phase:hover .phaseMarker span {
-    border-color: #d8e3f4;
-    background: #fff;
-    color: #52617d;
-    box-shadow: none;
-  }
-
-  .phase:hover .serviceIcon {
-    border-color: #d9e2f0;
-    background: transparent;
-    transform: none;
+  .serviceChapter ul {
+    display: grid;
+    gap: 11px;
+    margin-top: 34px;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .capabilityMap::after,
-  .phase,
-  .phaseMarker span,
-  .serviceIcon {
+  .intro h2,
+  .intro p,
+  .serviceIndex,
+  .progressItem,
+  .chapterIndex,
+  .serviceChapter h3,
+  .serviceChapter p,
+  .serviceChapter ul {
+    opacity: 1 !important;
+    transform: none !important;
     transition: none !important;
   }
 
-  .capabilityMap::after {
-    transform: scaleY(1) !important;
-  }
-
-  .phase {
-    opacity: 1 !important;
-    transform: none !important;
+  .serviceChapter:first-child::before {
+    display: none;
+    transition: none !important;
   }
 }

@@ -67,39 +67,20 @@
   color: #e7eefb;
 }
 
-.kicker {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 18px;
-  color: var(--section-accent, #2d52c5); /* WCAG AA: 기존 #416fe8 = 4.23:1 → 4.5:1 이상 */
-  font-size: 12px;
-  font-weight: 1000;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
-.kicker::before {
-  content: '';
-  width: 7px;
-  height: 7px;
-  border-radius: 999px;
-  background: currentColor;
-  box-shadow: 0 0 0 6px color-mix(in srgb, currentColor 18%, transparent);
-}
-
 .sectionTitle {
   margin: 0;
   color: var(--navy);
   font-size: 50px;
-  line-height: 1.16;
-  font-weight: 950;
+  line-height: 1.1;
+  font-weight: 800;
+  letter-spacing: -0.032em;
 }
 
 .sectionDesc {
   margin: 22px 0 0;
   color: var(--muted);
   font-size: 18px;
+  font-weight: 480;
   line-height: 1.86;
 }
 

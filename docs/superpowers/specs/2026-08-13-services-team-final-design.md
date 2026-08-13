@@ -1,5 +1,7 @@
 # Services and Team Final Design
 
+> **Superseded — 2026-08-13:** Services Ledger와 Team 카드 설계는 H1 Services와 독립 Technology 섹션으로 대체되었다. 현재 설계는 `2026-08-13-h1-services-technology-design.md`를 따른다.
+
 ## Summary
 
 서비스 섹션은 A안 Capability Ledger로 확정한다. 비교용 B 미리보기는 제거하되, B의 두 번째 흰색 카드에서 확인한 절제된 표면 언어는 Team 역할 카드에 재사용한다. 서비스 소개 문구는 제공 범위를 나열하는 설명문보다 FUTUR의 제품 관점을 전달하는 짧은 문장으로 교체한다.

@@ -6,7 +6,7 @@ import { resolve } from 'node:path';
 
 const desktopViewport = { width: 1280, height: 720 };
 const mobileViewport = { width: 390, height: 844 };
-const menuLabels = ['서비스', '기술', '팀', '프로세스', 'FAQ'];
+const menuLabels = ['서비스', '기술', 'FAQ', '문의'];
 
 function header(page: Page) {
   return page.locator('[data-landing-nav]');
@@ -217,8 +217,8 @@ type DesktopIndicatorFrame = {
 
 async function sampleDesktopIndicatorMotion(
   page: Page,
-  targetSectionId: 'stack' | 'team',
-  retargetSectionId?: 'team',
+  targetSectionId: 'technology' | 'faq',
+  retargetSectionId?: 'faq',
 ) {
   return page.evaluate(
     async ({ retargetId, targetId }) => {
@@ -271,7 +271,7 @@ async function sampleDesktopIndicatorMotion(
   );
 }
 
-async function readReducedIndicatorOnNextFrame(page: Page, targetSectionId: 'stack') {
+async function readReducedIndicatorOnNextFrame(page: Page, targetSectionId: 'technology') {
   return page.evaluate(async (targetId) => {
     const root = document.querySelector<HTMLElement>('[data-landing-nav]');
     const indicator = root?.querySelector<HTMLElement>('[data-header-active-indicator]');
@@ -525,7 +525,7 @@ test('keeps desktop fluid navigation visible through continuous scroll-linked ge
   for (const scrollY of [0, 40, 80, 120, 160]) {
     await page.evaluate((top) => window.scrollTo({ top, behavior: 'instant' }), scrollY);
     await expect(header(page)).toHaveAttribute('data-header-layout', 'desktop-fluid');
-    await expect(links).toHaveCount(5);
+    await expect(links).toHaveCount(4);
     for (const link of await links.all()) await expect(link).toBeVisible();
     await expect(logo).toBeVisible();
     await expect(toggle).toHaveAttribute('aria-hidden', 'true');
@@ -666,10 +666,16 @@ test('commits exact desktop geometry when reduced motion interrupts a quick twee
 
   const midTweenWidth = await page.evaluate(async () => {
     window.scrollTo({ top: 620, behavior: 'instant' });
-    await new Promise<void>((resolve) =>
-      requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
-    );
-    return document.querySelector<HTMLElement>('[data-landing-nav]')!.getBoundingClientRect().width;
+    const navElement = document.querySelector<HTMLElement>('[data-landing-nav]')!;
+    const startedAt = performance.now();
+    let width = navElement.getBoundingClientRect().width;
+
+    while (width >= 1_232 && performance.now() - startedAt < 1_000) {
+      await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+      width = navElement.getBoundingClientRect().width;
+    }
+
+    return width;
   });
   expect(midTweenWidth).toBeGreaterThan(1_134);
   expect(midTweenWidth).toBeLessThan(1_232);
@@ -750,18 +756,18 @@ test('keeps the Header blur visually continuous while scrolling', async ({ brows
   }
 });
 
-test('switches dark surface ink from Hero white to light-section navy', async ({ page }) => {
+test('switches Header ink with each light and dark section surface', async ({ page }) => {
   await page.goto('/');
 
   const nav = header(page);
   const logo = nav.getByRole('link', { name: 'FUTUR home' });
   const menu = nav.getByRole('navigation', { name: '주요 메뉴' });
   const servicesLink = menu.getByRole('link', { name: '서비스', exact: true });
-  const stackLink = menu.getByRole('link', { name: '기술', exact: true });
-  const teamLink = menu.getByRole('link', { name: '팀', exact: true });
+  const technologyLink = menu.getByRole('link', { name: '기술', exact: true });
   const glass = nav.locator('[data-header-glass]');
   const backdrop = nav.locator('[data-header-backdrop-layer]');
 
+  await expect(nav).toHaveAttribute('data-header-hydrated', 'true');
   await expect(nav).toHaveAttribute('data-header-glass-tone', 'dark');
   await expect(logo).toHaveCSS('color', 'rgb(255, 255, 255)');
   await expect(servicesLink).toHaveCSS('color', 'rgb(255, 255, 255)');
@@ -778,31 +784,37 @@ test('switches dark surface ink from Hero white to light-section navy', async ({
     'rgba(255, 255, 255, 0.58)',
   );
 
-  await scrollSectionIntoView(page, 'services');
+  await page.locator('#services').evaluate((element) => {
+    element.scrollIntoView({ block: 'start', behavior: 'instant' });
+  });
+  await expect(nav).toHaveAttribute('data-header-glass-tone', 'dark');
+  await expect(servicesLink).toHaveAttribute('aria-current', 'location');
+  await expect(logo).toHaveCSS('color', 'rgb(255, 255, 255)');
+  await expect(servicesLink).toHaveCSS('color', 'rgb(255, 255, 255)');
+  await expect(glass).toHaveCSS('background-color', 'rgba(248, 250, 255, 0.18)');
+  await expect(backdrop).toHaveCSS('backdrop-filter', 'blur(12px) saturate(1.35) contrast(1.03)');
+
+  await page.locator('#service-product').evaluate((element) => {
+    element.scrollIntoView({ block: 'start', behavior: 'instant' });
+    window.scrollBy({ top: 32, behavior: 'instant' });
+  });
   await expect(nav).toHaveAttribute('data-header-glass-tone', 'light');
   await expect(servicesLink).toHaveAttribute('aria-current', 'location');
   await expect(logo).toHaveCSS('color', 'rgb(7, 24, 63)');
   await expect(servicesLink).toHaveCSS('color', 'rgb(30, 77, 196)');
-  await expect(glass).toHaveCSS('background-color', 'rgba(248, 250, 255, 0.26)');
-  await expect(backdrop).toHaveCSS('backdrop-filter', 'blur(12px) saturate(1.35) contrast(1.03)');
 
-  await scrollSectionIntoView(page, 'stack');
-  await expect(stackLink).toHaveAttribute('aria-current', 'location');
-  await expect(logo).toHaveCSS('color', 'rgb(7, 24, 63)');
-  await expect(stackLink).toHaveCSS('color', 'rgb(30, 77, 196)');
-
-  await scrollSectionIntoView(page, 'team');
-  await expect(teamLink).toHaveAttribute('aria-current', 'location');
-  await expect(logo).toHaveCSS('color', 'rgb(7, 24, 63)');
-  await expect(teamLink).toHaveCSS('color', 'rgb(30, 77, 196)');
-
-  await scrollSectionIntoView(page, 'operations');
-  await expect(nav).toHaveAttribute('data-header-glass-tone', 'dark');
+  await scrollSectionIntoView(page, 'technology');
+  await expect(technologyLink).toHaveAttribute('aria-current', 'location');
   await expect(logo).toHaveCSS('color', 'rgb(255, 255, 255)');
-  await expect(servicesLink).toHaveCSS('color', 'rgb(255, 255, 255)');
+  await expect(technologyLink).toHaveCSS('color', 'rgb(255, 255, 255)');
+
+  await scrollSectionIntoView(page, 'faq');
+  await expect(nav).toHaveAttribute('data-header-glass-tone', 'light');
+  await expect(logo).toHaveCSS('color', 'rgb(7, 24, 63)');
+  await expect(servicesLink).toHaveCSS('color', 'rgb(7, 24, 63)');
 });
 
-test('keeps dark surface ink authority until Services crosses the Header probe', async ({
+test('keeps dark surface ink through the Services intro and switches at the first chapter', async ({
   page,
 }) => {
   await page.goto('/');
@@ -854,11 +866,22 @@ test('keeps dark surface ink authority until Services crosses the Header probe',
       ]).then(([servicesTop, probeY]) => servicesTop - probeY),
     )
     .toBeLessThanOrEqual(0);
-  await expect(nav).toHaveAttribute('data-header-glass-tone', 'light');
+  await expect(nav).toHaveAttribute('data-header-glass-tone', 'dark');
   await expect(servicesLink).toHaveAttribute('aria-current', 'location');
+
+  await page.locator('#service-product').evaluate((element) => {
+    element.scrollIntoView({ block: 'start', behavior: 'instant' });
+    const headerElement = document.querySelector<HTMLElement>('[data-landing-nav]')!;
+    const probeY = headerElement.getBoundingClientRect().bottom + 8;
+    window.scrollBy({
+      top: element.getBoundingClientRect().top - probeY + 1,
+      behavior: 'instant',
+    });
+  });
+  await expect(nav).toHaveAttribute('data-header-glass-tone', 'light');
 });
 
-test('keeps the desktop logo and five navigation links in tab order at full scroll progress', async ({
+test('keeps the desktop logo and navigation links in tab order at full scroll progress', async ({
   page,
 }) => {
   await page.goto('/');
@@ -890,7 +913,7 @@ test('uses one shared active indicator and glides between desktop sections', asy
   const mobileIndicator = menuLinks.locator('[data-header-mobile-active-indicator]');
   const activeLinks = nav.locator('a[aria-current="location"]');
   const servicesLink = nav.locator('a[href="#services"]');
-  const stackLink = nav.locator('a[href="#stack"]');
+  const technologyLink = nav.locator('a[href="#technology"]');
 
   await expect(servicesLink).toHaveAttribute('aria-current', 'location');
   await expect(sharedIndicator).toHaveCount(1);
@@ -900,24 +923,24 @@ test('uses one shared active indicator and glides between desktop sections', asy
   const servicesBox = await servicesLink.boundingBox();
   expect(servicesBox).not.toBeNull();
 
-  const { frames } = await sampleDesktopIndicatorMotion(page, 'stack');
-  await expect(stackLink).toHaveAttribute('aria-current', 'location');
+  const { frames } = await sampleDesktopIndicatorMotion(page, 'technology');
+  await expect(technologyLink).toHaveAttribute('aria-current', 'location');
   await expect(activeLinks).toHaveCount(1);
   expect(new Set(frames.map(({ x }) => Math.round(x * 10) / 10)).size).toBeGreaterThanOrEqual(4);
   expect(frames[0]!.x).toBeCloseTo(servicesBox!.x, 0);
   expect(frames[0]!.width).toBeCloseTo(servicesBox!.width, 0);
 
-  const activeFrame = frames.find(({ activeHref }) => activeHref === '#stack');
+  const activeFrame = frames.find(({ activeHref }) => activeHref === '#technology');
   const settledIndex = frames.findIndex(
     (frame, index) =>
-      frame.activeHref === '#stack' &&
+      frame.activeHref === '#technology' &&
       Math.abs(frame.x - frame.targetX) <= 0.5 &&
       Math.abs(frame.width - frame.targetWidth) <= 0.5 &&
       frames
         .slice(index)
         .every(
           (laterFrame) =>
-            laterFrame.activeHref === '#stack' &&
+            laterFrame.activeHref === '#technology' &&
             Math.abs(laterFrame.x - laterFrame.targetX) <= 0.5 &&
             Math.abs(laterFrame.width - laterFrame.targetWidth) <= 0.5 &&
             Math.abs(laterFrame.x - frame.x) <= 0.02 &&
@@ -931,10 +954,10 @@ test('uses one shared active indicator and glides between desktop sections', asy
 
   const finalFrame = frames[frames.length - 1]!;
   const previousFrame = frames[frames.length - 2]!;
-  const stackBox = await stackLink.boundingBox();
-  expect(stackBox).not.toBeNull();
-  expect(finalFrame.x).toBeCloseTo(stackBox!.x, 0);
-  expect(finalFrame.width).toBeCloseTo(stackBox!.width, 0);
+  const teamBox = await technologyLink.boundingBox();
+  expect(teamBox).not.toBeNull();
+  expect(finalFrame.x).toBeCloseTo(teamBox!.x, 0);
+  expect(finalFrame.width).toBeCloseTo(teamBox!.width, 0);
   expect(Math.abs(finalFrame.x - previousFrame.x)).toBeLessThan(16);
   expect(Math.abs(finalFrame.width - previousFrame.width)).toBeLessThan(16);
 
@@ -954,7 +977,11 @@ test('retargets the shared active indicator from its current desktop frame', asy
   );
   await page.waitForTimeout(240);
 
-  const { frames, retargetSampleIndex } = await sampleDesktopIndicatorMotion(page, 'stack', 'team');
+  const { frames, retargetSampleIndex } = await sampleDesktopIndicatorMotion(
+    page,
+    'technology',
+    'faq',
+  );
   expect(retargetSampleIndex).not.toBeNull();
   const beforeRetarget = frames[retargetSampleIndex!];
   const afterRetarget = frames[retargetSampleIndex! + 1];
@@ -963,20 +990,23 @@ test('retargets the shared active indicator from its current desktop frame', asy
   expect(Math.abs(afterRetarget!.x - beforeRetarget!.x)).toBeLessThan(16);
   expect(Math.abs(afterRetarget!.width - beforeRetarget!.width)).toBeLessThan(16);
 
-  const teamLink = header(page).locator('a[href="#team"]');
-  await expect(teamLink).toHaveAttribute('aria-current', 'location');
-  const stackLink = header(page).locator('a[href="#stack"]');
+  const faqLink = header(page).locator('a[href="#faq"]');
+  await expect(faqLink).toHaveAttribute('aria-current', 'location');
+  const technologyLink = header(page).locator('a[href="#technology"]');
   const activeLinks = header(page).locator('a[aria-current="location"]');
   await expect(activeLinks).toHaveCount(1);
-  await expect(stackLink).not.toHaveAttribute('aria-current');
-  const [stackBox, teamBox] = await Promise.all([stackLink.boundingBox(), teamLink.boundingBox()]);
+  await expect(technologyLink).not.toHaveAttribute('aria-current');
+  const [teamBox, faqBox] = await Promise.all([
+    technologyLink.boundingBox(),
+    faqLink.boundingBox(),
+  ]);
   const finalFrame = frames[frames.length - 1]!;
-  expect(stackBox).not.toBeNull();
   expect(teamBox).not.toBeNull();
-  expect(finalFrame.x).toBeCloseTo(teamBox!.x, 0);
-  expect(finalFrame.width).toBeCloseTo(teamBox!.width, 0);
-  expect(Math.abs(finalFrame.x - stackBox!.x)).toBeGreaterThan(1);
-  expect(Math.abs(finalFrame.width - stackBox!.width)).toBeGreaterThan(1);
+  expect(faqBox).not.toBeNull();
+  expect(finalFrame.x).toBeCloseTo(faqBox!.x, 0);
+  expect(finalFrame.width).toBeCloseTo(faqBox!.width, 0);
+  expect(Math.abs(finalFrame.x - teamBox!.x)).toBeGreaterThan(1);
+  expect(Math.abs(finalFrame.width - teamBox!.width)).toBeGreaterThan(1);
 });
 
 test('settles the shared active indicator immediately for reduced motion and excludes mobile', async ({
@@ -988,17 +1018,17 @@ test('settles the shared active indicator immediately for reduced motion and exc
 
   const reducedNav = header(reducedPage).getByRole('navigation', { name: '주요 메뉴' });
   const reducedIndicator = reducedNav.locator('[data-header-active-indicator]');
-  const reducedStackLink = reducedNav.locator('a[href="#stack"]');
+  const reducedTechnologyLink = reducedNav.locator('a[href="#technology"]');
   await expect(reducedNav.locator('a[href="#services"]')).toHaveAttribute(
     'aria-current',
     'location',
   );
-  const nextFrame = await readReducedIndicatorOnNextFrame(reducedPage, 'stack');
-  expect(nextFrame.activeHref).toBe('#stack');
+  const nextFrame = await readReducedIndicatorOnNextFrame(reducedPage, 'technology');
+  expect(nextFrame.activeHref).toBe('#technology');
   expect(nextFrame.x).toBeCloseTo(nextFrame.targetX, 0);
   expect(nextFrame.width).toBeCloseTo(nextFrame.targetWidth, 0);
   expect(nextFrame.opacity).toBe('0.82');
-  await expect(reducedStackLink).toHaveAttribute('aria-current', 'location');
+  await expect(reducedTechnologyLink).toHaveAttribute('aria-current', 'location');
   await expect(reducedIndicator).toHaveCSS('opacity', '0.82');
   await reducedPage.close();
 
@@ -1132,7 +1162,7 @@ test('clears an opening mobile timeline across a real desktop breakpoint round t
     focusedToggle: true,
     headerTransform: '',
     height: 56,
-    itemStyles: Array.from({ length: 5 }, () => ({ opacity: '', transform: '' })),
+    itemStyles: Array.from({ length: 4 }, () => ({ opacity: '', transform: '' })),
     layout: 'mobile-compact',
     mobileHeight: '',
     mobileWidth: '',
@@ -1160,7 +1190,7 @@ test('runs continuous mobile geometry and item motion while opening and closing'
     Math.max(...openingSamples.flatMap(({ itemTranslateY }) => itemTranslateY)),
   ).toBeGreaterThan(2);
   const links = header(page).locator('nav[aria-label="주요 메뉴"] a');
-  await expect(links).toHaveCount(5);
+  await expect(links).toHaveCount(4);
   const rowSizes = Object.values(
     (
       await links.evaluateAll((elements) =>
@@ -1171,7 +1201,7 @@ test('runs continuous mobile geometry and item motion while opening and closing'
       return rows;
     }, {}),
   );
-  expect(rowSizes).toEqual([3, 2]);
+  expect(rowSizes).toEqual([4]);
 
   const closingSamplesPromise = sampleMobileMotion(page, 'mobile-compact');
   await page.keyboard.press('Escape');
@@ -1221,7 +1251,7 @@ test('settles interrupted mobile geometry from the current frame', async ({ page
   await expect(header(page)).not.toHaveAttribute('data-header-motion');
   expect(await header(page).getAttribute('style')).not.toMatch(/transform|width|height|opacity/);
   expect(itemInlineStyles).toEqual(
-    Array.from({ length: 5 }, () => ({ opacity: '', transform: '' })),
+    Array.from({ length: 4 }, () => ({ opacity: '', transform: '' })),
   );
   expect(indicatorInlineStyle).toEqual({ opacity: '', transform: '' });
 });
@@ -1260,9 +1290,17 @@ test('applies semantic clear crystal glass, spotlight, cursor contrast, and resi
   const backdropStyles: Partial<
     Record<'dark' | 'light', Awaited<ReturnType<typeof readBackdropStyle>>>
   > = {};
-  for (const sectionId of ['services', 'operations', 'footer'] as const) {
-    const tone = sectionId === 'operations' ? 'dark' : 'light';
-    await scrollSectionIntoView(page, sectionId);
+  for (const sectionId of ['hero', 'services', 'technology', 'faq', 'footer'] as const) {
+    const tone = ['hero', 'services', 'technology', 'footer'].includes(sectionId)
+      ? 'dark'
+      : 'light';
+    if (sectionId === 'services') {
+      await page.locator('#services').evaluate((element) => {
+        element.scrollIntoView({ block: 'start', behavior: 'instant' });
+      });
+    } else {
+      await scrollSectionIntoView(page, sectionId);
+    }
     await expect(header(page)).toHaveAttribute('data-header-glass-tone', tone);
     await expect(glass).toHaveCSS(
       'background-color',
@@ -1488,7 +1526,9 @@ test('uses the compact CSS offset for hash targets and avoids scroll-frame layou
       .getByRole('link', { name: '기술', exact: true })
       .click();
     await expect
-      .poll(() => page.locator('#stack').evaluate((element) => element.getBoundingClientRect().top))
+      .poll(() =>
+        page.locator('#technology').evaluate((element) => element.getBoundingClientRect().top),
+      )
       .toBeCloseTo(expectedOffset, 0);
 
     await page.evaluate(() => {
@@ -1515,11 +1555,13 @@ test('updates the mobile active section at the compact hash landing line', async
   await nav.getByRole('link', { name: '기술', exact: true }).click();
 
   await expect(header(page)).toHaveAttribute('data-header-layout', 'mobile-compact');
-  await expect(page).toHaveURL(/#stack$/);
+  await expect(page).toHaveURL(/#technology$/);
   await expect
-    .poll(() => page.locator('#stack').evaluate((element) => element.getBoundingClientRect().top))
+    .poll(() =>
+      page.locator('#technology').evaluate((element) => element.getBoundingClientRect().top),
+    )
     .toBeCloseTo(82, 0);
-  await expect(nav.locator('a[href="#stack"]')).toHaveAttribute('aria-current', 'location');
+  await expect(nav.locator('a[href="#technology"]')).toHaveAttribute('aria-current', 'location');
   await expectCompactLabel(compactButton(page), '기술');
 });
 
@@ -1822,7 +1864,7 @@ test('removes hidden Header controls from keyboard order and moves focus into th
   const logo = header(page).getByRole('link', { name: 'FUTUR home', includeHidden: true });
   const button = compactButton(page);
   const nav = header(page).locator('nav[aria-label="주요 메뉴"]');
-  const faqLink = nav.locator('a[href="#faq"]');
+  const contactLink = nav.locator('a[href="#footer"]');
   const closeButton = nav.locator('[data-header-close]');
 
   await expect(logo).toHaveAttribute('aria-hidden', 'true');
@@ -1834,7 +1876,7 @@ test('removes hidden Header controls from keyboard order and moves focus into th
   await expect(closeButton).toHaveAttribute('aria-hidden', 'false');
   await page.keyboard.press('Shift+Tab');
   await expect(header(page)).toHaveAttribute('data-header-layout', 'mobile-expanded');
-  await expect(faqLink).toBeFocused();
+  await expect(contactLink).toBeFocused();
 
   await page.keyboard.press('Escape');
   await expectCompactMenuClosed(page, button, 'FUTUR.');
@@ -1885,7 +1927,7 @@ test('runs and settles the active indicator follow-through inside the open timel
   expect(samples[samples.length - 1]).toEqual({ inlineTransform: '', scaleX: 1 });
 });
 
-test('tracks section navigation and maps operations to process', async ({ page }) => {
+test('tracks section navigation across the reduced landing structure', async ({ page }) => {
   await page.setViewportSize(mobileViewport);
   await page.goto('/');
 
@@ -1894,16 +1936,21 @@ test('tracks section navigation and maps operations to process', async ({ page }
   const expectedSections: Record<string, { activeHref: string | null; label: string | null }> = {
     hero: { activeHref: null, label: null },
     services: { activeHref: '#services', label: '서비스' },
-    stack: { activeHref: '#stack', label: '기술' },
-    team: { activeHref: '#team', label: '팀' },
-    process: { activeHref: '#process', label: '프로세스' },
-    operations: { activeHref: '#process', label: '프로세스' },
+    technology: { activeHref: '#technology', label: '기술' },
     faq: { activeHref: '#faq', label: 'FAQ' },
-    footer: { activeHref: null, label: 'FUTUR.' },
+    footer: { activeHref: null, label: '문의' },
   };
 
   for (const [sectionId, { activeHref, label }] of Object.entries(expectedSections)) {
     await scrollSectionIntoView(page, sectionId);
+    if (sectionId === 'faq') {
+      await page.locator('#faq').evaluate((section) => {
+        window.scrollTo({
+          top: section.getBoundingClientRect().top + window.scrollY - 82,
+          behavior: 'instant',
+        });
+      });
+    }
 
     if (activeHref === null) {
       await expect(activeLinks).toHaveCount(0);
@@ -1942,7 +1989,7 @@ test('closes the expanded menu and returns focus for every dismissal path', asyn
     })
     .click();
   await expectCompactMenuClosed(page, button, '기술');
-  await scrollSectionIntoView(page, 'stack');
+  await scrollSectionIntoView(page, 'technology');
 
   button = await openCompactMenu(page, '기술');
   await page.mouse.click(20, desktopViewport.height - 20);
@@ -1979,7 +2026,7 @@ test('restores toggle focus by the next frame for every compact dismissal commit
     .click();
   await expectFocusRestoredOnCompactCommit(page, button);
 
-  await scrollSectionIntoView(page, 'stack');
+  await scrollSectionIntoView(page, 'technology');
   button = await openCompactMenu(page, '기술');
   await page.mouse.click(20, desktopViewport.height - 20);
   await expectFocusRestoredOnCompactCommit(page, button);
@@ -2018,7 +2065,7 @@ test('restores toggle focus by the next frame for every compact dismissal commit
   ).toEqual({ focusInsideMenu: true, toggleFocused: false });
 });
 
-test('uses a contained 3+2 menu grid from the mobile Hero', async ({ page }) => {
+test('uses a contained single-row menu grid from the mobile Hero', async ({ page }) => {
   await page.setViewportSize(mobileViewport);
   await page.goto('/');
 
@@ -2030,7 +2077,7 @@ test('uses a contained 3+2 menu grid from the mobile Hero', async ({ page }) => 
 
   const nav = page.getByRole('navigation', { name: '주요 메뉴' });
   const links = nav.getByRole('link');
-  await expect(links).toHaveCount(5);
+  await expect(links).toHaveCount(4);
   await expect(links).toHaveText(menuLabels);
   await expect(header(page)).not.toHaveAttribute('data-header-motion', 'true');
 
@@ -2046,7 +2093,7 @@ test('uses a contained 3+2 menu grid from the mobile Hero', async ({ page }) => 
       return rows;
     }, {}),
   );
-  expect(rowSizes).toEqual([3, 2]);
+  expect(rowSizes).toEqual([4]);
 
   const headerBox = await header(page).boundingBox();
   expect(headerBox).not.toBeNull();
@@ -2109,7 +2156,7 @@ test('completes Compact transitions immediately when reduced motion is requested
   await page.close();
 });
 
-test('keeps five navigation destinations and core content available in no-JavaScript mode', async ({
+test('keeps navigation destinations and core content available in no-JavaScript mode', async ({
   browser,
 }) => {
   const page = await browser.newPage({ javaScriptEnabled: false, viewport: mobileViewport });
@@ -2117,7 +2164,7 @@ test('keeps five navigation destinations and core content available in no-JavaSc
 
   const nav = page.getByRole('navigation', { name: '주요 메뉴' });
   const links = nav.getByRole('link');
-  await expect(links).toHaveCount(5);
+  await expect(links).toHaveCount(4);
   await expect(links).toHaveText(menuLabels);
   for (const link of await links.all()) await expect(link).toBeVisible();
 
@@ -2140,17 +2187,22 @@ test('keeps five navigation destinations and core content available in no-JavaSc
   await expect(
     page.getByRole('heading', { level: 1, name: 'BUILT FOR WHAT’S NEXT.' }),
   ).toBeVisible();
-  for (const sectionId of ['services', 'stack', 'team', 'process', 'operations', 'faq', 'footer']) {
+  for (const sectionId of ['services', 'technology', 'faq', 'footer']) {
     await expect(page.locator(`#${sectionId}`)).toBeVisible();
   }
 
   await page.close();
 });
 
-test('removes contact UI and keeps the approved landing order', async ({ page }) => {
+test('keeps the footer inquiry link without restoring the removed contact section', async ({
+  page,
+}) => {
   await page.goto('/');
 
-  await expect(header(page).getByRole('link', { name: /문의/ })).toHaveCount(0);
+  await expect(header(page).getByRole('link', { name: '문의', exact: true })).toHaveAttribute(
+    'href',
+    '#footer',
+  );
   await expect(header(page).getByRole('button', { name: /문의/ })).toHaveCount(0);
   await expect(page.locator('#contact')).toHaveCount(0);
   await expect(page.locator('[data-landing-nav] [href="#contact"]')).toHaveCount(0);
@@ -2161,7 +2213,7 @@ test('removes contact UI and keeps the approved landing order', async ({ page })
     await page
       .locator('[data-landing-section]')
       .evaluateAll((elements) => elements.map((element) => element.id)),
-  ).toEqual(['hero', 'services', 'stack', 'team', 'process', 'operations', 'faq', 'footer']);
+  ).toEqual(['hero', 'services', 'technology', 'faq', 'footer']);
 });
 
 test('preserves the Hero particle, Footer email, contact server layers, and behavior specs', async ({

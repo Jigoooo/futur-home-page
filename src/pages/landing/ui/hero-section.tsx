@@ -9,6 +9,7 @@ export function HeroSection() {
       className={styles.hero}
       data-landing-hero
       data-landing-section
+      data-header-surface='dark'
       data-cursor-contrast='light'
     >
       <HeroParticleBackground />
@@ -23,10 +24,7 @@ export function HeroSection() {
             accessibleLabel='BUILT FOR WHAT’S NEXT.'
             lineAttribute='data-hero-headline-row'
           />
-          <p>
-            화면에 보이는 경험부터 코드와 데이터, 배포 뒤 운영까지 함께 봅니다. 다음 변화에도
-            흔들리지 않을 디지털 제품을 만듭니다.
-          </p>
+          <p>다음 변화를 내다보며, 오래 쓰이는 제품을 만듭니다.</p>
         </div>
       </div>
     </section>

@@ -15,49 +15,28 @@ export interface BriefStage {
   description: string;
 }
 
-export type IconName = 'check' | 'clock' | 'desktop' | 'link' | 'shield' | 'sparkles' | 'system';
+export type ServiceCapabilityKey = 'product' | 'system' | 'ai' | 'operations';
 
-export type ServiceKey = 'web' | 'system' | 'api' | 'ai' | 'operations';
-
-export interface ServiceItem {
-  key: ServiceKey;
-  title: string;
-  description: string;
-  icon: IconName;
-  scopes: [string, string, string];
-}
-
-export interface ServicePhase {
-  key: 'build' | 'connect' | 'operate';
-  index: string;
-  label: 'BUILD' | 'CONNECT' | 'OPERATE';
-  title: string;
-  services: ServiceItem[];
-}
-
-export interface StackGroup {
-  key: 'frontend' | 'interaction' | 'server' | 'quality';
-  title: string;
-  items: string[];
-}
-
-export interface TeamRole {
-  badge: string;
-  title: string;
-  responsibility: string;
-  tags: string[];
-}
-
-export interface OperationsPolicy {
-  icon: IconName;
-  title: string;
-  description: string;
-}
-
-export interface ProcessStep {
+export interface ServiceCapability {
+  key: ServiceCapabilityKey;
   index: string;
   title: string;
   description: string;
+  scopes: string[];
+}
+
+export type TechnologyCapabilityKey = 'client' | 'backend' | 'ai' | 'cloud';
+
+export interface TechnologyGroup {
+  label: string;
+  technologies: string[];
+}
+
+export interface TechnologyCapability {
+  key: TechnologyCapabilityKey;
+  label: string;
+  featuredTechnologies: string[];
+  groups: TechnologyGroup[];
 }
 
 export interface ContactCheckItem {

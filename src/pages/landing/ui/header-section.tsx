@@ -95,6 +95,7 @@ export function HeaderSection() {
                   <a
                     key={item.href}
                     href={item.href}
+                    data-header-section-link
                     tabIndex={menuAccessible ? 0 : -1}
                     aria-current={active ? 'location' : undefined}
                     onClick={handleNavigation}
@@ -110,6 +111,14 @@ export function HeaderSection() {
                   </a>
                 );
               })}
+              <a
+                className={styles.contactLink}
+                href='#footer'
+                tabIndex={menuAccessible ? 0 : -1}
+                onClick={handleNavigation}
+              >
+                <span>문의</span>
+              </a>
               <span
                 className={styles.activeIndicator}
                 data-header-active-indicator

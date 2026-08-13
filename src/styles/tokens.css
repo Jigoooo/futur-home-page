@@ -1,6 +1,8 @@
 :root {
-  --font-body: 'Wanted Sans Variable', 'Wanted Sans', 'FUTUR Sans Critical', sans-serif;
-  --font-display: var(--font-body);
+  --font-body: 'SUIT Variable', 'FUTUR Sans Critical', ui-sans-serif, system-ui, sans-serif;
+  --font-display:
+    'Space Grotesk Variable', 'SUIT Variable', 'FUTUR Sans Critical', ui-sans-serif, system-ui,
+    sans-serif;
   --charcoal: #202523;
   --paper: #f3f1ec;
   --paper-cool: #e9ecec;

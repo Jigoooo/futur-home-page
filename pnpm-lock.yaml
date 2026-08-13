@@ -8,9 +8,15 @@ importers:
 
   .:
     dependencies:
+      '@fontsource-variable/space-grotesk':
+        specifier: 5.3.0
+        version: 5.3.0
       '@gsap/react':
         specifier: ^2.1.2
         version: 2.1.2(gsap@3.15.0)(react@19.2.6)
+      '@sun-typeface/suit':
+        specifier: 2.0.5
+        version: 2.0.5
       '@tanstack/react-router':
         specifier: 1.170.8
         version: 1.170.8(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
@@ -35,9 +41,6 @@ importers:
       resend:
         specifier: ^6.18.1
         version: 6.18.1
-      wanted-sans:
-        specifier: 1.0.3
-        version: 1.0.3
     devDependencies:
       '@axe-core/playwright':
         specifier: ^4.11.3
@@ -459,6 +462,9 @@ packages:
     resolution: {integrity: sha512-43/qtrDUokr7LJqoF2c3+RInu/t4zfrpYdoSDfYyhg52rwLV6TnOvdG4fXm7IkSB3wErkcmJS9iEhjVtOSEjjA==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
 
+  '@fontsource-variable/space-grotesk@5.3.0':
+    resolution: {integrity: sha512-2IxmvfB08i9vnGB3Ym/AXvhRE+8XOjWMXIyDum03c+tPwH0FUoMNQfGpU8NXPxjbws0Vvss3AH0Zqt4oJBBAdw==}
+
   '@gsap/react@2.1.2':
     resolution: {integrity: sha512-JqliybO1837UcgH2hVOM4VO+38APk3ECNrsuSM4MuXp+rbf+/2IG2K1YJiqfTcXQHH7XlA0m3ykniFYstfq0Iw==}
     peerDependencies:
@@ -737,6 +743,9 @@ packages:
 
   '@standard-schema/spec@1.1.0':
     resolution: {integrity: sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w==}
+
+  '@sun-typeface/suit@2.0.5':
+    resolution: {integrity: sha512-NJ0hxmQgDjDBFkocQ7rxx3wPahJbj3uATfXudN3oj6hh/rAedElhdYBbsSwz4qJsdjac6aW6cqK6R1bpsNGOaQ==}
 
   '@tanstack/eslint-plugin-router@1.162.0':
     resolution: {integrity: sha512-0mv+5fOnWXeorh6zd3VyHVfpejIzc7+z68Ts0CQMDzMiwjM5rvea46fyl2m50zx5JFennsu7RO/QJAfnqkKJXw==}
@@ -2786,9 +2795,6 @@ packages:
     engines: {node: '>=20.0.0'}
     hasBin: true
 
-  wanted-sans@1.0.3:
-    resolution: {integrity: sha512-YU+mQRJMc97zMGFmxFjOvjdrF5Hi2zagc69bNP9n//i77Dlf9AWGfziZWYKdhQzPK5tw+e0iHcjLrZXDatxRTQ==}
-
   web-streams-polyfill@3.3.3:
     resolution: {integrity: sha512-d2JWLCivmZYTSIoge9MsgFCZrt571BikcWGYkjC1khllbTeDlGqZ2D8vD8E/lJa8WGWbb7Plm8/XJYV7IJHZZw==}
     engines: {node: '>= 8'}
@@ -3204,6 +3210,8 @@ snapshots:
       '@eslint/core': 0.17.0
       levn: 0.4.1
 
+  '@fontsource-variable/space-grotesk@5.3.0': {}
+
   '@gsap/react@2.1.2(gsap@3.15.0)(react@19.2.6)':
     dependencies:
       gsap: 3.15.0
@@ -3426,6 +3434,8 @@ snapshots:
   '@stablelib/base64@1.0.1': {}
 
   '@standard-schema/spec@1.1.0': {}
+
+  '@sun-typeface/suit@2.0.5': {}
 
   '@tanstack/eslint-plugin-router@1.162.0(eslint@9.39.1(jiti@2.7.0))(typescript@6.0.3)':
     dependencies:
@@ -5727,8 +5737,6 @@ snapshots:
     transitivePeerDependencies:
       - debug
       - supports-color
-
-  wanted-sans@1.0.3: {}
 
   web-streams-polyfill@3.3.3:
     optional: true

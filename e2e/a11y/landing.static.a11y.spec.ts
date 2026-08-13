@@ -14,10 +14,7 @@ test.describe('/ 랜딩 페이지 정적 스캔', () => {
    */
   const sections = [
     { id: '#services', name: '서비스' },
-    { id: '#stack', name: '기술' },
-    { id: '#team', name: '팀' },
-    { id: '#process', name: '프로세스' },
-    { id: '#operations', name: '운영 원칙' },
+    { id: '#technology', name: '기술(대표 기술)' },
     { id: '#faq', name: 'FAQ(첫 항목만 펼침)' },
   ] as const;
 

@@ -1,15 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-const SECTION_ORDER = [
-  'hero',
-  'services',
-  'stack',
-  'team',
-  'process',
-  'operations',
-  'faq',
-  'footer',
-] as const;
+const SECTION_ORDER = ['hero', 'services', 'technology', 'faq', 'footer'] as const;
 
 test('keeps only the evidence-backed landing narrative in the approved order', async ({ page }) => {
   await page.goto('/');
@@ -44,8 +35,6 @@ test('keeps only the evidence-backed landing narrative in the approved order', a
     '빠른 범위 검토',
     '4시간 응답',
     '자동 NDA',
-    'React Native',
-    'Spring Boot',
     '사례 둘러보기',
   ]) {
     await expect(page.getByText(removedCopy, { exact: false })).toHaveCount(0);
@@ -60,7 +49,7 @@ test('uses only the approved navigation anchors and removes the Hero action', as
     .locator('a')
     .evaluateAll((links) => links.map((link) => (link as HTMLAnchorElement).getAttribute('href')));
 
-  expect(hrefs).toEqual(['#services', '#stack', '#team', '#process', '#faq']);
+  expect(hrefs).toEqual(['#services', '#technology', '#faq', '#footer']);
 
   const hero = page.locator('#hero');
   await expect(hero.getByRole('link')).toHaveCount(0);
@@ -74,8 +63,8 @@ test('routes FAQ inquiries through the factual Footer email without stale form c
   const faq = page.locator('#faq');
   await expect(faq).not.toContainText('문의 양식');
 
-  const planningQuestion = faq.getByRole('button', { name: '기획서가 없는데 문의해도 되나요?' });
-  const costQuestion = faq.getByRole('button', { name: '비용은 어떻게 책정되나요?' });
+  const planningQuestion = faq.getByRole('button', { name: '기획서가 없어도 문의할 수 있나요?' });
+  const costQuestion = faq.getByRole('button', { name: '비용과 일정은 어떻게 정해지나요?' });
   await expect(planningQuestion).toBeVisible();
   await expect(costQuestion).toBeVisible();
   await costQuestion.click();

@@ -4,7 +4,8 @@ import { createRootRoute } from '@tanstack/react-router';
 
 import { COMPANY_INFOS } from '@/entities/company';
 import { RootComponent, RootDocument, RootNotFound } from '@/pages/root';
-import 'wanted-sans/fonts/webfonts/variable/split/WantedSansVariable.css';
+import '@fontsource-variable/space-grotesk';
+import '@sun-typeface/suit/fonts/variable/woff2/SUIT-Variable.css';
 import '../styles/tokens.css';
 import '../styles/globals.css';
 

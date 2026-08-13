@@ -6,8 +6,8 @@ test('reveals classic sections once without hiding SSR content', async ({ page }
   await page.goto('/');
 
   await expect(page.locator('[data-landing-reveal]').first()).toBeVisible();
-  await page.locator('#team').scrollIntoViewIfNeeded();
-  await expect(page.locator('#team [data-landing-reveal]').first()).toHaveAttribute(
+  await page.locator('#technology').scrollIntoViewIfNeeded();
+  await expect(page.locator('#technology [data-landing-reveal]').first()).toHaveAttribute(
     'data-landing-visible',
     'true',
   );
@@ -19,7 +19,7 @@ test('keeps classic content visible without JavaScript', async ({ browser }) => 
 
   await page.goto('/');
 
-  for (const selector of ['#services', '#team', '#faq']) {
+  for (const selector of ['#services', '#technology', '#faq']) {
     const target = page.locator(`${selector} [data-landing-reveal]`).first();
 
     await expect(target).toBeVisible();
@@ -50,7 +50,7 @@ test('serves the classic landing content without a JavaScript visibility gate', 
 
   await page.goto('/');
   await expect(page.getByRole('heading', { level: 1, name: HERO_LABEL })).toBeVisible();
-  await expect(page.getByText(/화면에 보이는 경험부터 코드와 데이터/)).toBeVisible();
+  await expect(page.getByText('다음 변화를 내다보며, 오래 쓰이는 제품을 만듭니다.')).toBeVisible();
   await expect(page.locator('.style-gate-loader')).toHaveCount(0);
 
   const noScriptPage = await browser.newPage({ javaScriptEnabled: false });
@@ -58,7 +58,7 @@ test('serves the classic landing content without a JavaScript visibility gate', 
   await expect(noScriptPage.getByRole('heading', { level: 1, name: HERO_LABEL })).toBeVisible();
   await expect(noScriptPage.locator('[data-landing-hero] a')).toHaveCount(0);
   await expect(noScriptPage.locator('#services')).toBeVisible();
-  await expect(noScriptPage.locator('#team')).toBeVisible();
+  await expect(noScriptPage.locator('#technology')).toBeVisible();
   await expect(noScriptPage.locator('#footer')).toBeVisible();
   await noScriptPage.close();
 });
@@ -88,7 +88,7 @@ test('limits staggered entrance motion to the hero and keeps classic section con
   expect(heroMotion.every(({ filter }) => filter === 'none')).toBe(true);
 
   const sections = page.locator('[data-landing-section]:not([data-landing-hero])');
-  await expect(sections).toHaveCount(7);
+  await expect(sections).toHaveCount(4);
   const visibility = await sections.evaluateAll((elements) =>
     elements.map((element) => {
       const style = getComputedStyle(element);

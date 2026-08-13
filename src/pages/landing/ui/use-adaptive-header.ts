@@ -24,6 +24,7 @@ import {
 import { getLandingNavOffset, scrollToHashTarget } from '../lib/scroll-to-page-top';
 
 export type HeaderLayout = 'desktop-fluid' | 'mobile-compact' | 'mobile-expanded';
+type HeaderSurface = 'dark' | 'light';
 
 type AdaptiveHeaderRefs = {
   headerRef: RefObject<HTMLElement | null>;
@@ -33,11 +34,9 @@ type AdaptiveHeaderRefs = {
 
 const sectionLabels = new Map([
   ['services', { href: '#services', label: '서비스' }],
-  ['stack', { href: '#stack', label: '기술' }],
-  ['team', { href: '#team', label: '팀' }],
-  ['process', { href: '#process', label: '프로세스' }],
-  ['operations', { href: '#process', label: '프로세스' }],
+  ['technology', { href: '#technology', label: '기술' }],
   ['faq', { href: '#faq', label: 'FAQ' }],
+  ['footer', { href: null, label: '문의' }],
 ]);
 const headerSectionProbeGuard = 8;
 const navigationLandingProbeTolerance = 1;
@@ -77,13 +76,42 @@ function getVisibleSectionId(header: HTMLElement | null) {
   }, null)?.id;
 }
 
+function getVisibleHeaderSurface(header: HTMLElement | null): HeaderSurface {
+  const surfaces = Array.from(document.querySelectorAll<HTMLElement>('[data-header-surface]'));
+  const viewportProbe = (header?.getBoundingClientRect().bottom ?? 0) + headerSectionProbeGuard;
+  const containingProbe = surfaces.find((surface) => {
+    const rect = surface.getBoundingClientRect();
+    return rect.top <= viewportProbe && rect.bottom > viewportProbe;
+  });
+  const closestSurface =
+    containingProbe ??
+    surfaces.reduce<HTMLElement | null>((closest, surface) => {
+      if (!closest) return surface;
+      const closestRect = closest.getBoundingClientRect();
+      const surfaceRect = surface.getBoundingClientRect();
+      const closestDistance = Math.min(
+        Math.abs(closestRect.top - viewportProbe),
+        Math.abs(closestRect.bottom - viewportProbe),
+      );
+      const surfaceDistance = Math.min(
+        Math.abs(surfaceRect.top - viewportProbe),
+        Math.abs(surfaceRect.bottom - viewportProbe),
+      );
+      return surfaceDistance < closestDistance ? surface : closest;
+    }, null);
+
+  return closestSurface?.dataset.headerSurface === 'light' ? 'light' : 'dark';
+}
+
 export function useAdaptiveHeader({ headerRef, menuRef, toggleRef }: AdaptiveHeaderRefs) {
   const [layout, setLayout] = useState<HeaderLayout>('desktop-fluid');
   const [motionPhase, setMotionPhase] = useState<HeaderMotionPhase>('idle');
   const [activeSectionId, setActiveSectionId] = useState('hero');
+  const [glassTone, setGlassTone] = useState<HeaderSurface>('dark');
   const [hydrated, setHydrated] = useState(false);
   const [openedSectionId, setOpenedSectionId] = useState('hero');
   const activeSectionIdRef = useRef('hero');
+  const glassToneRef = useRef<HeaderSurface>('dark');
   const layoutRef = useRef<HeaderLayout>('desktop-fluid');
   const openScrollYRef = useRef(0);
   const motionReadyRef = useRef(false);
@@ -406,6 +434,11 @@ export function useAdaptiveHeader({ headerRef, menuRef, toggleRef }: AdaptiveHea
     const updateActiveSection = () => {
       window.cancelAnimationFrame(frameId);
       frameId = window.requestAnimationFrame(() => {
+        const nextGlassTone = getVisibleHeaderSurface(headerRef.current);
+        if (nextGlassTone !== glassToneRef.current) {
+          glassToneRef.current = nextGlassTone;
+          setGlassTone(nextGlassTone);
+        }
         if (layoutRef.current === 'mobile-expanded') return;
         const nextSectionId = getVisibleSectionId(headerRef.current) ?? 'hero';
         if (nextSectionId === activeSectionIdRef.current) return;
@@ -513,8 +546,6 @@ export function useAdaptiveHeader({ headerRef, menuRef, toggleRef }: AdaptiveHea
   const displayedSectionId = layout === 'mobile-expanded' ? openedSectionId : activeSectionId;
   const activeSection = sectionLabels.get(displayedSectionId);
   const activeHref = activeSection?.href ?? null;
-  const glassTone =
-    displayedSectionId === 'hero' || displayedSectionId === 'operations' ? 'dark' : 'light';
 
   useLayoutEffect(() => {
     const menu = menuRef.current;

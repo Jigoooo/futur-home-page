@@ -92,8 +92,10 @@
   display: inline-flex;
   align-items: center;
   flex: 0 0 auto;
+  font-family: var(--font-display);
   font-size: 25px;
-  font-weight: 950;
+  font-weight: 700;
+  letter-spacing: -0.035em;
   color: var(--header-ink);
   line-height: 1;
   transition: color 0.16s var(--ease-out);
@@ -116,7 +118,7 @@
   background: transparent;
   color: var(--header-ink);
   font-size: 14px;
-  font-weight: 900;
+  font-weight: 700;
   transition: color 0.16s var(--ease-out);
 }
 
@@ -139,7 +141,7 @@
   gap: 12px;
   color: var(--header-ink);
   font-size: 14px;
-  font-weight: 850;
+  font-weight: 700;
   transition: color 0.16s var(--ease-out);
 }
 
@@ -167,6 +169,31 @@
 .navMenu a[aria-current='location'] {
   color: var(--header-active-ink);
   opacity: 1;
+}
+
+.navMenu .contactLink {
+  min-width: 66px;
+  margin-left: 4px;
+  padding-inline: 15px;
+  background: var(--header-ink);
+  color: #111827;
+  opacity: 1;
+}
+
+.nav[data-header-glass-tone='light'] .navMenu .contactLink {
+  background: var(--navy);
+  color: #ffffff;
+}
+
+.navMenu .contactLink:hover,
+.navMenu .contactLink:focus-visible {
+  color: #111827;
+  opacity: 0.82;
+}
+
+.nav[data-header-glass-tone='light'] .navMenu .contactLink:hover,
+.nav[data-header-glass-tone='light'] .navMenu .contactLink:focus-visible {
+  color: #ffffff;
 }
 
 .activeIndicator {
@@ -349,7 +376,7 @@
   .menuLinks {
     width: 100%;
     display: grid;
-    grid-template-columns: repeat(6, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 10px 6px;
   }
 
@@ -369,12 +396,14 @@
 
   .navMenu a {
     min-width: 0;
-    grid-column: span 2;
+    grid-column: auto;
     padding-inline: 4px;
   }
 
-  .navMenu a:nth-child(4) {
-    grid-column: 2 / span 2;
+  .navMenu .contactLink {
+    min-width: 0;
+    margin-left: 0;
+    padding-inline: 6px;
   }
 
   .closeButton {

@@ -2,9 +2,9 @@ import { expect, test } from '@playwright/test';
 
 async function waitForLandingHydration(page: import('@playwright/test').Page) {
   await page.waitForFunction(() => {
-    const button = document.querySelector('[data-landing-interactive="round"]');
+    const landing = document.querySelector('[data-landing-page]');
 
-    return button && Object.keys(button).some((key) => key.startsWith('__reactProps$'));
+    return landing && Object.keys(landing).some((key) => key.startsWith('__reactProps$'));
   });
 }
 
@@ -18,12 +18,11 @@ test('initial load and primary interactions emit no runtime errors', async ({ pa
 
   await page.goto('/');
   await waitForLandingHydration(page);
-  const animatedButton = page.locator('#footer [data-landing-interactive="round"]');
-  await animatedButton.scrollIntoViewIfNeeded();
-  await animatedButton.dispatchEvent('pointerover', { pointerType: 'mouse' });
-  await page.waitForTimeout(350);
-  await animatedButton.dispatchEvent('pointerout', { pointerType: 'mouse' });
-  await page.waitForTimeout(350);
+  const technologyDisclosure = page.locator('#technology details[data-technology-details]');
+  await technologyDisclosure.locator('summary').click();
+  await expect(technologyDisclosure).toHaveAttribute('open', '');
+  await technologyDisclosure.locator('summary').click();
+  await expect(technologyDisclosure).not.toHaveAttribute('open', '');
 
   await page
     .getByRole('navigation', { name: '주요 메뉴' })
@@ -37,6 +36,7 @@ test('initial load and primary interactions emit no runtime errors', async ({ pa
   await expect(headerToggle).toBeVisible();
   await headerToggle.click();
   await expect(headerToggle).toHaveAttribute('aria-expanded', 'true');
+  await page.keyboard.press('Escape');
   await page.locator('#faq button').first().hover();
   await page.mouse.move(0, 0);
 

@@ -23,6 +23,7 @@ export function FaqSection() {
       className={cx(sharedStyles.sectionBlock, styles.faqSection)}
       id='faq'
       data-landing-section
+      data-header-surface='light'
       data-cursor-contrast='dark'
     >
       <div className={sharedStyles.container} data-classic-surface>
@@ -30,11 +31,7 @@ export function FaqSection() {
           className={cx(styles.head, sharedStyles.reveal, sharedStyles.revealUp)}
           data-landing-reveal='up'
         >
-          <span className={sharedStyles.kicker}>FAQ</span>
-          <h2 className={cx(sharedStyles.sectionTitle, styles.title)}>자주 묻는 질문.</h2>
-          <p className={sharedStyles.sectionDesc}>
-            문의 전에 가장 많이 물어보시는 내용을 정리했습니다.
-          </p>
+          <h2 className={cx(sharedStyles.sectionTitle, styles.title)}>자주 묻는 질문</h2>
         </div>
         <div
           className={cx(styles.list, sharedStyles.reveal, sharedStyles.revealUp)}
@@ -59,9 +56,8 @@ export function FaqSection() {
                     <ChevronDown size={16} strokeWidth={1.8} />
                   </span>
                 </button>
-                <div
+                <section
                   id={panelId}
-                  role='region'
                   aria-labelledby={buttonId}
                   className={styles.panel}
                   aria-hidden={!isOpen}
@@ -69,7 +65,7 @@ export function FaqSection() {
                   <div className={styles.panelInner}>
                     <p className={styles.answer}>{item.answer}</p>
                   </div>
-                </div>
+                </section>
               </div>
             );
           })}

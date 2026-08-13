@@ -13,6 +13,22 @@ type NavigatorWithConnection = Navigator & {
 
 const HERO_PARTICLE_STOP_RATIO = 0.16;
 const HERO_PARTICLE_RESUME_RATIO = 0.24;
+const HERO_PARTICLE_EXIT_START_RATIO = 0.62;
+const HERO_PARTICLE_EXIT_END_RATIO = 0.16;
+
+function getParticleExitOpacity(canvas: HTMLCanvasElement) {
+  const bounds = canvas.getBoundingClientRect();
+  const visibleHeight = Math.max(
+    0,
+    Math.min(bounds.bottom, window.innerHeight) - Math.max(bounds.top, 0),
+  );
+  const visibleRatio = bounds.height > 0 ? visibleHeight / bounds.height : 0;
+  const progress =
+    (visibleRatio - HERO_PARTICLE_EXIT_END_RATIO) /
+    (HERO_PARTICLE_EXIT_START_RATIO - HERO_PARTICLE_EXIT_END_RATIO);
+
+  return Math.min(1, Math.max(0, progress));
+}
 
 function shouldUseStaticBackground() {
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -42,6 +58,19 @@ export function HeroParticleBackground() {
     let isHeroVisible = true;
     let isDocumentVisible = document.visibilityState === 'visible';
     let pointerActive = false;
+    let exitOpacityFrame = 0;
+
+    const writeExitOpacity = () => {
+      exitOpacityFrame = 0;
+      canvas.style.setProperty(
+        '--hero-particle-exit-opacity',
+        getParticleExitOpacity(canvas).toFixed(4),
+      );
+    };
+    const scheduleExitOpacity = () => {
+      if (exitOpacityFrame) return;
+      exitOpacityFrame = window.requestAnimationFrame(writeExitOpacity);
+    };
 
     const syncPlayback = () => {
       if (isHeroVisible && isDocumentVisible) engine.start();
@@ -102,14 +131,21 @@ export function HeroParticleBackground() {
     };
 
     window.addEventListener('pointermove', handlePointerMove, { passive: true });
+    window.addEventListener('scroll', scheduleExitOpacity, { passive: true });
+    window.addEventListener('resize', scheduleExitOpacity, { passive: true });
     document.addEventListener('visibilitychange', handleVisibilityChange);
     canvas.addEventListener('webglcontextlost', handleContextLost);
+    scheduleExitOpacity();
     syncPlayback();
 
     return () => {
       window.removeEventListener('pointermove', handlePointerMove);
+      window.removeEventListener('scroll', scheduleExitOpacity);
+      window.removeEventListener('resize', scheduleExitOpacity);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       canvas.removeEventListener('webglcontextlost', handleContextLost);
+      window.cancelAnimationFrame(exitOpacityFrame);
+      canvas.style.removeProperty('--hero-particle-exit-opacity');
       resizeObserver.disconnect();
       intersectionObserver.disconnect();
       engine.destroy();

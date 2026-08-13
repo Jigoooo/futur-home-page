@@ -1,67 +1,36 @@
-import type { ServiceItem, ServicePhase } from '../model/types';
+import type { ServiceCapability } from '../model/types';
 
-export const servicePhases: ServicePhase[] = [
+export const serviceCapabilities: ServiceCapability[] = [
   {
-    key: 'build',
+    key: 'product',
     index: '01',
-    label: 'BUILD',
-    title: '제품과 업무의 기반을 만듭니다.',
-    services: [
-      {
-        key: 'web',
-        title: '웹·앱 개발',
-        description: '사용자가 실제로 쓰기 쉬운 화면과 현장 업무에 맞는 앱을 구현합니다.',
-        icon: 'desktop',
-        scopes: ['웹 서비스', '모바일 앱', '관리자 화면'],
-      },
-      {
-        key: 'system',
-        title: '업무 시스템 구축',
-        description: '반복 업무와 수기 관리를 줄이고 데이터 기반으로 일할 수 있는 구조를 만듭니다.',
-        icon: 'system',
-        scopes: ['업무 흐름', '데이터 관리', '권한 설계'],
-      },
-    ],
+    title: '서비스·솔루션 개발',
+    description:
+      '웹과 앱, SaaS와 독립 솔루션을 기획 의도와 실제 사용 흐름에 맞춰 설계하고 구현합니다.',
+    scopes: ['웹 서비스·SaaS', '모바일·데스크톱 앱', '관리자·고객 포털'],
   },
   {
-    key: 'connect',
+    key: 'system',
     index: '02',
-    label: 'CONNECT',
-    title: '필요한 기술을 하나의 흐름으로 연결합니다.',
-    services: [
-      {
-        key: 'api',
-        title: '연동·API',
-        description:
-          '인증, 결제, 알림, 파일 업로드 등 운영에 필요한 외부 서비스를 안정적으로 연결합니다.',
-        icon: 'link',
-        scopes: ['인증·결제', '알림', '파일·외부 API'],
-      },
-      {
-        key: 'ai',
-        title: 'AI 통합·AX',
-        description:
-          '기존 AI 모델과 API를 활용해 챗봇, 문서 검색, 업무 자동화를 서비스와 사내 시스템에 연결합니다.',
-        icon: 'sparkles',
-        scopes: ['AI 챗봇', '문서 검색', '업무 자동화'],
-      },
-    ],
+    title: '업무 시스템·SI',
+    description:
+      '조직의 업무 흐름과 데이터 구조에 맞는 시스템을 구축하고, 기존 시스템과 외부 서비스를 연결합니다.',
+    scopes: ['업무 시스템·SI', 'API·시스템 연동', '데이터·권한 구조'],
   },
   {
-    key: 'operate',
+    key: 'ai',
     index: '03',
-    label: 'OPERATE',
-    title: '출시 이후까지 안정적으로 운영합니다.',
-    services: [
-      {
-        key: 'operations',
-        title: '운영·유지보수',
-        description: '배포 이후의 오류 대응, 기능 개선, 성능 점검까지 지속적으로 관리합니다.',
-        icon: 'shield',
-        scopes: ['오류 대응', '기능 개선', '성능 점검'],
-      },
-    ],
+    title: 'AI 통합·AX',
+    description:
+      '검증된 AI 모델을 조직의 데이터와 업무 흐름에 연결해 검색, 대화, 자동화 경험을 구현합니다.',
+    scopes: ['AI 챗봇·검색', 'RAG·에이전트', '업무 자동화·AX'],
+  },
+  {
+    key: 'operations',
+    index: '04',
+    title: '운영·유지보수',
+    description:
+      '배포 환경을 구성하고 서비스 상태를 관찰하며, 오류 대응과 기능 개선이 이어지도록 관리합니다.',
+    scopes: ['배포·인프라', '모니터링·오류 대응', '기능 개선·유지보수'],
   },
 ];
-
-export const services: ServiceItem[] = servicePhases.flatMap((phase) => phase.services);

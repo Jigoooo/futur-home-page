@@ -274,3 +274,32 @@ test('keeps Services and Footer readable without horizontal overflow at supporte
   );
   await noScriptContext.close();
 });
+
+test('surfaces a Services child overflow instead of concealing it at section or page level', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto('/#services');
+  await waitForLandingHydration(page);
+
+  const overflowIsObservable = await page.evaluate(() => {
+    const services = document.querySelector<HTMLElement>('#services')!;
+    const sentinel = document.createElement('span');
+    sentinel.setAttribute('aria-hidden', 'true');
+    Object.assign(sentinel.style, {
+      height: '1px',
+      left: '100%',
+      pointerEvents: 'none',
+      position: 'absolute',
+      top: '0',
+      width: '32px',
+    });
+    services.append(sentinel);
+
+    const overflowDetected = document.documentElement.scrollWidth > window.innerWidth;
+    sentinel.remove();
+    return overflowDetected;
+  });
+
+  expect(overflowIsObservable).toBe(true);
+});

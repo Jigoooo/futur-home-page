@@ -1,7 +1,6 @@
 .page {
   position: relative;
   min-width: 0;
-  overflow-x: clip;
   background: var(--bg);
 }
 

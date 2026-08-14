@@ -1,5 +1,4 @@
 .services {
-  overflow: clip;
   padding-block: clamp(112px, 10vw, 156px) clamp(136px, 13vw, 200px);
   background: #f4f4f0;
   color: var(--navy);

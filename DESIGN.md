@@ -87,6 +87,8 @@ desktop은 두 열 bento다. 1번과 4번은 전폭, 2번과 3번은 반폭이�
 
 fine pointer 환경의 카드는 `Lifted Ink Surface`를 사용한다. 내부 surface만 `translateY(-7px) scale(1.006)`로 들어 올리고, 카드 tone별 blue·orange·green·violet radial ink lens와 사전 렌더된 shadow opacity를 포인터 위치에서 드러낸다. 진입은 `320ms power3.out`, 복귀는 `480ms back.out(1.35)`, lens fade는 `180ms`다. 카드 자체는 정보성 `<article>`이며 링크·버튼·role·`tabIndex`·focus·pointer cursor와 hover 전용 정보가 없다. touch, coarse pointer와 reduced motion에서는 surface와 lens가 정적 최종 상태로 남는다.
 
+페이지와 Services 루트에서 가로 overflow를 숨기지 않는다. clipping은 서비스 lens, Footer signature와 Technology marquee처럼 장식이 자체 경계를 가져야 하는 로컬 필드에만 둔다.
+
 `1180px` 이하에서는 각 카드가 copy와 image의 세로 구조가 되고 `760px` 이하에서는 한 열로 전환한다. 네 서비스 ID는 Footer 이외의 직접 접근을 위해 유지하며 `scroll-margin-top`으로 고정 Header와 겹치지 않게 한다.
 
 ## Technology

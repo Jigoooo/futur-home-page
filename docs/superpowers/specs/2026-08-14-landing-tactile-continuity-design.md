@@ -2,13 +2,13 @@
 
 ## Status
 
-Superseded. Hero·정적 FAQ·독립 법적 페이지 계약은 유지하지만 Services surface gate와 Technology 스크롤 스택은 `2026-08-14-capability-gallery-design.md`로 대체된다.
+Superseded. Hero·독립 법적 페이지 계약은 유지하지만 Services surface gate와 Technology 스크롤 스택은 `2026-08-14-capability-gallery-design.md`, 정적 FAQ 계약은 `2026-08-14-faq-accordion-design.md`로 대체된다.
 
 ## Product Boundary
 
 - 최종 순서는 `Hero → Services → Technology → FAQ → Footer`다.
 - Hero의 문구, 크기, particle 수·형태·pointer 반응은 변경하지 않는다.
-- 서비스 4개, 기술 분류 16개와 기술 70개, FAQ 3개를 유지한다.
+- 서비스 4개, 기술 분류 16개와 기술 70개를 유지한다. FAQ는 대체 설계 문서를 따른다.
 - 고객·프로젝트·성과·후기·팀 인원·AI 모델 자체 개발 역량을 만들어내지 않는다.
 
 ## Hero–Services Surface Contract
@@ -43,6 +43,6 @@ Footer의 주 CTA는 기존 mailto를 유지하는 `문의하기` Button이다. 
 - Hero·Services intro의 동일한 배경과 전폭 밝은 service surface
 - desktop 40:60 sticky, `1180 / 900 / 390px` 세로 레이아웃과 no overflow
 - Capability Sheet 4개, 전체 분류 16개, 기술 70개
-- 정적 FAQ 3개, Footer mailto CTA, 작은 이메일, 서비스 nav 제거
+- FAQ 계약은 대체 설계 문서에서 검증하고, Footer mailto CTA, 작은 이메일, 서비스 nav 제거를 확인한다.
 - 독립 legal route, `퓨터 / Futur`, PageScrollbar 활성 조건
 - no-JS, reduced motion, keyboard, axe WCAG 2.2 AA, lint, build, 내부 브라우저 시각 QA

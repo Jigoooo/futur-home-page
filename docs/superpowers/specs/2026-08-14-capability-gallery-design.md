@@ -7,7 +7,7 @@ Approved and implemented. 사용자가 선택한 1안에서 이미지 요소를 
 ## Product Boundary
 
 - 페이지 순서는 `Hero → Services → Technology → FAQ → Footer`다.
-- Hero 문구·파티클·크기, 서비스 4개, 기술 분류 16개·기술 70개, FAQ 3개를 유지한다.
+- Hero 문구·파티클·크기, 서비스 4개, 기술 분류 16개·기술 70개를 유지한다. FAQ 계약은 `2026-08-14-faq-accordion-design.md`가 대체한다.
 - 고객·프로젝트·성과·후기·팀 인원·AI 모델 자체 개발 역량은 만들지 않는다.
 - 서비스 카드에는 이미지·SVG·아이콘을 사용하지 않는다.
 

@@ -64,16 +64,20 @@ test('presents four factual technology rows with continuous type at intermediate
   );
 });
 
-test('shows static editorial FAQ rows and a centered tactile footer inquiry button', async ({
+test('shows a single-open editorial FAQ and a centered tactile footer inquiry button', async ({
   page,
 }) => {
   await page.goto('/#faq');
   await waitForLandingHydration(page);
 
   const faq = page.locator('#faq');
-  await expect(faq.locator('[data-faq-item]')).toHaveCount(3);
-  await expect(faq.locator('button, [aria-expanded]')).toHaveCount(0);
-  await expect(faq.getByText('페이지 하단의 문의하기 버튼으로 보내주세요.')).toBeVisible();
+  await expect(faq.locator('[data-faq-item]')).toHaveCount(6);
+  await expect(faq.locator('[data-faq-trigger]')).toHaveCount(6);
+  await expect(faq.locator('[data-faq-trigger]').first()).toHaveAttribute('aria-expanded', 'true');
+  await expect(faq.locator('[data-faq-item][data-open="true"]')).toHaveCount(1);
+  await expect(
+    faq.getByText('만들고 싶은 서비스나 해결하려는 문제를 가능한 한 자세히'),
+  ).toBeVisible();
 
   const footer = page.locator('#footer');
   const inquiry = footer.getByRole('link', { name: '문의하기', exact: true });

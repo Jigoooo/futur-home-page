@@ -14,4 +14,16 @@ test.describe('/ 랜딩 페이지 인터랙티브 상태 a11y', () => {
     await page.locator('#technology details > summary').click();
     await runA11yScan(page, { include: '#technology' });
   });
+
+  test('FAQ 단일 답변 전환', async ({ page }) => {
+    await page.goto('/#faq');
+    await page.waitForFunction(() => {
+      const landing = document.querySelector('[data-landing-page]');
+      return landing && Object.keys(landing).some((key) => key.startsWith('__reactProps$'));
+    });
+
+    const triggers = page.locator('#faq [data-faq-trigger]');
+    await triggers.nth(4).click();
+    await runA11yScan(page, { include: '#faq' });
+  });
 });

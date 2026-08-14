@@ -55,15 +55,16 @@ test('uses only the approved navigation anchors and removes the Hero action', as
   await expect(hero.getByRole('link')).toHaveCount(0);
 });
 
-test('routes static FAQ inquiries through the factual Footer action without stale form copy', async ({
+test('routes accordion FAQ inquiries through the factual Footer action without stale form copy', async ({
   page,
 }) => {
   await page.goto('/');
 
   const faq = page.locator('#faq');
   await expect(faq).not.toContainText('문의 양식');
-  await expect(faq.locator('[data-faq-item]')).toHaveCount(3);
-  await expect(faq.locator('button, [aria-expanded]')).toHaveCount(0);
+  await expect(faq.locator('[data-faq-item]')).toHaveCount(6);
+  await expect(faq.locator('[data-faq-trigger]')).toHaveCount(6);
+  await expect(faq.locator('[data-faq-trigger]').first()).toHaveAttribute('aria-expanded', 'true');
   await expect(
     faq.getByRole('heading', { level: 3, name: '기획서가 없어도 문의할 수 있나요?' }),
   ).toBeVisible();
@@ -78,6 +79,9 @@ test('routes static FAQ inquiries through the factual Footer action without stal
   ).toBeVisible();
   await expect(faq).not.toContainText('NDA');
   await expect(faq).toContainText('이미 사용 중인 웹·앱, SaaS, 업무 시스템과 솔루션');
+  await expect(faq).toContainText('기존 시스템이나 외부 서비스와 연동할 수 있나요?');
+  await expect(faq).toContainText('AI 기능은 어떤 방식으로 도입하나요?');
+  await expect(faq).toContainText('프로젝트는 어떤 방식으로 진행되나요?');
   await expect(
     page.locator('#footer').getByRole('link', { name: '문의하기', exact: true }),
   ).toHaveAttribute('href', 'mailto:kjwoo@futur.co.kr');

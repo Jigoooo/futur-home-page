@@ -1,5 +1,6 @@
 .nav {
   --landing-compact-header-offset: 92px;
+  --header-tone-duration: 240ms;
   --header-ink: #ffffff;
   --header-active-ink: #ffffff;
   --header-rim: rgba(151, 184, 235, 0.28);
@@ -48,7 +49,9 @@
       rgba(9, 22, 52, var(--header-fluid-shadow-alpha, 0.12)),
     inset 0 1px 0 var(--header-inset-highlight),
     inset 0 -1px 0 rgba(115, 135, 174, 0.1);
-  transition: border-color 0.16s var(--ease-out);
+  transition:
+    background-color var(--header-tone-duration) var(--ease-out),
+    border-color var(--header-tone-duration) var(--ease-out);
   z-index: 1;
 }
 
@@ -98,12 +101,12 @@
   letter-spacing: -0.035em;
   color: var(--header-ink);
   line-height: 1;
-  transition: color 0.16s var(--ease-out);
+  transition: color var(--header-tone-duration) var(--ease-out);
 }
 
 .logo span {
   color: var(--header-active-ink);
-  transition: color 0.16s var(--ease-out);
+  transition: color var(--header-tone-duration) var(--ease-out);
 }
 
 .compactToggle {
@@ -119,7 +122,7 @@
   color: var(--header-ink);
   font-size: 14px;
   font-weight: 700;
-  transition: color 0.16s var(--ease-out);
+  transition: color var(--header-tone-duration) var(--ease-out);
 }
 
 .compactGlyph {
@@ -142,7 +145,7 @@
   color: var(--header-ink);
   font-size: 14px;
   font-weight: 700;
-  transition: color 0.16s var(--ease-out);
+  transition: color var(--header-tone-duration) var(--ease-out);
 }
 
 .menuLinks {
@@ -161,7 +164,7 @@
   padding: 0 10px;
   border-radius: 999px;
   opacity: 0.82;
-  transition: color 0.16s var(--ease-out);
+  transition: color var(--header-tone-duration) var(--ease-out);
 }
 
 .navMenu a:hover,
@@ -178,6 +181,9 @@
   background: var(--header-ink);
   color: #111827;
   opacity: 1;
+  transition:
+    color var(--header-tone-duration) var(--ease-out),
+    background-color var(--header-tone-duration) var(--ease-out);
 }
 
 .nav[data-header-glass-tone='light'] .navMenu .contactLink {
@@ -206,6 +212,7 @@
   pointer-events: none;
   border-radius: 999px;
   background: var(--header-active-ink);
+  transition: background-color var(--header-tone-duration) var(--ease-out);
 }
 
 .activeIndicator::after {

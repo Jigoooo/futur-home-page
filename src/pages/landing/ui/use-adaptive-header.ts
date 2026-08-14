@@ -39,7 +39,7 @@ const sectionLabels = new Map([
   ['footer', { href: null, label: '문의' }],
 ]);
 const headerSectionProbeGuard = 8;
-const headerSurfaceCoverageTolerance = 1;
+const headerSurfaceProbeRatio = 0.5;
 const navigationLandingProbeTolerance = 1;
 
 function isPlainHashNavigation(event: MouseEvent<HTMLAnchorElement>) {
@@ -85,16 +85,14 @@ function getVisibleHeaderSurface(
   const headerRect = header?.getBoundingClientRect();
   if (!headerRect) return currentSurface;
 
-  const coveringSurface = surfaces.find((surface) => {
+  const probeY = headerRect.top + headerRect.height * headerSurfaceProbeRatio;
+  const surfaceAtMidpoint = surfaces.find((surface) => {
     const rect = surface.getBoundingClientRect();
-    return (
-      rect.top <= headerRect.top + headerSurfaceCoverageTolerance &&
-      rect.bottom >= headerRect.bottom - headerSurfaceCoverageTolerance
-    );
+    return rect.top <= probeY && rect.bottom > probeY;
   });
 
-  if (!coveringSurface) return currentSurface;
-  return coveringSurface.dataset.headerSurface === 'light' ? 'light' : 'dark';
+  if (!surfaceAtMidpoint) return currentSurface;
+  return surfaceAtMidpoint.dataset.headerSurface === 'light' ? 'light' : 'dark';
 }
 
 export function useAdaptiveHeader({ headerRef, menuRef, toggleRef }: AdaptiveHeaderRefs) {

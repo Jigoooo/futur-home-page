@@ -778,7 +778,7 @@ test('switches Header ink with each light and dark section surface', async ({ pa
   await expect(glass).toHaveCSS('background-color', 'rgba(248, 250, 255, 0.18)');
   await expect(backdrop).toHaveCSS('backdrop-filter', 'blur(12px) saturate(1.35) contrast(1.03)');
   expect(await glass.evaluate((element) => getComputedStyle(element).transitionProperty)).toBe(
-    'border-color',
+    'background-color, border-color',
   );
   expect(await glass.evaluate((element) => getComputedStyle(element).borderColor)).not.toBe(
     'rgba(255, 255, 255, 0.58)',
@@ -814,70 +814,48 @@ test('switches Header ink with each light and dark section surface', async ({ pa
   await expect(servicesLink).toHaveCSS('color', 'rgb(7, 24, 63)');
 });
 
-test('switches Header ink only after the next surface fully covers the island', async ({
+test('switches Header ink when the incoming surface crosses the island midpoint', async ({
   page,
 }) => {
   await page.goto('/');
   const nav = header(page);
   await expect(nav).toHaveAttribute('data-header-hydrated', 'true');
 
-  await page.evaluate(() => {
-    const headerElement = document.querySelector<HTMLElement>('[data-landing-nav]')!;
-    const servicesElement = document.querySelector<HTMLElement>('#services')!;
-    const servicesDocumentTop = servicesElement.getBoundingClientRect().top + window.scrollY;
-    const headerRect = headerElement.getBoundingClientRect();
-    window.scrollTo({
-      top: servicesDocumentTop - (headerRect.top + headerRect.height / 2),
-      behavior: 'instant',
-    });
-  });
+  const placeServicesTopAt = async (offsetFromHeaderMidpoint: number) => {
+    await page.evaluate((offset) => {
+      const headerElement = document.querySelector<HTMLElement>('[data-landing-nav]')!;
+      const servicesElement = document.querySelector<HTMLElement>('#services')!;
+      const servicesDocumentTop = servicesElement.getBoundingClientRect().top + window.scrollY;
+      const headerRect = headerElement.getBoundingClientRect();
+      const headerMidpoint = headerRect.top + headerRect.height / 2;
+      window.scrollTo({
+        top: servicesDocumentTop - headerMidpoint - offset,
+        behavior: 'instant',
+      });
+    }, offsetFromHeaderMidpoint);
+  };
 
-  const mixedSurfaceGeometry = await page.evaluate(() => {
-    const headerElement = document.querySelector<HTMLElement>('[data-landing-nav]')!;
-    const servicesElement = document.querySelector<HTMLElement>('#services')!;
-    const headerRect = headerElement.getBoundingClientRect();
+  await placeServicesTopAt(2);
+  await expect(nav).toHaveAttribute('data-header-glass-tone', 'dark');
+
+  await placeServicesTopAt(-2);
+  await expect(nav).toHaveAttribute('data-header-glass-tone', 'light');
+
+  await placeServicesTopAt(-2);
+  await expect(nav).toHaveAttribute('data-header-glass-tone', 'light');
+
+  await placeServicesTopAt(2);
+  await expect(nav).toHaveAttribute('data-header-glass-tone', 'dark');
+
+  const toneTransitions = await nav.evaluate((element) => {
+    const glass = element.querySelector<HTMLElement>('[data-header-glass]')!;
+    const logo = element.querySelector<HTMLElement>('a[aria-label="FUTUR home"]')!;
     return {
-      headerTop: headerRect.top,
-      headerBottom: headerRect.bottom,
-      servicesTop: servicesElement.getBoundingClientRect().top,
+      glass: getComputedStyle(glass).transitionDuration,
+      logo: getComputedStyle(logo).transitionDuration,
     };
   });
-  expect(mixedSurfaceGeometry.servicesTop).toBeGreaterThan(mixedSurfaceGeometry.headerTop);
-  expect(mixedSurfaceGeometry.servicesTop).toBeLessThan(mixedSurfaceGeometry.headerBottom);
-  await expect(nav).toHaveAttribute('data-header-glass-tone', 'dark');
-
-  await page.evaluate(() => {
-    const headerElement = document.querySelector<HTMLElement>('[data-landing-nav]')!;
-    const servicesElement = document.querySelector<HTMLElement>('#services')!;
-    const headerTop = headerElement.getBoundingClientRect().top;
-    window.scrollBy({
-      top: servicesElement.getBoundingClientRect().top - headerTop + 1,
-      behavior: 'instant',
-    });
-  });
-  await expect(nav).toHaveAttribute('data-header-glass-tone', 'light');
-
-  await page.evaluate(() => {
-    const headerElement = document.querySelector<HTMLElement>('[data-landing-nav]')!;
-    const servicesElement = document.querySelector<HTMLElement>('#services')!;
-    const headerRect = headerElement.getBoundingClientRect();
-    window.scrollBy({
-      top: servicesElement.getBoundingClientRect().top - (headerRect.top + headerRect.height / 2),
-      behavior: 'instant',
-    });
-  });
-  await expect(nav).toHaveAttribute('data-header-glass-tone', 'light');
-
-  await page.evaluate(() => {
-    const headerElement = document.querySelector<HTMLElement>('[data-landing-nav]')!;
-    const servicesElement = document.querySelector<HTMLElement>('#services')!;
-    const headerBottom = headerElement.getBoundingClientRect().bottom;
-    window.scrollBy({
-      top: servicesElement.getBoundingClientRect().top - headerBottom - 1,
-      behavior: 'instant',
-    });
-  });
-  await expect(nav).toHaveAttribute('data-header-glass-tone', 'dark');
+  expect(toneTransitions).toEqual({ glass: '0.24s, 0.24s', logo: '0.24s' });
 });
 
 test('keeps the desktop logo and navigation links in tab order at full scroll progress', async ({

@@ -22,6 +22,14 @@ test('keeps four informational service cards with one surface and lens each', as
     elements.map((element) => getComputedStyle(element).cursor),
   );
   expect(cursorValues.every((cursor) => cursor === 'auto' || cursor === 'default')).toBe(true);
+
+  const pageWidth = await page.evaluate(() => ({
+    height: window.innerHeight,
+    scrollWidth: document.documentElement.scrollWidth,
+    width: window.innerWidth,
+  }));
+  expect(pageWidth).toMatchObject({ height: 900, width: 1280 });
+  expect(pageWidth.scrollWidth).toBeLessThanOrEqual(pageWidth.width);
 });
 
 test('lifts one fine-pointer service surface and tracks the local ink lens', async ({ page }) => {

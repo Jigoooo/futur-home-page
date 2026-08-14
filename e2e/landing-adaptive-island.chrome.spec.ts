@@ -1337,11 +1337,11 @@ test('applies semantic clear crystal glass, spotlight, cursor contrast, and resi
         nav.dataset.headerGlassTone = tone;
         const originalCurrent = servicesLink.getAttribute('aria-current');
         servicesLink.setAttribute('aria-current', 'location');
-        await new Promise<void>((resolve) => window.setTimeout(resolve, 180));
+        await new Promise<void>((resolve) => window.setTimeout(resolve, 280));
         const activeNavigationColor = getComputedStyle(servicesLink).color;
         if (originalCurrent) servicesLink.setAttribute('aria-current', originalCurrent);
         else servicesLink.removeAttribute('aria-current');
-        await new Promise<void>((resolve) => window.setTimeout(resolve, 180));
+        await new Promise<void>((resolve) => window.setTimeout(resolve, 280));
 
         const styles = getComputedStyle(glass);
         const backdropStyles = getComputedStyle(backdrop);
@@ -1407,11 +1407,11 @@ test('applies semantic clear crystal glass, spotlight, cursor contrast, and resi
     const fallbackInk = await header(page).evaluate(async (element) => {
       const logo = element.querySelector<HTMLElement>('a[aria-label="FUTUR home"]')!;
       const servicesLink = element.querySelector<HTMLElement>('a[href="#services"]')!;
-      await new Promise<void>((resolve) => window.setTimeout(resolve, 180));
+      await new Promise<void>((resolve) => window.setTimeout(resolve, 280));
       const navigation = getComputedStyle(servicesLink).color;
       const originalCurrent = servicesLink.getAttribute('aria-current');
       servicesLink.setAttribute('aria-current', 'location');
-      await new Promise<void>((resolve) => window.setTimeout(resolve, 180));
+      await new Promise<void>((resolve) => window.setTimeout(resolve, 280));
       const activeNavigation = getComputedStyle(servicesLink).color;
       if (originalCurrent) servicesLink.setAttribute('aria-current', originalCurrent);
       else servicesLink.removeAttribute('aria-current');

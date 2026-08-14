@@ -2,7 +2,7 @@
 
 ## Status
 
-Approved and implemented. 이 문서는 기존 Services A/B 비교와 Team A1/A2/A3 비교 설계를 대체한다.
+Superseded. 이 문서의 정보 구조와 콘텐츠 경계는 유지하되, 양분된 Services surface·Technology 텍스트 행·FAQ accordion·대형 Footer 이메일 설계는 `2026-08-14-landing-tactile-continuity-design.md`로 대체된다.
 
 ## Goal
 
@@ -17,18 +17,18 @@ Approved and implemented. 이 문서는 기존 Services A/B 비교와 Team A1/A2
 
 ## Visual Contract
 
-- Services desktop은 왼쪽 `100svh` 검은 sticky index와 오른쪽 `82svh` 챕터의 약 `40:60` 분할이다.
+- Services desktop은 약 `40:60` 분할을 유지하지만 왼쪽 index와 오른쪽 chapter는 하나의 밝은 surface를 공유한다.
 - `1180px` 이하는 한 열, `560px` 이하는 콘텐츠 높이로 전환한다.
-- Technology는 짙은 남색 배경의 텍스트 행이며 카드와 칩을 사용하지 않는다.
-- Footer는 검은 평면 위 큰 제목, 설명과 이메일을 배치하고 CTA 카드나 pill을 사용하지 않는다.
+- Technology는 짙은 남색 배경의 Capability Sheet 스크롤 스택이다.
+- Footer는 검은 평면 위 작은 `문의하기` CTA와 연락처를 배치한다.
 - 영문 kicker, 아이콘, 장식 SVG, 발광, blur entrance와 지속 애니메이션을 추가하지 않는다.
 
 ## Interaction Contract
 
-- 서비스 인덱스는 native anchor이며 중앙선을 통과한 챕터 하나에 `aria-current='step'`을 제공한다.
+- 서비스 인덱스는 비조작형 스크롤 진행 표시이며 보조기술에서 숨긴다.
 - 챕터는 기존 reveal observer로 최초 진입 시 한 번만 나타난다.
 - 전체 기술은 기본 닫힌 native `<details>`로 제공한다.
-- FAQ 첫 문항만 기본으로 펼친다.
+- FAQ 세 문항의 답변을 항상 노출한다.
 - reduced motion과 no-JS에서도 핵심 콘텐츠와 모든 기술에 접근할 수 있다.
 
 ## Content Boundaries

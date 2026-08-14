@@ -450,12 +450,14 @@ export function useAdaptiveHeader({ headerRef, menuRef, toggleRef }: AdaptiveHea
 
     window.addEventListener('scroll', updateActiveSection, { passive: true });
     window.addEventListener('resize', updateActiveSection);
+    window.addEventListener('landing-surface-change', updateActiveSection);
     updateActiveSection();
 
     return () => {
       window.cancelAnimationFrame(frameId);
       window.removeEventListener('scroll', updateActiveSection);
       window.removeEventListener('resize', updateActiveSection);
+      window.removeEventListener('landing-surface-change', updateActiveSection);
     };
   }, [headerRef]);
 

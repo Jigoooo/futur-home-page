@@ -1,6 +1,6 @@
 import { Link } from '@tanstack/react-router';
 
-import { serviceCapabilities } from '../config';
+import { Button } from './button';
 import styles from './styles/footer.module.css';
 import sharedStyles from './styles/shared.module.css';
 import { mailHref } from '../lib/company-links';
@@ -22,9 +22,14 @@ export function FooterSection() {
             새로운 아이디어도, 이미 운영 중인 시스템의 문제도 괜찮습니다. 현재 상황과 필요한 기능을
             알려주세요.
           </p>
-          <a className={styles.primaryEmail} href={mailHref}>
-            {COMPANY_INFOS.EMAIL}
-          </a>
+          <Button
+            className={styles.footerCta}
+            variant='footer'
+            href={mailHref}
+            data-landing-magnetic='true'
+          >
+            <span data-landing-label>문의하기</span>
+          </Button>
         </div>
 
         <div className={styles.footerGrid}>
@@ -44,17 +49,6 @@ export function FooterSection() {
               <address>{COMPANY_INFOS.ADDRESS}</address>
             </div>
           </div>
-
-          <nav aria-label='서비스 탐색'>
-            <strong>서비스 탐색</strong>
-            <div className={styles.serviceLinks}>
-              {serviceCapabilities.map((service) => (
-                <a key={service.title} href={`#service-${service.key}`}>
-                  {service.title}
-                </a>
-              ))}
-            </div>
-          </nav>
         </div>
 
         <nav className={styles.legalLinks} aria-label='법적 고지'>

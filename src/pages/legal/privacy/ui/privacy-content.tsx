@@ -7,9 +7,9 @@ export function PrivacyContent() {
       <header className={styles.header}>
         <h1>개인정보 처리방침</h1>
         <p>
-          {COMPANY_INFOS.NAME}(이하 &ldquo;회사&rdquo;)는 「개인정보 보호법」 제30조에 따라
-          정보주체의 개인정보 보호 및 권익을 보호하고 관련 고충을 원활하게 처리할 수 있도록 다음과
-          같이 개인정보 처리방침을 수립·공개합니다.
+          {COMPANY_INFOS.LEGAL_NAME_KO}(영문명 {COMPANY_INFOS.NAME}, 이하 &ldquo;회사&rdquo;)는
+          「개인정보 보호법」 제30조에 따라 정보주체의 개인정보 보호 및 권익을 보호하고 관련 고충을
+          원활하게 처리할 수 있도록 다음과 같이 개인정보 처리방침을 수립·공개합니다.
         </p>
       </header>
 

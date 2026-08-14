@@ -11,7 +11,8 @@ export function TermsContent() {
       <section>
         <h2>제1조 (목적)</h2>
         <p>
-          본 약관은 {COMPANY_INFOS.NAME}(이하 &ldquo;회사&rdquo;)가 운영하는 웹사이트(
+          본 약관은 {COMPANY_INFOS.LEGAL_NAME_KO}(영문명 {COMPANY_INFOS.NAME}, 이하
+          &ldquo;회사&rdquo;)가 운영하는 웹사이트(
           <a href={COMPANY_INFOS.URL} target='_blank' rel='noreferrer'>
             {COMPANY_INFOS.URL}
           </a>

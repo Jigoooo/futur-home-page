@@ -66,6 +66,30 @@
   opacity: var(--btn-sheen-opacity);
 }
 
+.surface {
+  position: relative;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.liquidFill {
+  position: absolute;
+  z-index: 1;
+  left: var(--spot-x);
+  top: var(--spot-y);
+  width: 180%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: #ffffff;
+  pointer-events: none;
+  transform: translate(-50%, -50%) scale(0);
+  transform-origin: center;
+  transition: transform 0.48s var(--ease-out);
+}
+
 .button [data-landing-label],
 .button [data-landing-arrow] {
   position: relative;
@@ -106,6 +130,37 @@
   color: #1c2b58;
 }
 
+.footer {
+  --btn-bg: #315cff;
+  --btn-color: #ffffff;
+  --btn-border: #315cff;
+  min-width: 220px;
+  min-height: 60px;
+  padding-inline: 32px;
+  background: #315cff;
+  box-shadow: 0 16px 38px rgba(14, 43, 117, 0.28);
+  transition:
+    box-shadow 0.28s var(--ease),
+    border-color 0.28s ease,
+    color 0.3s ease;
+}
+
+.footer:hover,
+.footer:focus-visible {
+  --btn-color: var(--navy);
+  --btn-border: #ffffff;
+  color: var(--navy);
+}
+
+.footer:hover .liquidFill,
+.footer:focus-visible .liquidFill {
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.footer:focus-visible {
+  outline-color: rgba(255, 255, 255, 0.72);
+}
+
 @media (max-width: 560px) {
   .button {
     width: 100%;
@@ -117,5 +172,11 @@
   .button:hover {
     transform: none;
     box-shadow: inherit;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .liquidFill {
+    transition: none;
   }
 }

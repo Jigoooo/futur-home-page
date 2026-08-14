@@ -37,7 +37,7 @@ test('initial load and primary interactions emit no runtime errors', async ({ pa
   await headerToggle.click();
   await expect(headerToggle).toHaveAttribute('aria-expanded', 'true');
   await page.keyboard.press('Escape');
-  await page.locator('#faq button').first().hover();
+  await page.locator('#footer a[data-landing-magnetic]').hover();
   await page.mouse.move(0, 0);
 
   expect(errors).toEqual([]);

@@ -6,11 +6,9 @@ test('reveals classic sections once without hiding SSR content', async ({ page }
   await page.goto('/');
 
   await expect(page.locator('[data-landing-reveal]').first()).toBeVisible();
-  await page.locator('#technology').scrollIntoViewIfNeeded();
-  await expect(page.locator('#technology [data-landing-reveal]').first()).toHaveAttribute(
-    'data-landing-visible',
-    'true',
-  );
+  const technologyReveal = page.locator('#technology [data-landing-reveal]').first();
+  await technologyReveal.scrollIntoViewIfNeeded();
+  await expect(technologyReveal).toHaveAttribute('data-landing-visible', 'true');
 });
 
 test('keeps classic content visible without JavaScript', async ({ browser }) => {

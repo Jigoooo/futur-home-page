@@ -4,6 +4,7 @@ export const technologyCapabilities: TechnologyCapability[] = [
   {
     key: 'client',
     label: '클라이언트',
+    description: '웹·모바일·데스크톱 환경에서 일관된 제품 경험을 구현합니다.',
     featuredTechnologies: [
       'React',
       'Next.js',
@@ -37,6 +38,7 @@ export const technologyCapabilities: TechnologyCapability[] = [
   {
     key: 'backend',
     label: '백엔드·데이터',
+    description: '서비스의 API와 데이터, 권한, 검색과 비동기 처리 구조를 설계합니다.',
     featuredTechnologies: [
       'Node.js',
       'NestJS',
@@ -69,6 +71,8 @@ export const technologyCapabilities: TechnologyCapability[] = [
   {
     key: 'ai',
     label: 'AI·AX',
+    description:
+      '검증된 AI 모델을 조직의 데이터와 업무 흐름에 연결해 검색·자동화·에이전트를 구현합니다.',
     featuredTechnologies: [
       'Agentic RAG',
       'Hybrid Search',
@@ -100,6 +104,7 @@ export const technologyCapabilities: TechnologyCapability[] = [
   {
     key: 'cloud',
     label: '클라우드·운영',
+    description: '배포와 트래픽, 관측, 변경 이력을 관리할 수 있는 운영 환경을 구성합니다.',
     featuredTechnologies: [
       'AWS',
       'KT Cloud',

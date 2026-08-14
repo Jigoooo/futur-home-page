@@ -1,23 +1,9 @@
-import { ChevronDown } from 'lucide-react';
-import { useState } from 'react';
-
 import { faqItems } from '../config';
 import { cx } from './lib/cx';
 import styles from './styles/faq.module.css';
 import sharedStyles from './styles/shared.module.css';
 
 export function FaqSection() {
-  const [openSet, setOpenSet] = useState<Set<number>>(() => new Set([0]));
-
-  const toggle = (index: number) => {
-    setOpenSet((prev) => {
-      const next = new Set(prev);
-      if (next.has(index)) next.delete(index);
-      else next.add(index);
-      return next;
-    });
-  };
-
   return (
     <section
       className={cx(sharedStyles.sectionBlock, styles.faqSection)}
@@ -33,43 +19,22 @@ export function FaqSection() {
         >
           <h2 className={cx(sharedStyles.sectionTitle, styles.title)}>자주 묻는 질문</h2>
         </div>
-        <div
-          className={cx(styles.list, sharedStyles.reveal, sharedStyles.revealUp)}
-          data-landing-reveal='up'
-        >
-          {faqItems.map((item, index) => {
-            const isOpen = openSet.has(index);
-            const buttonId = `faq-button-${index}`;
-            const panelId = `faq-panel-${index}`;
-            return (
-              <div key={item.question} className={cx(styles.item, isOpen && styles.itemOpen)}>
-                <button
-                  type='button'
-                  id={buttonId}
-                  className={styles.summary}
-                  aria-expanded={isOpen}
-                  aria-controls={panelId}
-                  onClick={() => toggle(index)}
-                >
-                  <span className={styles.question}>{item.question}</span>
-                  <span className={styles.toggle} aria-hidden='true'>
-                    <ChevronDown size={16} strokeWidth={1.8} />
-                  </span>
-                </button>
-                <section
-                  id={panelId}
-                  aria-labelledby={buttonId}
-                  className={styles.panel}
-                  aria-hidden={!isOpen}
-                >
-                  <div className={styles.panelInner}>
-                    <p className={styles.answer}>{item.answer}</p>
-                  </div>
-                </section>
-              </div>
-            );
-          })}
-        </div>
+        <ol className={styles.list}>
+          {faqItems.map((item, index) => (
+            <li
+              key={item.question}
+              className={cx(styles.item, sharedStyles.reveal, sharedStyles.revealUp)}
+              data-faq-item
+              data-landing-reveal='up'
+            >
+              <span className={styles.index} aria-hidden='true'>
+                {String(index + 1).padStart(2, '0')}
+              </span>
+              <h3>{item.question}</h3>
+              <p>{item.answer}</p>
+            </li>
+          ))}
+        </ol>
       </div>
     </section>
   );

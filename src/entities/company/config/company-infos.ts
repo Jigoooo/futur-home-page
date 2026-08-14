@@ -1,5 +1,6 @@
 export const COMPANY_INFOS = {
   NAME: 'Futur',
+  LEGAL_NAME_KO: '퓨터',
   CEO: '김지우, 김진성',
   EMAIL: 'kjwoo@futur.co.kr',
   PHONE: '010-2355-7934',

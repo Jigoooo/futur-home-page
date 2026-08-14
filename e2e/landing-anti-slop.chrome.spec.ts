@@ -55,20 +55,21 @@ test('uses only the approved navigation anchors and removes the Hero action', as
   await expect(hero.getByRole('link')).toHaveCount(0);
 });
 
-test('routes FAQ inquiries through the factual Footer email without stale form copy', async ({
+test('routes static FAQ inquiries through the factual Footer action without stale form copy', async ({
   page,
 }) => {
   await page.goto('/');
 
   const faq = page.locator('#faq');
   await expect(faq).not.toContainText('문의 양식');
-
-  const planningQuestion = faq.getByRole('button', { name: '기획서가 없어도 문의할 수 있나요?' });
-  const costQuestion = faq.getByRole('button', { name: '비용과 일정은 어떻게 정해지나요?' });
-  await expect(planningQuestion).toBeVisible();
-  await expect(costQuestion).toBeVisible();
-  await costQuestion.click();
-
-  await expect(faq).toContainText('페이지 하단 이메일 kjwoo@futur.co.kr');
+  await expect(faq.locator('[data-faq-item]')).toHaveCount(3);
+  await expect(faq.locator('button, [aria-expanded]')).toHaveCount(0);
+  await expect(
+    faq.getByRole('heading', { level: 3, name: '기획서가 없어도 문의할 수 있나요?' }),
+  ).toBeVisible();
+  await expect(faq).toContainText('페이지 하단의 문의하기 버튼으로 보내주세요.');
+  await expect(
+    page.locator('#footer').getByRole('link', { name: '문의하기', exact: true }),
+  ).toHaveAttribute('href', 'mailto:kjwoo@futur.co.kr');
   await expect(page.locator('#footer a[href="mailto:kjwoo@futur.co.kr"]')).not.toHaveCount(0);
 });

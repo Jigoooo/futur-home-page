@@ -5,13 +5,13 @@ import { FaqSection } from './faq-section';
 import { FooterSection } from './footer-section';
 import { HeaderSection } from './header-section';
 import { HeroSection } from './hero-section';
-import { LandingScrollbar } from './landing-scrollbar';
 import { ServicesSection } from './services-section';
 import scrollTopStyles from './styles/scroll-top.module.css';
 import sharedStyles from './styles/shared.module.css';
 import { TechnologySection } from './technology-section';
 import { useInViewReveal } from './use-in-view-reveal';
 import { scrollToPageTop } from '../lib/scroll-to-page-top';
+import { PageScrollbar } from '@/shared/ui/page-scrollbar';
 
 const LandingEnhancements = lazy(() =>
   import('./landing-enhancements').then((module) => ({ default: module.LandingEnhancements })),
@@ -95,7 +95,7 @@ export function LandingPage() {
         <TechnologySection />
         <FaqSection />
         <FooterSection />
-        <LandingScrollbar />
+        <PageScrollbar />
         <button
           type='button'
           className={scrollTopStyles.scrollTop}

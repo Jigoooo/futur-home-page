@@ -28,6 +28,9 @@ function getSpotlightTarget(target: EventTarget | null) {
 }
 
 function getSurface(control: HTMLElement) {
+  const explicitSurface = control.querySelector<HTMLElement>(SURFACE_SELECTOR);
+  if (explicitSurface) return explicitSurface;
+
   if (control.dataset.landingInteractive === 'stage-choice') {
     return control.querySelector<HTMLElement>(SURFACE_SELECTOR) ?? control;
   }
@@ -37,6 +40,36 @@ function getSurface(control: HTMLElement) {
   }
 
   return control;
+}
+
+function updateMagnetic(event: PointerEvent) {
+  const control = getControl(event.target);
+  if (!control?.hasAttribute('data-landing-magnetic')) return;
+
+  const rect = control.getBoundingClientRect();
+  const x = ((event.clientX - rect.left) / rect.width - 0.5) * 12;
+  const y = ((event.clientY - rect.top) / rect.height - 0.5) * 12;
+
+  gsap.to(control, {
+    x,
+    y,
+    duration: 0.24,
+    ease: 'power3.out',
+    overwrite: true,
+  });
+}
+
+function resetMagnetic(control: HTMLElement) {
+  if (!control.hasAttribute('data-landing-magnetic')) return;
+
+  gsap.to(control, {
+    x: 0,
+    y: 0,
+    duration: 0.42,
+    ease: 'back.out(1.8)',
+    overwrite: true,
+    clearProps: 'transform',
+  });
 }
 
 function getArrow(control: HTMLElement) {
@@ -93,7 +126,7 @@ function animateButtonDetails(control: HTMLElement, active: boolean) {
   const label = getLabel(control);
   const arrow = getArrow(control);
 
-  if (label) {
+  if (label && control.dataset.buttonVariant !== 'footer') {
     gsap.to(label, {
       x: active ? -2 : 0,
       duration: active ? 0.24 : 0.2,
@@ -228,6 +261,7 @@ export function useLandingGsapInteractions(pageRef: PageRef) {
       if (!page || !contextSafe) return undefined;
 
       const mm = gsap.matchMedia(page);
+      page.dataset.landingInteractionsReady = 'true';
 
       mm.add(
         {
@@ -251,7 +285,10 @@ export function useLandingGsapInteractions(pageRef: PageRef) {
           };
 
           if (conditions?.finePointer) {
-            const handlePointerMove = contextSafe((event: PointerEvent) => updateSpotlight(event));
+            const handlePointerMove = contextSafe((event: PointerEvent) => {
+              updateSpotlight(event);
+              updateMagnetic(event);
+            });
             const handlePointerOver = contextSafe((event: PointerEvent) => {
               if (event.pointerType !== 'mouse' && event.pointerType !== 'pen') return;
 
@@ -277,6 +314,7 @@ export function useLandingGsapInteractions(pageRef: PageRef) {
               }
 
               animateFineLeave(control);
+              resetMagnetic(control);
             });
             const handleFocusIn = contextSafe((event: FocusEvent) => {
               const control = getControl(event.target);
@@ -335,7 +373,10 @@ export function useLandingGsapInteractions(pageRef: PageRef) {
         },
       );
 
-      return () => mm.revert();
+      return () => {
+        delete page.dataset.landingInteractionsReady;
+        mm.revert();
+      };
     },
     { scope: pageRef },
   );

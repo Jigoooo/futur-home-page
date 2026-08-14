@@ -7,7 +7,7 @@ import {
   useState,
 } from 'react';
 
-import styles from './styles/landing-scrollbar.module.css';
+import styles from './page-scrollbar.module.css';
 
 const MIN_THUMB_SIZE = 48;
 const TRACK_PADDING = 14;
@@ -42,7 +42,7 @@ function getScrollState(): ScrollState {
   };
 }
 
-export function LandingScrollbar() {
+export function PageScrollbar() {
   const [scrollState, setScrollState] = useState<ScrollState | null>(null);
   const [isActive, setIsActive] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
@@ -52,7 +52,6 @@ export function LandingScrollbar() {
 
   const clearIdleTimer = useCallback(() => {
     if (idleTimerRef.current === null) return;
-
     window.clearTimeout(idleTimerRef.current);
     idleTimerRef.current = null;
   }, []);
@@ -70,9 +69,9 @@ export function LandingScrollbar() {
     const shouldUseOverlay = window.matchMedia(
       '(pointer: fine) and (min-width: 901px) and (prefers-reduced-motion: no-preference)',
     ).matches;
-
     if (!shouldUseOverlay) return undefined;
 
+    document.documentElement.dataset.pageScrollbarEnabled = 'true';
     let frame = 0;
     const update = () => {
       frame = 0;
@@ -88,7 +87,6 @@ export function LandingScrollbar() {
     };
 
     scheduleUpdate();
-
     window.addEventListener('scroll', handleScroll, { passive: true });
     window.addEventListener('resize', scheduleUpdate);
 
@@ -103,6 +101,7 @@ export function LandingScrollbar() {
       window.removeEventListener('resize', scheduleUpdate);
       resizeObserver?.disconnect();
       clearIdleTimer();
+      delete document.documentElement.dataset.pageScrollbarEnabled;
     };
   }, [clearIdleTimer, revealTemporarily]);
 
@@ -138,7 +137,6 @@ export function LandingScrollbar() {
 
   const handleTrackPointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
     if (event.target !== event.currentTarget) return;
-
     event.preventDefault();
     scrollToThumbPosition(event.clientY);
   };
@@ -165,16 +163,13 @@ export function LandingScrollbar() {
         0,
         Math.min(startScrollTop + deltaY * scrollRatio, geometry.maxScrollTop),
       );
-
       setInstantScrollTop(nextTop);
     };
 
     const handlePointerUp = () => {
       setIsDragging(false);
       revealTemporarily();
-      if (thumb.hasPointerCapture(pointerId)) {
-        thumb.releasePointerCapture(pointerId);
-      }
+      if (thumb.hasPointerCapture(pointerId)) thumb.releasePointerCapture(pointerId);
       document.removeEventListener('pointermove', handlePointerMove);
       document.removeEventListener('pointerup', handlePointerUp);
       document.removeEventListener('pointercancel', handlePointerUp);
@@ -189,7 +184,7 @@ export function LandingScrollbar() {
     <div
       ref={trackRef}
       className={styles.track}
-      data-landing-scrollbar-track
+      data-page-scrollbar-track
       data-visible={isActive || isHovered || isDragging ? 'true' : undefined}
       data-hovered={isHovered || isDragging ? 'true' : undefined}
       data-dragging={isDragging ? 'true' : undefined}
@@ -201,7 +196,7 @@ export function LandingScrollbar() {
     >
       <div
         className={styles.thumb}
-        data-landing-scrollbar-thumb
+        data-page-scrollbar-thumb
         style={{
           height: geometry.thumbHeight,
           transform: `translate3d(0, ${geometry.thumbTop}px, 0)`,

@@ -23,6 +23,7 @@ export interface ServiceCapability {
   title: string;
   description: string;
   scopes: string[];
+  tone: 'ice' | 'sand' | 'mint' | 'periwinkle';
 }
 
 export type TechnologyCapabilityKey = 'client' | 'backend' | 'ai' | 'cloud';
@@ -35,6 +36,7 @@ export interface TechnologyGroup {
 export interface TechnologyCapability {
   key: TechnologyCapabilityKey;
   label: string;
+  description: string;
   featuredTechnologies: string[];
   groups: TechnologyGroup[];
 }

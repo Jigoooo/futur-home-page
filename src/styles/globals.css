@@ -22,14 +22,17 @@ html {
   background: var(--landing-canvas-background);
   background-attachment: fixed;
   scroll-behavior: smooth;
-  scrollbar-width: none;
   font-synthesis: none;
   text-size-adjust: 100%;
   -webkit-text-size-adjust: 100%;
 }
 
-html::-webkit-scrollbar,
-body::-webkit-scrollbar {
+html[data-page-scrollbar-enabled='true'] {
+  scrollbar-width: none;
+}
+
+html[data-page-scrollbar-enabled='true']::-webkit-scrollbar,
+html[data-page-scrollbar-enabled='true'] body::-webkit-scrollbar {
   width: 0;
   height: 0;
   display: none;
@@ -187,22 +190,6 @@ ol {
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
     scroll-behavior: auto !important;
-  }
-}
-
-@media (pointer: fine) {
-  html[data-landing-cursor-enabled='true'],
-  html[data-landing-cursor-enabled='true'] body,
-  html[data-landing-cursor-enabled='true'] * {
-    cursor: none !important;
-  }
-}
-
-@media (max-width: 900px), (pointer: coarse), (prefers-reduced-motion: reduce) {
-  html[data-landing-cursor-enabled='true'],
-  html[data-landing-cursor-enabled='true'] body,
-  html[data-landing-cursor-enabled='true'] * {
-    cursor: auto !important;
   }
 }
 

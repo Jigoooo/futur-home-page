@@ -787,11 +787,11 @@ test('switches Header ink with each light and dark section surface', async ({ pa
   await page.locator('#services').evaluate((element) => {
     element.scrollIntoView({ block: 'start', behavior: 'instant' });
   });
-  await expect(nav).toHaveAttribute('data-header-glass-tone', 'dark');
+  await expect(nav).toHaveAttribute('data-header-glass-tone', 'light');
   await expect(servicesLink).toHaveAttribute('aria-current', 'location');
-  await expect(logo).toHaveCSS('color', 'rgb(255, 255, 255)');
-  await expect(servicesLink).toHaveCSS('color', 'rgb(255, 255, 255)');
-  await expect(glass).toHaveCSS('background-color', 'rgba(248, 250, 255, 0.18)');
+  await expect(logo).toHaveCSS('color', 'rgb(7, 24, 63)');
+  await expect(servicesLink).toHaveCSS('color', 'rgb(30, 77, 196)');
+  await expect(glass).toHaveCSS('background-color', 'rgba(248, 250, 255, 0.26)');
   await expect(backdrop).toHaveCSS('backdrop-filter', 'blur(12px) saturate(1.35) contrast(1.03)');
 
   await page.locator('#service-product').evaluate((element) => {
@@ -814,7 +814,7 @@ test('switches Header ink with each light and dark section surface', async ({ pa
   await expect(servicesLink).toHaveCSS('color', 'rgb(7, 24, 63)');
 });
 
-test('keeps dark surface ink through the Services intro and switches at the first chapter', async ({
+test('switches to light surface ink at the Services boundary and keeps it through the gallery', async ({
   page,
 }) => {
   await page.goto('/');
@@ -854,7 +854,7 @@ test('keeps dark surface ink through the Services intro and switches at the firs
     const servicesElement = document.querySelector<HTMLElement>('#services')!;
     const probeY = headerElement.getBoundingClientRect().bottom + 8;
     window.scrollBy({
-      top: servicesElement.getBoundingClientRect().top - probeY + 1,
+      top: servicesElement.getBoundingClientRect().top - probeY + 16,
       behavior: 'instant',
     });
   });
@@ -866,7 +866,7 @@ test('keeps dark surface ink through the Services intro and switches at the firs
       ]).then(([servicesTop, probeY]) => servicesTop - probeY),
     )
     .toBeLessThanOrEqual(0);
-  await expect(nav).toHaveAttribute('data-header-glass-tone', 'dark');
+  await expect(nav).toHaveAttribute('data-header-glass-tone', 'light');
   await expect(servicesLink).toHaveAttribute('aria-current', 'location');
 
   await page.locator('#service-product').evaluate((element) => {
@@ -1274,11 +1274,18 @@ test('applies semantic clear crystal glass, spotlight, cursor contrast, and resi
   const firstPoint = await glass.boundingBox();
   expect(firstPoint).not.toBeNull();
   await page.mouse.move((firstPoint?.x ?? 0) + 28, (firstPoint?.y ?? 0) + 24);
-  await expect(page.locator('html')).toHaveAttribute('data-landing-cursor-enabled', 'true');
-  await page.mouse.move((firstPoint?.x ?? 0) + 28, (firstPoint?.y ?? 0) + 24);
+  await expect(page.locator('html')).not.toHaveAttribute('data-landing-cursor-enabled', 'true');
+  await expect(page.locator('[data-landing-cursor-ring], [data-landing-cursor-dot]')).toHaveCount(
+    0,
+  );
+  await expect(page.locator('[data-landing-page]')).toHaveAttribute(
+    'data-landing-interactions-ready',
+    'true',
+  );
+  await page.mouse.move((firstPoint?.x ?? 0) + 29, (firstPoint?.y ?? 0) + 25);
   await expect
     .poll(() => glass.evaluate((element) => getComputedStyle(element).getPropertyValue('--mx')))
-    .toContain('28px');
+    .toContain('29px');
   const firstMx = await glass.evaluate((element) => element.style.getPropertyValue('--mx'));
   await page.mouse.move((firstPoint?.x ?? 0) + 180, (firstPoint?.y ?? 0) + 38);
   await expect
@@ -1291,9 +1298,7 @@ test('applies semantic clear crystal glass, spotlight, cursor contrast, and resi
     Record<'dark' | 'light', Awaited<ReturnType<typeof readBackdropStyle>>>
   > = {};
   for (const sectionId of ['hero', 'services', 'technology', 'faq', 'footer'] as const) {
-    const tone = ['hero', 'services', 'technology', 'footer'].includes(sectionId)
-      ? 'dark'
-      : 'light';
+    const tone = ['hero', 'technology', 'footer'].includes(sectionId) ? 'dark' : 'light';
     if (sectionId === 'services') {
       await page.locator('#services').evaluate((element) => {
         element.scrollIntoView({ block: 'start', behavior: 'instant' });

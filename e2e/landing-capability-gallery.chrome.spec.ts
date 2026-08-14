@@ -107,17 +107,19 @@ test('uses compact twenty-second technology marquees at every supported width', 
   await page.close();
 });
 
-test('enhances the native technology disclosure with a sticky reading rail', async ({ page }) => {
+test('enhances the native technology disclosure without pinning the summary', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.goto('/#technology');
   await waitForLandingHydration(page);
 
   const disclosure = page.locator('details[data-technology-details]');
   const summary = disclosure.locator('summary');
+  const closeControl = disclosure.locator('[data-technology-disclosure-close]');
   const panel = disclosure.locator('[data-technology-disclosure-panel]');
   const content = disclosure.locator('[data-technology-disclosure-content]');
 
   await expect(disclosure).toHaveAttribute('data-technology-disclosure-enhanced', 'true');
+  await expect(disclosure).toHaveAttribute('data-technology-disclosure-controls', 'true');
   await expect(summary.getByText('기술 범위 전체 보기', { exact: true })).toBeVisible();
   await expect(panel).toHaveCount(1);
   await expect(content).toHaveCount(1);
@@ -147,30 +149,58 @@ test('enhances the native technology disclosure with a sticky reading rail', asy
   expect(openingFrame.height).toBeLessThan(openingFrame.scrollHeight);
   await expect(content).not.toHaveCSS('clip-path', 'none');
   await expect(firstGroup).toHaveCSS('opacity', '1');
+  await expect(closeControl).toBeVisible();
 
   await disclosure.locator('[data-technology-group]').nth(8).scrollIntoViewIfNeeded();
-  await expect
-    .poll(() => summary.evaluate((element) => element.getBoundingClientRect().top))
-    .toBeCloseTo(96, 0);
+  const summaryPresentation = await summary.evaluate((element) => ({
+    position: getComputedStyle(element).position,
+    top: element.getBoundingClientRect().top,
+  }));
+  expect(summaryPresentation.position).not.toBe('sticky');
+  expect(summaryPresentation.top).toBeLessThan(0);
 });
 
-test('keeps the technology reading rail below the compact mobile header', async ({ page }) => {
-  await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto('/#technology');
-  await waitForLandingHydration(page);
+test('closes from the bottom and returns focus to the summary at the header-safe offset', async ({
+  browser,
+}) => {
+  for (const { width, offset, maxGap } of [
+    { width: 1280, offset: 96, maxGap: 120 },
+    { width: 390, offset: 82, maxGap: 96 },
+  ]) {
+    const page = await browser.newPage({ viewport: { width, height: width === 1280 ? 900 : 844 } });
+    await page.goto('/#technology');
+    await waitForLandingHydration(page);
 
-  const disclosure = page.locator('details[data-technology-details]');
-  const summary = disclosure.locator('summary');
+    const technology = page.locator('#technology');
+    const disclosure = technology.locator('details[data-technology-details]');
+    const summary = disclosure.locator('summary');
+    const closeControl = disclosure.locator('[data-technology-disclosure-close]');
 
-  await summary.click();
-  await disclosure.locator('[data-technology-group]').nth(8).scrollIntoViewIfNeeded();
+    await summary.click();
+    await expect(disclosure).toHaveAttribute('open', '');
+    await closeControl.scrollIntoViewIfNeeded();
 
-  await expect
-    .poll(() => summary.evaluate((element) => element.getBoundingClientRect().top))
-    .toBeCloseTo(82, 0);
-  expect(await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth)).toBe(
-    false,
-  );
+    const trailingSpace = await technology.evaluate((section) => {
+      const close = section.querySelector<HTMLElement>('[data-technology-disclosure-close]')!;
+      return {
+        gap: section.getBoundingClientRect().bottom - close.getBoundingClientRect().bottom,
+        padding: Number.parseFloat(getComputedStyle(section).paddingBottom),
+      };
+    });
+    expect(trailingSpace.padding).toBeLessThanOrEqual(maxGap);
+    expect(trailingSpace.gap).toBeLessThanOrEqual(maxGap + 2);
+
+    await closeControl.click();
+    await expect(disclosure).not.toHaveAttribute('open', '', { timeout: 1_000 });
+    await expect(summary).toBeFocused();
+    await expect
+      .poll(() => summary.evaluate((element) => element.getBoundingClientRect().top))
+      .toBeCloseTo(offset, 0);
+    expect(
+      await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth),
+    ).toBe(false);
+    await page.close();
+  }
 });
 
 test('anchors and reverses the long technology disclosure without locking input', async ({
@@ -186,7 +216,6 @@ test('anchors and reverses the long technology disclosure without locking input'
 
   await summary.click();
   await expect(disclosure).toHaveAttribute('open', '');
-  await disclosure.locator('[data-technology-group]').nth(10).scrollIntoViewIfNeeded();
 
   await summary.click();
   await expect(disclosure).toHaveAttribute('data-technology-disclosure-closing', 'true');
@@ -201,7 +230,9 @@ test('anchors and reverses the long technology disclosure without locking input'
     .poll(() => panel.evaluate((element) => element.style.height), { timeout: 1_000 })
     .toBe('');
 
-  await summary.click();
+  const closeControl = disclosure.locator('[data-technology-disclosure-close]');
+  await closeControl.scrollIntoViewIfNeeded();
+  await closeControl.click();
   await expect(disclosure).not.toHaveAttribute('open', '', { timeout: 1_000 });
   await expect(summary).toBeFocused();
   await expect
@@ -266,6 +297,7 @@ test('exposes static technology text when reduced motion is requested', async ({
   const disclosure = page.locator('details[data-technology-details]');
   const summary = disclosure.locator('summary');
   await expect(disclosure).not.toHaveAttribute('data-technology-disclosure-enhanced');
+  await expect(disclosure).toHaveAttribute('data-technology-disclosure-controls', 'true');
   await summary.press('Enter');
   await expect(disclosure).toHaveAttribute('open', '');
   const reducedDisclosureMotion = await disclosure.evaluate((element) => {
@@ -279,6 +311,11 @@ test('exposes static technology text when reduced motion is requested', async ({
     };
   });
   expect(reducedDisclosureMotion).toEqual({ animationCount: 0, clipPath: '', height: '' });
+  const closeControl = disclosure.locator('[data-technology-disclosure-close]');
+  await closeControl.scrollIntoViewIfNeeded();
+  await closeControl.click();
+  await expect(disclosure).not.toHaveAttribute('open', '');
+  await expect(summary).toBeFocused();
 
   await page.close();
 });

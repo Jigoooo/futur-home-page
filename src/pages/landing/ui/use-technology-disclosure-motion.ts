@@ -8,6 +8,7 @@ const DETAILS_SELECTOR = '[data-technology-details]';
 const PANEL_SELECTOR = '[data-technology-disclosure-panel]';
 const CONTENT_SELECTOR = '[data-technology-disclosure-content]';
 const GROUP_SELECTOR = '[data-technology-group]';
+const CLOSE_SELECTOR = '[data-technology-disclosure-close]';
 
 const OPEN_DURATION = 0.48;
 const CURTAIN_DURATION = 0.42;
@@ -32,16 +33,16 @@ function revealGroupsInViewport(details: HTMLDetailsElement) {
   });
 }
 
-function getScrollTarget(details: HTMLDetailsElement, summary: HTMLElement) {
-  const stickyTop = Number.parseFloat(getComputedStyle(summary).top) || 0;
-  const detailsTop = details.getBoundingClientRect().top;
+function getScrollTarget(summary: HTMLElement, force = false) {
+  const anchorOffset = window.innerWidth <= 900 ? 82 : 96;
+  const summaryTop = summary.getBoundingClientRect().top;
 
-  if (detailsTop >= stickyTop) return null;
+  if (!force && summaryTop >= anchorOffset) return null;
 
-  const documentTop = window.scrollY + detailsTop;
+  const documentTop = window.scrollY + summaryTop;
   const maxScroll = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
 
-  return Math.min(Math.max(0, documentTop - stickyTop), maxScroll);
+  return Math.min(Math.max(0, documentTop - anchorOffset), maxScroll);
 }
 
 export function useTechnologyDisclosureMotion(sectionRef: TechnologySectionRef) {
@@ -55,10 +56,12 @@ export function useTechnologyDisclosureMotion(sectionRef: TechnologySectionRef) 
       const summary = details?.querySelector<HTMLElement>('summary');
       const panel = details?.querySelector<HTMLElement>(PANEL_SELECTOR);
       const content = details?.querySelector<HTMLElement>(CONTENT_SELECTOR);
+      const closeControl = details?.querySelector<HTMLButtonElement>(CLOSE_SELECTOR);
 
-      if (!details || !summary || !panel || !content) return undefined;
+      if (!details || !summary || !panel || !content || !closeControl) return undefined;
 
       const media = gsap.matchMedia(section);
+      details.dataset.technologyDisclosureControls = 'true';
 
       media.add('(prefers-reduced-motion: no-preference)', () => {
         let disclosureTimeline: gsap.core.Timeline | null = null;
@@ -94,7 +97,7 @@ export function useTechnologyDisclosureMotion(sectionRef: TechnologySectionRef) 
           disclosureTimeline = null;
         };
 
-        const settleClosed = (scrollTarget: number | null) => {
+        const settleClosed = (scrollTarget: number | null, restoreFocus: boolean) => {
           if (targetState !== 'closed') return;
 
           details.open = false;
@@ -105,6 +108,7 @@ export function useTechnologyDisclosureMotion(sectionRef: TechnologySectionRef) 
           disclosureTimeline = null;
 
           if (scrollTarget !== null) window.scrollTo(0, scrollTarget);
+          if (restoreFocus) summary.focus({ preventScroll: true });
         };
 
         const animateOpen = () => {
@@ -165,17 +169,19 @@ export function useTechnologyDisclosureMotion(sectionRef: TechnologySectionRef) 
           }
         };
 
-        const animateClosed = () => {
+        const animateClosed = (restoreFocus = false) => {
           targetState = 'closed';
           killActiveMotion();
           details.dataset.technologyDisclosureClosing = 'true';
 
           const currentHeight = panel.getBoundingClientRect().height;
-          const scrollTarget = getScrollTarget(details, summary);
+          const scrollTarget = getScrollTarget(summary, restoreFocus);
           closingGroups = getVisibleGroups(details);
 
           gsap.set(panel, { height: currentHeight, overflow: 'hidden' });
-          disclosureTimeline = gsap.timeline({ onComplete: () => settleClosed(scrollTarget) });
+          disclosureTimeline = gsap.timeline({
+            onComplete: () => settleClosed(scrollTarget, restoreFocus),
+          });
           disclosureTimeline.to(
             content,
             {
@@ -232,10 +238,17 @@ export function useTechnologyDisclosureMotion(sectionRef: TechnologySectionRef) 
           animateClosed();
         });
 
+        const handleCloseClick = contextSafe((event: MouseEvent) => {
+          event.preventDefault();
+          animateClosed(true);
+        });
+
         summary.addEventListener('click', handleSummaryClick);
+        closeControl.addEventListener('click', handleCloseClick);
 
         return () => {
           summary.removeEventListener('click', handleSummaryClick);
+          closeControl.removeEventListener('click', handleCloseClick);
           killActiveMotion();
 
           if (targetState === 'closed') details.open = false;
@@ -247,7 +260,23 @@ export function useTechnologyDisclosureMotion(sectionRef: TechnologySectionRef) 
         };
       });
 
-      return () => media.revert();
+      media.add('(prefers-reduced-motion: reduce)', () => {
+        const handleCloseClick = contextSafe((event: MouseEvent) => {
+          event.preventDefault();
+          const scrollTarget = getScrollTarget(summary, true);
+          details.open = false;
+          summary.focus({ preventScroll: true });
+          if (scrollTarget !== null) window.scrollTo(0, scrollTarget);
+        });
+
+        closeControl.addEventListener('click', handleCloseClick);
+        return () => closeControl.removeEventListener('click', handleCloseClick);
+      });
+
+      return () => {
+        media.revert();
+        delete details.dataset.technologyDisclosureControls;
+      };
     },
     { scope: sectionRef },
   );

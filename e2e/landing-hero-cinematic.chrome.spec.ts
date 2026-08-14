@@ -171,7 +171,9 @@ test('runs the dense parametric particle pipeline on the dark hero surface', asy
   await expect(canvas).toHaveAttribute('data-particle-emitter-style', 'dandelion-seeds');
   await expect(canvas).toHaveAttribute('data-particle-initial-shape', 'braided-flow');
   await expect(canvas).toHaveAttribute('data-particle-initial-density', 'clustered');
-  await expect(canvas).toHaveAttribute('data-particle-surface-scale', 'expanded');
+  await expect(canvas).toHaveAttribute('data-particle-visibility', 'contour-normalized');
+  await expect(canvas).toHaveAttribute('data-particle-surface-gains', '1.22,1.05,1.18,1.10');
+  await expect(canvas).toHaveAttribute('data-particle-surface-scale', 'visibility-fitted');
   await expect(canvas).toHaveAttribute(
     'data-pointer-lift',
     String(HERO_POINTER_RESPONSE.surfaceLift),
@@ -239,6 +241,10 @@ test('keeps the sculptural silhouette while contact particles move and lift loca
   expect(MAIN_VERTEX_SHADER).toContain('vContact = contact;');
   expect(MAIN_VERTEX_SHADER).toContain('vec3 braidedFlow');
   expect(MAIN_VERTEX_SHADER).toContain('fitSurfaceToFrame');
+  expect(MAIN_VERTEX_SHADER).toContain('estimateMorphNormal');
+  expect(MAIN_VERTEX_SHADER).toContain('vContour = contour;');
+  expect(MAIN_FRAGMENT_SHADER).toContain('vContour * 0.18');
+  expect(MAIN_FRAGMENT_SHADER).toContain('vContour * 0.28');
   expect(EMITTER_VERTEX_SHADER).toContain('aDirection');
   expect(EMITTER_VERTEX_SHADER).toContain('uDisplacementTexture');
   expect(EMITTER_VERTEX_SHADER).toContain('trailContact');
@@ -249,7 +255,7 @@ test('keeps the sculptural silhouette while contact particles move and lift loca
 });
 
 test('keeps far-depth and dispersing particles visible on the dark hero surface', () => {
-  expect(MAIN_VERTEX_SHADER).toContain('gl_PointSize = mix(0.9, 2.45, depth)');
+  expect(MAIN_VERTEX_SHADER).toContain('mix(0.9, 2.45, depth) *');
   expect(MAIN_FRAGMENT_SHADER).toContain('vec3 farColor = vec3(0.18, 0.42, 0.5);');
   expect(MAIN_FRAGMENT_SHADER).toContain('mix(0.3, 0.68, vDepth)');
   expect(EMITTER_FRAGMENT_SHADER).toContain('vEmitterAlpha * 0.9');

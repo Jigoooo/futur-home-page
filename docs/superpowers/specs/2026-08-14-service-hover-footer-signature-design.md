@@ -2,7 +2,7 @@
 
 ## Status
 
-Approved for implementation. This design extends the current image-free capability gallery with a restrained tactile hover system and replaces the plain Footer information area with a branded signature field.
+Partially superseded on 2026-08-14. Service card hover contract remains active, but the Footer signature field and pointer lens were replaced by a compact three-column utility grid. The current Footer contract lives in root `DESIGN.md`.
 
 Once implemented, this document supersedes only the following parts of `2026-08-14-capability-gallery-design.md`:
 

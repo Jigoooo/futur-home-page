@@ -130,9 +130,7 @@ test('keeps service cards static for reduced motion and touch', async ({ browser
   await touchContext.close();
 });
 
-test('replaces the duplicate Footer logo with one decorative signature and preserves real information', async ({
-  page,
-}) => {
+test('uses a compact Footer utility grid and preserves real information', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.goto('/#footer');
   await waitForLandingHydration(page);
@@ -142,11 +140,11 @@ test('replaces the duplicate Footer logo with one decorative signature and prese
   await expect(inquiry).toHaveAttribute('href', /^mailto:/);
   await expect(inquiry.locator('[data-landing-label]')).toHaveText('문의하기');
 
-  await expect(footer.getByRole('heading', { name: 'FUTUR.' })).toHaveCount(0);
-  const signature = footer.locator('[data-footer-signature][aria-hidden="true"]');
-  await expect(signature).toHaveCount(1);
-  await expect(signature.locator('[data-footer-signature-base]')).toHaveText('FUTUR.');
-  await expect(signature.locator('[data-footer-signature-lens]')).toHaveText('FUTUR.');
+  const utility = footer.locator('[data-footer-utility]');
+  await expect(utility).toHaveCount(1);
+  await expect(utility.locator('[data-footer-utility-column]')).toHaveCount(3);
+  await expect(utility.locator('[data-footer-wordmark]')).toHaveText('FUTUR.');
+  await expect(footer.locator('[data-footer-signature]')).toHaveCount(0);
   await expect(footer.locator('address')).toBeVisible();
   expect(await footer.locator('a[href^="mailto:"]').count()).toBeGreaterThanOrEqual(2);
 
@@ -171,60 +169,41 @@ test('replaces the duplicate Footer logo with one decorative signature and prese
   }
 });
 
-test('reveals the Footer signature once and tracks the lens without moving the wordmark', async ({
-  page,
-}) => {
+test('draws one utility hairline and reveals the three Footer columns once', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.goto('/');
   await waitForLandingHydration(page);
 
-  const signature = page.locator('[data-footer-signature]');
-  await signature.scrollIntoViewIfNeeded();
-  await expect(signature).toHaveAttribute('data-landing-visible', 'true');
-  await expect
-    .poll(() => signature.evaluate((element) => getComputedStyle(element).transform))
-    .toMatch(/^(none|matrix\(1, 0, 0, 1, 0, 0\))$/);
-
-  const box = await signature.boundingBox();
-  expect(box).not.toBeNull();
-  const beforeRect = await signature.evaluate((element) =>
-    element.getBoundingClientRect().toJSON(),
+  const utility = page.locator('[data-footer-utility]');
+  const line = utility.locator('[data-footer-utility-line]');
+  const columns = utility.locator('[data-footer-utility-column]');
+  await utility.scrollIntoViewIfNeeded();
+  await expect(utility).toHaveAttribute('data-landing-visible', 'true');
+  await expect(line).toHaveCSS('transform', 'matrix(1, 0, 0, 1, 0, 0)');
+  await expect(columns).toHaveCount(3);
+  const delays = await columns.evaluateAll((elements) =>
+    elements.map((element) => getComputedStyle(element).transitionDelay),
   );
-  await page.mouse.move((box?.x ?? 0) + 100, (box?.y ?? 0) + 40);
-  await expect(signature.locator('[data-footer-signature-lens]')).toHaveCSS('opacity', '1');
-  const firstX = await signature.evaluate((element) =>
-    element.style.getPropertyValue('--footer-signature-x'),
-  );
-  await page.mouse.move((box?.x ?? 0) + (box?.width ?? 0) - 120, (box?.y ?? 0) + 55);
-  await expect
-    .poll(() =>
-      signature.evaluate((element) => element.style.getPropertyValue('--footer-signature-x')),
-    )
-    .not.toBe(firstX);
-  const afterRect = await signature.evaluate((element) => element.getBoundingClientRect().toJSON());
-  expect(afterRect.x).toBeCloseTo(beforeRect.x, 1);
-  expect(afterRect.y).toBeCloseTo(beforeRect.y, 1);
-
-  await page.mouse.move(0, 0);
-  await expect(signature.locator('[data-footer-signature-lens]')).toHaveCSS('opacity', '0');
+  expect(delays).toEqual(['0s', '0.06s', '0.12s']);
 
   await page.locator('#services').scrollIntoViewIfNeeded();
-  await signature.scrollIntoViewIfNeeded();
-  await expect(signature).toHaveAttribute('data-landing-visible', 'true');
+  await utility.scrollIntoViewIfNeeded();
+  await expect(utility).toHaveAttribute('data-landing-visible', 'true');
 });
 
-test('uses a static Footer signature for reduced motion and touch', async ({ browser }) => {
+test('uses a static Footer utility grid for reduced motion and touch', async ({ browser }) => {
   const reducedPage = await browser.newPage({ reducedMotion: 'reduce' });
   await reducedPage.goto('/#footer');
   await waitForLandingHydration(reducedPage);
-  const reducedSignature = reducedPage.locator('[data-footer-signature]');
-  await expect(reducedSignature).toHaveCSS('transform', 'none');
-  await expect(reducedSignature).toHaveCSS('transition-duration', '0s');
-  await expect(reducedSignature.locator('[data-footer-signature-base]')).toHaveCSS(
-    'clip-path',
-    'inset(0px)',
+  const reducedUtility = reducedPage.locator('[data-footer-utility]');
+  await expect(reducedUtility.locator('[data-footer-utility-line]')).toHaveCSS(
+    'transform',
+    'matrix(1, 0, 0, 1, 0, 0)',
   );
-  await expect(reducedSignature.locator('[data-footer-signature-lens]')).toHaveCSS('opacity', '0');
+  for (const column of await reducedUtility.locator('[data-footer-utility-column]').all()) {
+    await expect(column).toHaveCSS('transform', 'none');
+    await expect(column).toHaveCSS('transition-duration', '0s');
+  }
   await reducedPage.close();
 
   const touchContext = await browser.newContext({
@@ -234,16 +213,11 @@ test('uses a static Footer signature for reduced motion and touch', async ({ bro
   const touchPage = await touchContext.newPage();
   await touchPage.goto('/#footer');
   await waitForLandingHydration(touchPage);
-  const touchSignature = touchPage.locator('[data-footer-signature]');
-  const touchSignatureBox = await touchSignature.boundingBox();
-  expect(touchSignatureBox).not.toBeNull();
-  await touchPage.touchscreen.tap(
-    (touchSignatureBox?.x ?? 0) + 40,
-    (touchSignatureBox?.y ?? 0) + 24,
-  );
-  await expect(touchSignature).toHaveCSS('transform', 'none');
-  await expect(touchSignature).toHaveCSS('transition-duration', '0s');
-  await expect(touchSignature.locator('[data-footer-signature-lens]')).toHaveCSS('opacity', '0');
+  const touchUtility = touchPage.locator('[data-footer-utility]');
+  for (const column of await touchUtility.locator('[data-footer-utility-column]').all()) {
+    await expect(column).toHaveCSS('transform', 'none');
+    await expect(column).toHaveCSS('transition-duration', '0s');
+  }
   await touchContext.close();
 });
 
@@ -259,7 +233,17 @@ test('keeps Services and Footer readable without horizontal overflow at supporte
       await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth),
     ).toBe(false);
     await expect(page.locator('[data-service-card]')).toHaveCount(4);
-    await expect(page.locator('[data-footer-signature]')).toHaveCount(1);
+    await expect(page.locator('[data-footer-utility]')).toHaveCount(1);
+    await expect(page.locator('[data-footer-signature]')).toHaveCount(0);
+
+    const layout = await page.locator('[data-footer-utility-grid]').evaluate((element) => ({
+      columns: getComputedStyle(element).gridTemplateColumns.split(' ').length,
+      wordmarkColumn: getComputedStyle(
+        element.querySelector<HTMLElement>('[data-footer-wordmark]')!,
+      ).gridColumnStart,
+    }));
+    expect(layout.columns).toBe(width > 900 ? 3 : width > 560 ? 2 : 1);
+    if (width === 900) expect(layout.wordmarkColumn).toBe('span 2');
   }
   await page.close();
 
@@ -267,7 +251,8 @@ test('keeps Services and Footer readable without horizontal overflow at supporte
   const noScriptPage = await noScriptContext.newPage();
   await noScriptPage.goto('/');
   await expect(noScriptPage.locator('[data-service-card]')).toHaveCount(4);
-  await expect(noScriptPage.locator('[data-footer-signature]')).toBeVisible();
+  await expect(noScriptPage.locator('[data-footer-utility]')).toBeVisible();
+  await expect(noScriptPage.locator('[data-footer-signature]')).toHaveCount(0);
   await expect(noScriptPage.getByRole('link', { name: '문의하기', exact: true })).toHaveAttribute(
     'href',
     /^mailto:/,

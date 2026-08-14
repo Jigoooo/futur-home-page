@@ -13,6 +13,7 @@ import {
   EMITTER_FRAGMENT_SHADER,
   EMITTER_VERTEX_SHADER,
   HERO_POINTER_RESPONSE,
+  HERO_SURFACE_PRESENTATION,
   MAIN_FRAGMENT_SHADER,
   MAIN_VERTEX_SHADER,
 } from './hero-particle-shaders';
@@ -437,7 +438,11 @@ export function createHeroParticleEngine(canvas: HTMLCanvasElement): HeroParticl
   canvas.dataset.particleEmitterStyle = 'dandelion-seeds';
   canvas.dataset.particleInitialShape = 'braided-flow';
   canvas.dataset.particleInitialDensity = 'clustered';
-  canvas.dataset.particleSurfaceScale = 'expanded';
+  canvas.dataset.particleVisibility = 'contour-normalized';
+  canvas.dataset.particleSurfaceGains = HERO_SURFACE_PRESENTATION.map(({ visibility }) =>
+    visibility.toFixed(2),
+  ).join(',');
+  canvas.dataset.particleSurfaceScale = 'visibility-fitted';
   canvas.dataset.particleSurface = '0-1';
   canvas.dataset.pointerImpulse = String(HERO_POINTER_RESPONSE.radialImpulse);
   canvas.dataset.pointerLift = String(HERO_POINTER_RESPONSE.surfaceLift);

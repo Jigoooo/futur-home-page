@@ -1,20 +1,14 @@
 import { Link } from '@tanstack/react-router';
-import { useRef } from 'react';
 
 import { Button } from './button';
 import styles from './styles/footer.module.css';
 import sharedStyles from './styles/shared.module.css';
-import { useFooterSignatureMotion } from './use-footer-signature-motion';
 import { mailHref } from '../lib/company-links';
 import { COMPANY_INFOS } from '@/entities/company';
 
 export function FooterSection() {
-  const footerRef = useRef<HTMLElement | null>(null);
-  useFooterSignatureMotion(footerRef);
-
   return (
     <footer
-      ref={footerRef}
       className={styles.footer}
       id='footer'
       data-landing-section
@@ -38,29 +32,43 @@ export function FooterSection() {
           </Button>
         </div>
 
-        <div className={styles.infoRail}>
-          <p className={styles.serviceStatement}>
-            서비스와 시스템을 만들고, 필요한 기술을 연결해 운영까지 이어갑니다.
-          </p>
-          <div className={styles.contactDetails}>
-            <strong>문의</strong>
-            <a href={mailHref}>{COMPANY_INFOS.EMAIL}</a>
-            <address>{COMPANY_INFOS.ADDRESS}</address>
+        <div className={styles.utility} data-footer-utility data-landing-reveal='footer-utility'>
+          <span className={styles.utilityLine} data-footer-utility-line aria-hidden='true' />
+          <div className={styles.utilityGrid} data-footer-utility-grid>
+            <div
+              className={`${styles.utilityColumn} ${styles.brandColumn}`}
+              data-footer-utility-column
+              data-footer-wordmark
+            >
+              FUTUR.
+            </div>
+
+            <div className={styles.utilityColumn} data-footer-utility-column>
+              <p className={styles.serviceStatement}>
+                서비스와 시스템을 만들고, 필요한 기술을 연결해 운영까지 이어갑니다.
+              </p>
+              <address className={styles.address}>{COMPANY_INFOS.ADDRESS}</address>
+            </div>
+
+            <div
+              className={`${styles.utilityColumn} ${styles.contactDetails}`}
+              data-footer-utility-column
+            >
+              <strong>문의</strong>
+              <a href={mailHref}>{COMPANY_INFOS.EMAIL}</a>
+              <nav className={styles.legalLinks} aria-label='법적 고지'>
+                <Link to='/privacy' className={styles.legalPrimary}>
+                  개인정보처리방침
+                </Link>
+                <Link to='/terms' className={styles.legalSecondary}>
+                  이용약관
+                </Link>
+              </nav>
+            </div>
           </div>
         </div>
 
         <div className={styles.legalMetadata}>
-          <nav className={styles.legalLinks} aria-label='법적 고지'>
-            <Link to='/privacy' className={styles.legalPrimary}>
-              개인정보처리방침
-            </Link>
-            <span className={styles.legalDivider} aria-hidden='true'>
-              ·
-            </span>
-            <Link to='/terms' className={styles.legalSecondary}>
-              이용약관
-            </Link>
-          </nav>
           <div className={styles.legalFacts}>
             <span>© 2026 FUTUR. All rights reserved.</span>
             <span>
@@ -75,20 +83,6 @@ export function FooterSection() {
               )
             </span>
           </div>
-        </div>
-
-        <div
-          className={styles.signature}
-          data-footer-signature
-          data-landing-reveal='footer-signature'
-          aria-hidden='true'
-        >
-          <span className={styles.signatureBase} data-footer-signature-base>
-            FUTUR.
-          </span>
-          <span className={styles.signatureLens} data-footer-signature-lens>
-            FUTUR.
-          </span>
         </div>
       </div>
     </footer>

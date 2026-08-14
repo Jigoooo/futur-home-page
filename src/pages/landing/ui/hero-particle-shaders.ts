@@ -1,3 +1,18 @@
+export const HERO_SURFACE_PRESENTATION = [
+  { key: 'braided-flow', scale: [0.96, 1, 1], visibility: 1.22 },
+  { key: 'asymmetric-knot', scale: [1.9, 1.72, 1.16], visibility: 1.05 },
+  { key: 'wave-saddle', scale: [1.5, 1.56, 1.08], visibility: 1.18 },
+  { key: 'double-loop', scale: [1.92, 1.68, 1.16], visibility: 1.1 },
+] as const;
+
+function glslFloat(value: number) {
+  return value.toFixed(2);
+}
+
+function glslVector(values: readonly [number, number, number]) {
+  return `vec3(${values.map(glslFloat).join(', ')})`;
+}
+
 const SURFACE_GLSL = `
 const float PI = 3.14159265359;
 const float TAU = 6.28318530718;
@@ -54,10 +69,17 @@ vec3 doubleLoop(vec2 uv, float time) {
 }
 
 vec3 fitSurfaceToFrame(int index, vec3 position) {
-  if (index == 0) return position;
-  if (index == 1) return position * vec3(2.05, 1.85, 1.2);
-  if (index == 2) return position * vec3(1.62, 1.68, 1.12);
-  return position * vec3(2.08, 1.82, 1.22);
+  if (index == 0) return position * ${glslVector(HERO_SURFACE_PRESENTATION[0].scale)};
+  if (index == 1) return position * ${glslVector(HERO_SURFACE_PRESENTATION[1].scale)};
+  if (index == 2) return position * ${glslVector(HERO_SURFACE_PRESENTATION[2].scale)};
+  return position * ${glslVector(HERO_SURFACE_PRESENTATION[3].scale)};
+}
+
+float surfaceVisibilityGain(int index) {
+  if (index == 0) return ${glslFloat(HERO_SURFACE_PRESENTATION[0].visibility)};
+  if (index == 1) return ${glslFloat(HERO_SURFACE_PRESENTATION[1].visibility)};
+  if (index == 2) return ${glslFloat(HERO_SURFACE_PRESENTATION[2].visibility)};
+  return ${glslFloat(HERO_SURFACE_PRESENTATION[3].visibility)};
 }
 
 vec3 sampleSurface(int index, vec2 uv, float time) {
@@ -76,6 +98,31 @@ vec3 morphSurface(int fromIndex, int toIndex, vec2 uv, float time, float morph) 
   vec3 position = mix(fromPoint, toPoint, easedMorph);
   position = rotateY(time * 0.055) * rotateX(sin(time * 0.11) * 0.14) * position;
   return position;
+}
+
+float morphSurfaceVisibility(int fromIndex, int toIndex, float morph) {
+  float easedMorph = morph * morph * (3.0 - 2.0 * morph);
+  return mix(
+    surfaceVisibilityGain(fromIndex),
+    surfaceVisibilityGain(toIndex),
+    easedMorph
+  );
+}
+
+vec3 estimateMorphNormal(
+  int fromIndex,
+  int toIndex,
+  vec2 uv,
+  float time,
+  float morph,
+  vec3 surface
+) {
+  const float epsilon = 0.0025;
+  vec2 uSample = vec2(min(uv.x + epsilon, 1.0), uv.y);
+  vec2 vSample = vec2(uv.x, min(uv.y + epsilon, 1.0));
+  vec3 tangentU = morphSurface(fromIndex, toIndex, uSample, time, morph) - surface;
+  vec3 tangentV = morphSurface(fromIndex, toIndex, vSample, time, morph) - surface;
+  return normalize(cross(tangentU, tangentV) + vec3(0.0, 0.0, 0.0001));
 }
 
 vec2 projectSurface(vec3 position, float aspect) {
@@ -189,7 +236,9 @@ void main() {
 export const MAIN_VERTEX_SHADER = `${PARTICLE_VERTEX_HEADER}
 out float vDepth;
 out float vContact;
+out float vContour;
 out float vSeed;
+out float vSurfaceVisibility;
 out vec2 vScreenUv;
 
 void main() {
@@ -202,12 +251,27 @@ void main() {
   projected += contactOffset;
 
   float depth = clamp(0.5 + surface.z * 0.42, 0.0, 1.0);
+  vec3 surfaceNormal = estimateMorphNormal(
+    uFromSurface,
+    uToSurface,
+    aUv,
+    uTime,
+    uMorph,
+    surface
+  );
+  float contour = pow(clamp(1.0 - abs(surfaceNormal.z), 0.0, 1.0), 1.35);
   gl_Position = vec4(projected, mix(0.45, -0.45, depth), 1.0);
-  gl_PointSize = mix(0.9, 2.45, depth) * mix(1.0, 1.22, contact) * uDpr;
+  gl_PointSize =
+    mix(0.9, 2.45, depth) *
+    mix(1.0, 1.22, contact) *
+    (1.0 + contour * 0.14) *
+    uDpr;
 
   vDepth = depth;
   vContact = contact;
+  vContour = contour;
   vSeed = aSeed;
+  vSurfaceVisibility = morphSurfaceVisibility(uFromSurface, uToSurface, uMorph);
   vScreenUv = screenUv;
 }
 `;
@@ -217,7 +281,9 @@ precision highp float;
 
 in float vDepth;
 in float vContact;
+in float vContour;
 in float vSeed;
+in float vSurfaceVisibility;
 in vec2 vScreenUv;
 
 uniform sampler2D uDensityTexture;
@@ -237,8 +303,10 @@ void main() {
   vec3 color = mix(farColor, nearColor, vDepth);
   color = mix(color, vec3(0.74, 0.93, 0.91), densityLight + vSeed * 0.04);
   color = mix(color, vec3(0.82, 0.96, 0.94), vContact * 0.42);
+  color = mix(color, vec3(0.72, 0.94, 0.92), vContour * 0.18);
   float alpha = disc * mix(0.3, 0.68, vDepth) * (0.82 + densityLight * 0.7);
   alpha *= 1.0 + vContact * 0.18;
+  alpha *= vSurfaceVisibility * (1.0 + vContour * 0.28);
   outColor = vec4(color * alpha, alpha);
 }
 `;

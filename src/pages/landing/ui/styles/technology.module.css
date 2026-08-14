@@ -1,5 +1,5 @@
 .technology {
-  padding-block: clamp(150px, 14vw, 220px) clamp(138px, 13vw, 196px);
+  padding-block: clamp(150px, 14vw, 220px) clamp(96px, 8vw, 120px);
   background: #090b10;
   color: #f4f6fa;
 }
@@ -164,13 +164,7 @@
 }
 
 .details[open] summary {
-  position: sticky;
-  z-index: 20;
-  top: 96px;
   border-bottom: 1px solid rgba(220, 230, 255, 0.22);
-  background: rgba(9, 11, 16, 0.94);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
 }
 
 .summaryOpenLabel {
@@ -201,7 +195,38 @@
 }
 
 .fullList {
-  padding-block: 38px 72px;
+  padding-block: 38px 24px;
+}
+
+.disclosureClose {
+  display: none;
+  width: 100%;
+  min-height: 64px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0;
+  border: 0;
+  border-top: 1px solid rgba(220, 230, 255, 0.22);
+  background: transparent;
+  color: #ffffff;
+  cursor: pointer;
+  font: inherit;
+  font-size: 15px;
+  line-height: 1.5;
+  font-weight: 700;
+}
+
+.details[open][data-technology-disclosure-controls='true'] .disclosureClose {
+  display: flex;
+}
+
+.disclosureClose svg {
+  color: rgba(234, 240, 255, 0.72);
+}
+
+.disclosureClose:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 5px;
 }
 
 .disclosurePanel,
@@ -273,7 +298,7 @@
 
 @media (max-width: 900px) {
   .technology {
-    padding-block: 124px 148px;
+    padding-block: 124px 112px;
   }
 
   .heading,
@@ -294,15 +319,11 @@
     grid-template-columns: minmax(130px, 0.3fr) minmax(0, 1fr);
     gap: 26px;
   }
-
-  .details[open] summary {
-    top: 82px;
-  }
 }
 
 @media (max-width: 560px) {
   .technology {
-    padding-block: 108px 120px;
+    padding-block: 108px 96px;
   }
 
   .heading,
@@ -350,7 +371,7 @@
   }
 
   .fullList {
-    padding-block: 24px 52px;
+    padding-block: 24px;
   }
 
   .technologyGroup {
@@ -368,7 +389,8 @@
   }
 
   .summaryIcon,
-  .technologyGroup {
+  .technologyGroup,
+  .disclosureClose {
     transition: none !important;
   }
 }

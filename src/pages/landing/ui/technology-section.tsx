@@ -1,5 +1,5 @@
 /* eslint-disable jsx-a11y/no-noninteractive-tabindex -- Keyboard focus intentionally pauses the continuously moving technology text. */
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useRef } from 'react';
 
 import { technologyCapabilities } from '../config';
@@ -113,6 +113,14 @@ export function TechnologySection() {
                   )),
                 )}
               </div>
+              <button
+                className={styles.disclosureClose}
+                type='button'
+                data-technology-disclosure-close
+              >
+                <span>기술 범위 접기</span>
+                <ChevronUp size={22} strokeWidth={1.8} aria-hidden='true' />
+              </button>
             </div>
           </div>
         </details>

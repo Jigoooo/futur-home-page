@@ -55,6 +55,7 @@ Hero는 최소 `100svh`의 charcoal full-bleed surface다. particle layer와 Web
 - H1 문구·크기와 기존 entrance motion을 변경하지 않는다.
 - WebGL Hero가 활성화된 환경에서는 가시 비율 `0.62 → 0.16` 구간에 particle layer만 `opacity 1 → 0`으로 줄인다.
 - renderer 정지·재개 임계값 `0.16 / 0.24`, particle 수·형태와 pointer 반응은 유지한다.
+- 네 surface는 `HERO_SURFACE_PRESENTATION`의 형태별 frame scale과 visibility gain을 공유한다. 근사 surface normal로 계산한 contour는 point size를 최대 `14%`, alpha를 최대 `28%`, 청록색 혼합을 최대 `18%`까지만 보강하며 morph 비율과 함께 보간한다.
 
 ## Adaptive Island Header
 
@@ -87,7 +88,7 @@ desktop은 두 열 bento다. 1번과 4번은 전폭, 2번과 3번은 반폭이�
 
 fine pointer 환경의 카드는 `Lifted Ink Surface`를 사용한다. 내부 surface만 `translateY(-7px) scale(1.006)`로 들어 올리고, 카드 tone별 blue·orange·green·violet radial ink lens와 사전 렌더된 shadow opacity를 포인터 위치에서 드러낸다. 진입은 `320ms power3.out`, 복귀는 `480ms back.out(1.35)`, lens fade는 `180ms`다. 카드 자체는 정보성 `<article>`이며 링크·버튼·role·`tabIndex`·focus·pointer cursor와 hover 전용 정보가 없다. touch, coarse pointer와 reduced motion에서는 surface와 lens가 정적 최종 상태로 남는다.
 
-페이지와 Services 루트에서 가로 overflow를 숨기지 않는다. clipping은 서비스 lens, Footer signature와 Technology marquee처럼 장식이 자체 경계를 가져야 하는 로컬 필드에만 둔다.
+페이지와 Services 루트에서 가로 overflow를 숨기지 않는다. clipping은 서비스 lens와 Technology marquee처럼 장식이 자체 경계를 가져야 하는 로컬 필드에만 둔다.
 
 `1180px` 이하에서는 각 카드가 copy와 image의 세로 구조가 되고 `760px` 이하에서는 한 열로 전환한다. 네 서비스 ID는 Footer 이외의 직접 접근을 위해 유지하며 `scroll-margin-top`으로 고정 Header와 겹치지 않게 한다.
 
@@ -102,13 +103,13 @@ Technology는 near-black `#090B10` surface 위에 네 개의 경계 없는 kinet
 
 row는 얇은 hairline으로만 나눈다. 대표 기술 띠는 화면 너비와 무관하게 `20s`의 일정한 속도로 무한 marquee하며 행마다 방향을 교차한다. 기술명은 desktop `clamp(28px, 2.8vw, 44px)`, mobile `clamp(24px, 7.4vw, 32px)`이고 hover와 focus에서는 일시 정지한다. pin·snap·sticky·스크롤 진행 연동은 사용하지 않으며 reduced motion은 transform 없는 정적 기술 띠를 노출한다.
 
-전체 기술 disclosure는 native `<details>/<summary>`를 유지하면서 모션만 progressive enhancement한다. 펼치면 summary 문구가 `기술 범위 접기`로 바뀌고 Header 아래 `96px`, mobile `82px`에 sticky로 남는다. panel은 `480ms` 높이 전환, 내부 목록은 `420ms` top-to-bottom curtain으로 열리고 각 분류는 기존 in-view observer를 통해 `16px`, `360ms`, `50ms` cadence로 한 번만 나타난다. 닫기 입력은 `300ms` 동안 panel과 현재 보이는 분류만 정리하며 disclosure 시작점으로 스크롤을 함께 보정한다. 진행 중 반대 입력은 잠그지 않고 현재 프레임에서 반전한다. no-JS와 reduced motion에서는 native disclosure가 즉시 동작한다.
+전체 기술 disclosure는 native `<details>/<summary>`를 유지하면서 모션만 progressive enhancement한다. 펼친 summary는 원래 문서 위치에 남고, 전체 목록 마지막에 JavaScript가 연결된 경우에만 편집형 `기술 범위 접기` 행을 제공한다. panel은 `480ms` 높이 전환, 내부 목록은 `420ms` top-to-bottom curtain으로 열리고 각 분류는 기존 in-view observer를 통해 `16px`, `360ms`, `50ms` cadence로 한 번만 나타난다. 하단 닫기는 `300ms` 동안 panel과 현재 보이는 분류를 정리하며 summary가 Header 아래 desktop `96px`, mobile `82px`에 오도록 스크롤하고 focus를 돌려준다. 진행 중 반대 입력은 잠그지 않고 현재 프레임에서 반전한다. no-JS에서는 native summary만 사용하고 reduced motion에서는 하단 닫기와 위치 보정이 즉시 적용된다.
 
 기술 버전, 숙련도와 프로젝트 수치를 표시하지 않는다. AI는 모델 자체 개발이 아니라 검증된 모델과 조직 데이터·업무 흐름을 연결하는 통합 역량으로 설명한다. 긴 기술명은 `390px`에서 줄바꿈해야 한다.
 
 ## FAQ and Footer
 
-FAQ 제목은 `자주 묻는 질문`이며 별도 소개 문장은 없다. Accordion과 버튼을 사용하지 않고 세 문항의 답변을 항상 노출한다. desktop은 번호 / 질문 / 답변의 에디토리얼 3열, tablet·mobile은 일반 세로 흐름이다. 둥근 카드·음영·Q 아이콘 대신 얇은 구분선만 사용한다.
+FAQ 제목은 `자주 묻는 질문`이며 별도 소개 문장은 없다. 여섯 문항의 single-open accordion으로 구성해 한 답변이 열리면 이전 답변은 닫힌다. 둥근 카드·음영·Q 아이콘 대신 얇은 구분선만 사용한다.
 
 Footer는 둥근 CTA 카드, 그라디언트와 이메일 pill이 없는 검은 에디토리얼 면이다.
 
@@ -118,9 +119,9 @@ Footer는 둥근 CTA 카드, 그라디언트와 이메일 pill이 없는 검은 
 - magnetic 외곽과 press 내부 surface를 분리해 transform 충돌을 막고, reduced motion은 색상과 focus outline만 유지한다.
 - 이메일은 연락처 영역에 작은 텍스트로 유지하며 주소, 회사·법적 정보와 문의 서버 경계를 바꾸지 않는다.
 - Footer의 서비스 탐색 nav는 렌더링하지 않는다.
-- CTA 아래는 서비스 설명과 문의처의 information rail, 개인정보처리방침·이용약관·사업자 정보의 legal metadata, 장식용 `FUTUR.` signature 순서로 구성한다. 정보 rail과 legal metadata 시작점에만 hairline을 두어 Footer 하단의 구분선은 정확히 두 개다.
-- signature는 기존 reveal observer로 `700ms`에 한 번만 아래에서 나타난다. fine pointer에서는 포인터를 따라가는 radial glyph mask가 글자 안의 blue-to-white 색만 드러내며 wordmark 자체를 이동·확대·회전하지 않는다.
-- signature는 `aria-hidden='true'`인 순수 장식이다. touch·coarse pointer·reduced motion과 no-JavaScript에서는 clip, 이동, 지연과 lens 없이 처음부터 정적으로 표시한다.
+- CTA 아래는 `FUTUR.` 브랜드 / 서비스 범위와 주소 / 문의와 정책의 utility grid, 사업자 정보의 legal metadata 순서로 구성한다. utility와 legal metadata 시작점에만 hairline을 두어 Footer 하단의 구분선은 정확히 두 개다.
+- utility hairline은 `620ms`에 왼쪽에서 오른쪽으로 한 번 나타나고 세 열은 `12px`, `520ms`, `60ms` cadence로 한 번만 등장한다. pointer 추적과 반복 모션은 사용하지 않는다.
+- desktop은 `0.7fr / 1.25fr / 0.8fr`, `561~900px`은 브랜드 전폭과 하단 2열, `560px` 이하는 단일 열이다. touch·coarse pointer·reduced motion과 no-JavaScript에서는 처음부터 정적으로 표시한다.
 
 ## Legal Pages and Scrollbar
 
@@ -142,12 +143,12 @@ Footer는 둥근 CTA 카드, 그라디언트와 이메일 pill이 없는 검은 
 - [ ] Services는 이미지 없는 타이포그래피 카드 4개이며 sticky index와 surface gate가 없다.
 - [ ] 1번·4번 전폭, 2번·3번 반폭의 desktop bento가 tablet·mobile에서 안전하게 한 열로 전환된다.
 - [ ] 서비스 카드는 fine pointer에서만 Lifted Ink Surface를 제공하고 정보성 article 및 기본 포인터 계약을 유지한다.
-- [ ] Hero particle opacity가 `0.62 → 0.16` 구간에서 감소하고 기존 renderer hysteresis가 유지된다.
+- [ ] Hero particle opacity와 renderer hysteresis가 유지되며 네 surface가 형태별 frame scale, visibility gain과 contour 보정을 사용한다.
 - [ ] SUIT·Space Grotesk가 로컬 파일로 제공되고 Wanted Sans 요청이 없다.
 - [ ] Technology는 card 없는 kinetic row 4개, `20s` marquee와 전체 분류 16개·기술 70개를 제공한다.
-- [ ] 전체 기술 disclosure는 sticky summary, curtain reveal, 닫힘 scroll anchoring과 입력 반전을 제공하고 no-JS·reduced motion에서는 native 동작을 유지한다.
-- [ ] FAQ 3개의 질문과 답변이 처음부터 보이고 accordion control이 없다.
-- [ ] Footer에 blue magnetic·liquid `문의하기` CTA, information rail, legal metadata, 한 번 나타나는 장식 시그니처와 작은 이메일이 있고 서비스 탐색 nav는 없다.
+- [ ] 전체 기술 disclosure는 비고정 summary, curtain reveal, 하단 닫기·scroll anchoring과 입력 반전을 제공하고 no-JS·reduced motion 계약을 유지한다.
+- [ ] FAQ는 여섯 문항 single-open accordion이며 키보드·ARIA 상태가 동기화된다.
+- [ ] Footer에 blue magnetic·liquid `문의하기` CTA, 3열 utility grid, legal metadata와 작은 이메일이 있고 대형 signature와 서비스 탐색 nav는 없다.
 - [ ] 기본 포인터가 유지되고 custom ring/dot cursor DOM과 dataset이 없다.
 - [ ] `/privacy`, `/terms`는 독립 페이지이며 `퓨터 / Futur` 표기와 공용 PageScrollbar 계약을 유지한다.
 - [ ] `1280px`, `1180px`, `900px`, `390px`에서 레이아웃과 가로 overflow가 안전하다.

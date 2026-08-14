@@ -147,6 +147,7 @@ test('keeps capability content available with reduced motion and without JavaScr
   await expect(noScriptPage.locator('[data-service-card]')).toHaveCount(4);
   await expect(noScriptPage.locator('[data-technology-summary]')).toHaveCount(4);
   const noScriptDisclosure = noScriptPage.locator('details[data-technology-details]');
+  await expect(noScriptDisclosure.locator('[data-technology-disclosure-close]')).not.toBeVisible();
   await noScriptDisclosure.locator('summary').click();
   await expect(noScriptDisclosure.locator('[data-technology]')).toHaveCount(70);
   await expect(noScriptPage.locator('#footer')).toBeVisible();

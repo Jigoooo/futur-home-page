@@ -2,7 +2,7 @@
 
 ## Status
 
-Approved direction. `기술 범위 전체 보기`를 긴 목록에 적합한 sticky reading rail과 curtain cascade disclosure로 개선하고, 대표 기술 marquee를 더 작고 빠르게 조정한다.
+Superseded on 2026-08-14. Sticky reading rail은 사용성 검토 후 제거되었고, 현재 계약은 비고정 summary, curtain cascade와 목록 마지막의 `기술 범위 접기` 행이다. 상세 구현 기준은 루트 `DESIGN.md`를 따른다.
 
 ## Scope
 

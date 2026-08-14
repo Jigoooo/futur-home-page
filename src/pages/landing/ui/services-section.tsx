@@ -1,11 +1,18 @@
+import { useRef } from 'react';
+
 import { serviceCapabilities } from '../config';
 import { cx } from './lib/cx';
 import styles from './styles/services.module.css';
 import sharedStyles from './styles/shared.module.css';
+import { useServiceCardHoverMotion } from './use-service-card-hover-motion';
 
 export function ServicesSection() {
+  const sectionRef = useRef<HTMLElement | null>(null);
+  useServiceCardHoverMotion(sectionRef);
+
   return (
     <section
+      ref={sectionRef}
       className={cx(sharedStyles.sectionBlock, styles.services)}
       id='services'
       data-landing-section
@@ -40,17 +47,20 @@ export function ServicesSection() {
             data-service-card
             data-landing-reveal='up'
           >
-            <div className={styles.copy}>
-              <span className={styles.index} data-service-card-index>
-                {capability.index}
-              </span>
-              <h3>{capability.title}</h3>
-              <p>{capability.description}</p>
-              <ul aria-label={`${capability.title} 범위`}>
-                {capability.scopes.map((scope) => (
-                  <li key={scope}>{scope}</li>
-                ))}
-              </ul>
+            <div className={styles.surface} data-service-card-surface>
+              <span className={styles.lens} data-service-card-lens aria-hidden='true' />
+              <div className={styles.copy}>
+                <span className={styles.index} data-service-card-index>
+                  {capability.index}
+                </span>
+                <h3>{capability.title}</h3>
+                <p>{capability.description}</p>
+                <ul aria-label={`${capability.title} 범위`}>
+                  {capability.scopes.map((scope) => (
+                    <li key={scope}>{scope}</li>
+                  ))}
+                </ul>
+              </div>
             </div>
           </article>
         ))}

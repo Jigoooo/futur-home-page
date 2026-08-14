@@ -40,12 +40,15 @@
 }
 
 .card {
+  --service-card-background: transparent;
+  --service-card-ink: rgba(92, 145, 255, 0.2);
   position: relative;
   min-width: 0;
   min-height: 460px;
-  overflow: clip;
+  overflow: visible;
   border-radius: 20px;
   color: #0b1734;
+  cursor: default;
   scroll-margin-top: 112px;
   opacity: 1;
   transform: translate3d(0, 0, 0);
@@ -61,22 +64,66 @@
 }
 
 .ice {
-  background: #dfeaf4;
+  --service-card-background: #dfeaf4;
+  --service-card-ink: rgba(92, 145, 255, 0.2);
 }
 
 .sand {
-  background: #eee5d7;
+  --service-card-background: #eee5d7;
+  --service-card-ink: rgba(255, 180, 105, 0.18);
 }
 
 .mint {
-  background: #dceae3;
+  --service-card-background: #dceae3;
+  --service-card-ink: rgba(70, 190, 145, 0.16);
 }
 
 .periwinkle {
-  background: #dde2f0;
+  --service-card-background: #dde2f0;
+  --service-card-ink: rgba(128, 116, 255, 0.18);
+}
+
+.surface {
+  position: relative;
+  isolation: isolate;
+  min-height: inherit;
+  border-radius: inherit;
+  background: var(--service-card-background);
+  transform-origin: 50% 50%;
+}
+
+.surface::before {
+  position: absolute;
+  z-index: -1;
+  pointer-events: none;
+  content: '';
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: 0 28px 70px rgba(11, 23, 52, 0.12);
+  opacity: var(--service-card-shadow-opacity, 0);
+}
+
+.lens {
+  --service-lens-x: 0;
+  --service-lens-y: 0;
+  position: absolute;
+  z-index: 0;
+  pointer-events: none;
+  inset: 0;
+  overflow: hidden;
+  border-radius: inherit;
+  background: radial-gradient(
+    circle clamp(220px, 24vw, 340px) at calc(var(--service-lens-x) * 1px)
+      calc(var(--service-lens-y) * 1px),
+    var(--service-card-ink),
+    transparent 72%
+  );
+  opacity: 0;
 }
 
 .copy {
+  position: relative;
+  z-index: 1;
   display: flex;
   min-height: inherit;
   flex-direction: column;

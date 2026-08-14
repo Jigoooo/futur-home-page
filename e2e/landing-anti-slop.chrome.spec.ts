@@ -79,6 +79,14 @@ test('routes accordion FAQ inquiries through the factual Footer action without s
   ).toBeVisible();
   await expect(faq).not.toContainText('NDA');
   await expect(faq).toContainText('이미 사용 중인 웹·앱, SaaS, 업무 시스템과 솔루션');
+  await expect(faq).not.toContainText('검토 중인 예산');
+  await expect(faq).toContainText('생각해 둔 예산');
+  await expect(faq).not.toContainText('필요한 연결 지점');
+  await expect(faq).toContainText('어떤 대상을 어떻게 연결할지');
+  await expect(faq).not.toContainText('필요한 범위를 구성합니다');
+  await expect(faq).toContainText('현재 환경에 필요한 범위를 정합니다');
+  await expect(faq).not.toContainText('프로젝트에 필요한 단계로 진행합니다');
+  await expect(faq).toContainText('프로젝트에 따라 배포와 운영 인수인계까지 이어갑니다');
   await expect(faq).toContainText('기존 시스템이나 외부 서비스와 연동할 수 있나요?');
   await expect(faq).toContainText('AI 기능은 어떤 방식으로 도입하나요?');
   await expect(faq).toContainText('프로젝트는 어떤 방식으로 진행되나요?');

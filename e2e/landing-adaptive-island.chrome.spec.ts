@@ -814,71 +814,70 @@ test('switches Header ink with each light and dark section surface', async ({ pa
   await expect(servicesLink).toHaveCSS('color', 'rgb(7, 24, 63)');
 });
 
-test('switches to light surface ink at the Services boundary and keeps it through the gallery', async ({
+test('switches Header ink only after the next surface fully covers the island', async ({
   page,
 }) => {
   await page.goto('/');
   const nav = header(page);
-  const services = page.locator('#services');
-  const servicesLink = nav
-    .getByRole('navigation', { name: '주요 메뉴' })
-    .getByRole('link', { name: '서비스', exact: true });
   await expect(nav).toHaveAttribute('data-header-hydrated', 'true');
 
   await page.evaluate(() => {
     const headerElement = document.querySelector<HTMLElement>('[data-landing-nav]')!;
     const servicesElement = document.querySelector<HTMLElement>('#services')!;
     const servicesDocumentTop = servicesElement.getBoundingClientRect().top + window.scrollY;
+    const headerRect = headerElement.getBoundingClientRect();
     window.scrollTo({
-      top: servicesDocumentTop - (headerElement.getBoundingClientRect().bottom + 80),
+      top: servicesDocumentTop - (headerRect.top + headerRect.height / 2),
       behavior: 'instant',
     });
   });
-  await page.waitForTimeout(260);
 
-  const beforeCrossing = await page.evaluate(() => {
+  const mixedSurfaceGeometry = await page.evaluate(() => {
     const headerElement = document.querySelector<HTMLElement>('[data-landing-nav]')!;
     const servicesElement = document.querySelector<HTMLElement>('#services')!;
+    const headerRect = headerElement.getBoundingClientRect();
     return {
-      probeY: headerElement.getBoundingClientRect().bottom + 8,
+      headerTop: headerRect.top,
+      headerBottom: headerRect.bottom,
       servicesTop: servicesElement.getBoundingClientRect().top,
     };
   });
-  expect(beforeCrossing.servicesTop).toBeGreaterThan(beforeCrossing.probeY);
-  expect(beforeCrossing.servicesTop).toBeLessThan(desktopViewport.height * 0.5);
+  expect(mixedSurfaceGeometry.servicesTop).toBeGreaterThan(mixedSurfaceGeometry.headerTop);
+  expect(mixedSurfaceGeometry.servicesTop).toBeLessThan(mixedSurfaceGeometry.headerBottom);
   await expect(nav).toHaveAttribute('data-header-glass-tone', 'dark');
-  await expect(servicesLink).not.toHaveAttribute('aria-current');
 
   await page.evaluate(() => {
     const headerElement = document.querySelector<HTMLElement>('[data-landing-nav]')!;
     const servicesElement = document.querySelector<HTMLElement>('#services')!;
-    const probeY = headerElement.getBoundingClientRect().bottom + 8;
+    const headerTop = headerElement.getBoundingClientRect().top;
     window.scrollBy({
-      top: servicesElement.getBoundingClientRect().top - probeY + 16,
+      top: servicesElement.getBoundingClientRect().top - headerTop + 1,
       behavior: 'instant',
     });
   });
-  await expect
-    .poll(() =>
-      Promise.all([
-        services.evaluate((element) => element.getBoundingClientRect().top),
-        nav.evaluate((element) => element.getBoundingClientRect().bottom + 8),
-      ]).then(([servicesTop, probeY]) => servicesTop - probeY),
-    )
-    .toBeLessThanOrEqual(0);
   await expect(nav).toHaveAttribute('data-header-glass-tone', 'light');
-  await expect(servicesLink).toHaveAttribute('aria-current', 'location');
 
-  await page.locator('#service-product').evaluate((element) => {
-    element.scrollIntoView({ block: 'start', behavior: 'instant' });
+  await page.evaluate(() => {
     const headerElement = document.querySelector<HTMLElement>('[data-landing-nav]')!;
-    const probeY = headerElement.getBoundingClientRect().bottom + 8;
+    const servicesElement = document.querySelector<HTMLElement>('#services')!;
+    const headerRect = headerElement.getBoundingClientRect();
     window.scrollBy({
-      top: element.getBoundingClientRect().top - probeY + 1,
+      top: servicesElement.getBoundingClientRect().top - (headerRect.top + headerRect.height / 2),
       behavior: 'instant',
     });
   });
   await expect(nav).toHaveAttribute('data-header-glass-tone', 'light');
+
+  await page.evaluate(() => {
+    const headerElement = document.querySelector<HTMLElement>('[data-landing-nav]')!;
+    const servicesElement = document.querySelector<HTMLElement>('#services')!;
+    const headerBottom = headerElement.getBoundingClientRect().bottom;
+    window.scrollBy({
+      top: servicesElement.getBoundingClientRect().top - headerBottom - 1,
+      behavior: 'instant',
+    });
+  });
+  await expect(nav).toHaveAttribute('data-header-glass-tone', 'dark');
 });
 
 test('keeps the desktop logo and navigation links in tab order at full scroll progress', async ({

@@ -39,6 +39,7 @@ const sectionLabels = new Map([
   ['footer', { href: null, label: '문의' }],
 ]);
 const headerSectionProbeGuard = 8;
+const headerSurfaceCoverageTolerance = 1;
 const navigationLandingProbeTolerance = 1;
 
 function isPlainHashNavigation(event: MouseEvent<HTMLAnchorElement>) {
@@ -76,31 +77,24 @@ function getVisibleSectionId(header: HTMLElement | null) {
   }, null)?.id;
 }
 
-function getVisibleHeaderSurface(header: HTMLElement | null): HeaderSurface {
+function getVisibleHeaderSurface(
+  header: HTMLElement | null,
+  currentSurface: HeaderSurface,
+): HeaderSurface {
   const surfaces = Array.from(document.querySelectorAll<HTMLElement>('[data-header-surface]'));
-  const viewportProbe = (header?.getBoundingClientRect().bottom ?? 0) + headerSectionProbeGuard;
-  const containingProbe = surfaces.find((surface) => {
-    const rect = surface.getBoundingClientRect();
-    return rect.top <= viewportProbe && rect.bottom > viewportProbe;
-  });
-  const closestSurface =
-    containingProbe ??
-    surfaces.reduce<HTMLElement | null>((closest, surface) => {
-      if (!closest) return surface;
-      const closestRect = closest.getBoundingClientRect();
-      const surfaceRect = surface.getBoundingClientRect();
-      const closestDistance = Math.min(
-        Math.abs(closestRect.top - viewportProbe),
-        Math.abs(closestRect.bottom - viewportProbe),
-      );
-      const surfaceDistance = Math.min(
-        Math.abs(surfaceRect.top - viewportProbe),
-        Math.abs(surfaceRect.bottom - viewportProbe),
-      );
-      return surfaceDistance < closestDistance ? surface : closest;
-    }, null);
+  const headerRect = header?.getBoundingClientRect();
+  if (!headerRect) return currentSurface;
 
-  return closestSurface?.dataset.headerSurface === 'light' ? 'light' : 'dark';
+  const coveringSurface = surfaces.find((surface) => {
+    const rect = surface.getBoundingClientRect();
+    return (
+      rect.top <= headerRect.top + headerSurfaceCoverageTolerance &&
+      rect.bottom >= headerRect.bottom - headerSurfaceCoverageTolerance
+    );
+  });
+
+  if (!coveringSurface) return currentSurface;
+  return coveringSurface.dataset.headerSurface === 'light' ? 'light' : 'dark';
 }
 
 export function useAdaptiveHeader({ headerRef, menuRef, toggleRef }: AdaptiveHeaderRefs) {
@@ -434,7 +428,7 @@ export function useAdaptiveHeader({ headerRef, menuRef, toggleRef }: AdaptiveHea
     const updateActiveSection = () => {
       window.cancelAnimationFrame(frameId);
       frameId = window.requestAnimationFrame(() => {
-        const nextGlassTone = getVisibleHeaderSurface(headerRef.current);
+        const nextGlassTone = getVisibleHeaderSurface(headerRef.current, glassToneRef.current);
         if (nextGlassTone !== glassToneRef.current) {
           glassToneRef.current = nextGlassTone;
           setGlassTone(nextGlassTone);

@@ -33,6 +33,22 @@ test('replaces the presentation-like service flow with four image-free editorial
   expect(introGeometry.height).toBeLessThan(introGeometry.viewportHeight * 0.58);
 });
 
+test('keeps service scope labels equally prominent across asymmetric desktop cards', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto('/#services');
+
+  const scopeFontSizes = await page
+    .locator('[data-service-card] ul')
+    .evaluateAll((lists) =>
+      lists.map((list) => Number.parseFloat(getComputedStyle(list).fontSize)),
+    );
+
+  expect(new Set(scopeFontSizes).size).toBe(1);
+  expect(scopeFontSizes.every((size) => size > 15 && size <= 19)).toBe(true);
+});
+
 test('uses an unboxed kinetic technology index while retaining the full technology disclosure', async ({
   page,
 }) => {

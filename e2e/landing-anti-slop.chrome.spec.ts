@@ -67,7 +67,17 @@ test('routes static FAQ inquiries through the factual Footer action without stal
   await expect(
     faq.getByRole('heading', { level: 3, name: '기획서가 없어도 문의할 수 있나요?' }),
   ).toBeVisible();
-  await expect(faq).toContainText('페이지 하단의 문의하기 버튼으로 보내주세요.');
+  await expect(faq).toContainText('만들고 싶은 서비스나 해결하려는 문제를 가능한 한 자세히');
+  await expect(faq).toContainText('서비스·SaaS·솔루션 개발');
+  await expect(faq).toContainText('AI 통합·업무 혁신(AX)');
+  await expect(
+    faq.getByRole('heading', {
+      level: 3,
+      name: '운영 중인 서비스나 시스템도 맡길 수 있나요?',
+    }),
+  ).toBeVisible();
+  await expect(faq).not.toContainText('NDA');
+  await expect(faq).toContainText('이미 사용 중인 웹·앱, SaaS, 업무 시스템과 솔루션');
   await expect(
     page.locator('#footer').getByRole('link', { name: '문의하기', exact: true }),
   ).toHaveAttribute('href', 'mailto:kjwoo@futur.co.kr');

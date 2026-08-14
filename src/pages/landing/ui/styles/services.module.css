@@ -134,7 +134,7 @@
   margin-top: auto;
   padding-top: 68px;
   color: rgba(11, 23, 52, 0.82);
-  font-size: 13px;
+  font-size: clamp(16px, 1.35vw, 19px);
   line-height: 1.5;
   font-weight: 700;
 }
@@ -185,7 +185,6 @@
   align-self: end;
   margin: 0;
   padding: 0 0 3px;
-  font-size: clamp(15px, 1.35vw, 19px);
 }
 
 :global(body[data-landing-ready='true']) .card:not([data-landing-visible='true']) {
@@ -246,6 +245,7 @@
     margin-top: 26px;
   }
 
+  .card ul,
   .card:nth-child(1) ul,
   .card:nth-child(4) ul {
     display: flex;

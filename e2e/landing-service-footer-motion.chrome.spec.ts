@@ -101,11 +101,13 @@ test('redirects a service return tween on rapid re-entry', async ({ page }) => {
 test('keeps service cards static for reduced motion and touch', async ({ browser }) => {
   const reducedPage = await browser.newPage({ reducedMotion: 'reduce' });
   await reducedPage.goto('/#services');
+  await waitForLandingHydration(reducedPage);
   await reducedPage.locator('[data-service-card]').first().hover();
   await expect(reducedPage.locator('[data-service-card-surface]').first()).toHaveCSS(
     'transform',
     'none',
   );
+  await expect(reducedPage.locator('[data-service-card-lens]').first()).toHaveCSS('opacity', '0');
   await reducedPage.close();
 
   const touchContext = await browser.newContext({
@@ -114,6 +116,12 @@ test('keeps service cards static for reduced motion and touch', async ({ browser
   });
   const touchPage = await touchContext.newPage();
   await touchPage.goto('/#services');
+  await waitForLandingHydration(touchPage);
+  const touchCard = touchPage.locator('[data-service-card]').first();
+  await touchCard.scrollIntoViewIfNeeded();
+  const touchCardBox = await touchCard.boundingBox();
+  expect(touchCardBox).not.toBeNull();
+  await touchPage.touchscreen.tap((touchCardBox?.x ?? 0) + 40, (touchCardBox?.y ?? 0) + 40);
   await expect(touchPage.locator('[data-service-card-surface]').first()).toHaveCSS(
     'transform',
     'none',
@@ -211,6 +219,11 @@ test('uses a static Footer signature for reduced motion and touch', async ({ bro
   await waitForLandingHydration(reducedPage);
   const reducedSignature = reducedPage.locator('[data-footer-signature]');
   await expect(reducedSignature).toHaveCSS('transform', 'none');
+  await expect(reducedSignature).toHaveCSS('transition-duration', '0s');
+  await expect(reducedSignature.locator('[data-footer-signature-base]')).toHaveCSS(
+    'clip-path',
+    'inset(0px)',
+  );
   await expect(reducedSignature.locator('[data-footer-signature-lens]')).toHaveCSS('opacity', '0');
   await reducedPage.close();
 
@@ -221,6 +234,43 @@ test('uses a static Footer signature for reduced motion and touch', async ({ bro
   const touchPage = await touchContext.newPage();
   await touchPage.goto('/#footer');
   await waitForLandingHydration(touchPage);
-  await expect(touchPage.locator('[data-footer-signature-lens]')).toHaveCSS('opacity', '0');
+  const touchSignature = touchPage.locator('[data-footer-signature]');
+  const touchSignatureBox = await touchSignature.boundingBox();
+  expect(touchSignatureBox).not.toBeNull();
+  await touchPage.touchscreen.tap(
+    (touchSignatureBox?.x ?? 0) + 40,
+    (touchSignatureBox?.y ?? 0) + 24,
+  );
+  await expect(touchSignature).toHaveCSS('transform', 'none');
+  await expect(touchSignature).toHaveCSS('transition-duration', '0s');
+  await expect(touchSignature.locator('[data-footer-signature-lens]')).toHaveCSS('opacity', '0');
   await touchContext.close();
+});
+
+test('keeps Services and Footer readable without horizontal overflow at supported widths', async ({
+  browser,
+}) => {
+  const page = await browser.newPage();
+  for (const width of [1280, 900, 390]) {
+    await page.setViewportSize({ width, height: width === 1280 ? 900 : 844 });
+    await page.goto('/');
+    await waitForLandingHydration(page);
+    expect(
+      await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth),
+    ).toBe(false);
+    await expect(page.locator('[data-service-card]')).toHaveCount(4);
+    await expect(page.locator('[data-footer-signature]')).toHaveCount(1);
+  }
+  await page.close();
+
+  const noScriptContext = await browser.newContext({ javaScriptEnabled: false });
+  const noScriptPage = await noScriptContext.newPage();
+  await noScriptPage.goto('/');
+  await expect(noScriptPage.locator('[data-service-card]')).toHaveCount(4);
+  await expect(noScriptPage.locator('[data-footer-signature]')).toBeVisible();
+  await expect(noScriptPage.getByRole('link', { name: '문의하기', exact: true })).toHaveAttribute(
+    'href',
+    /^mailto:/,
+  );
+  await noScriptContext.close();
 });

@@ -360,3 +360,14 @@
     transition: none !important;
   }
 }
+
+@media (hover: none), (pointer: coarse), (prefers-reduced-motion: reduce) {
+  .surface {
+    transform: none !important;
+  }
+
+  .surface::before,
+  .lens {
+    opacity: 0 !important;
+  }
+}

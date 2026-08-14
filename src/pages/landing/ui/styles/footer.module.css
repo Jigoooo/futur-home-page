@@ -252,14 +252,21 @@
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
+@media (hover: none), (pointer: coarse), (prefers-reduced-motion: reduce) {
   .signature {
-    transform: none;
+    clip-path: inset(0) !important;
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
   }
 
   .signatureBase,
   .signatureLens {
-    clip-path: inset(0);
-    transition: none;
+    clip-path: inset(0) !important;
+    transition: none !important;
+  }
+
+  .signatureLens {
+    opacity: 0 !important;
   }
 }

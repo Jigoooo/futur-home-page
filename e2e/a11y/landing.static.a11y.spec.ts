@@ -16,6 +16,7 @@ test.describe('/ 랜딩 페이지 정적 스캔', () => {
     { id: '#services', name: '서비스' },
     { id: '#technology', name: '기술(대표 기술)' },
     { id: '#faq', name: 'FAQ(단일 열림 아코디언)' },
+    { id: '#footer', name: 'Footer 문의와 법적 정보' },
   ] as const;
 
   for (const { id, name } of sections) {

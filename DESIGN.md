@@ -63,7 +63,8 @@ Header는 데스크톱 `desktop-fluid`, 모바일 `mobile-compact | mobile-expan
 - 주요 섹션 링크: `서비스 · 기술 · FAQ`
 - 별도 문의 링크: `#footer`; 활성 인디케이터 대상에서는 제외
 - Compact 라벨: Hero `FUTUR.`, Services `서비스`, Technology `기술`, FAQ `FAQ`, Footer `문의`
-- glass tone은 섹션 ID가 아니라 Header 아래 `8px` 지점을 통과하는 `[data-header-surface]`의 실제 표면으로 결정한다.
+- glass tone은 섹션 ID가 아니라 Header 캡슐의 세로 중앙선을 통과하는 실제 `[data-header-surface]`로 결정한다.
+- ink, rim, glass background와 문의 링크의 tone 전환은 `240ms`로 맞춘다.
 - glass tone dark: Hero, Technology, Footer
 - glass tone light: Services, FAQ
 - Services 인트로와 카드 모두 활성 메뉴·Compact 라벨은 `서비스`를 유지한다.
@@ -82,7 +83,9 @@ Services는 짧은 전환 인트로와 네 개의 타이포그래피 중심 capa
 
 surface는 warm off-white `#F4F4F0`이며 Hero와 명확한 cut으로 전환한다. 인트로는 desktop 두 열, tablet·mobile 한 열이고 viewport를 채우지 않는 자연 높이를 쓴다.
 
-desktop은 두 열 bento다. 1번과 4번은 전폭, 2번과 3번은 반폭이며 카드 surface는 각각 ice, sand, mint, periwinkle의 낮은 채도 단색이다. border와 shadow는 사용하지 않고 `20px` radius만 쓴다. 이미지·SVG·아이콘 없이 번호·제목·설명·업무 범위의 정렬과 여백으로만 위계를 만든다. 카드는 최초 진입 시 최대 `28px` 아래에서 한 번 나타나며 hover 장식은 추가하지 않는다.
+desktop은 두 열 bento다. 1번과 4번은 전폭, 2번과 3번은 반폭이며 카드 surface는 각각 ice, sand, mint, periwinkle의 낮은 채도 단색이다. 기본 상태에는 border와 shadow를 사용하지 않고 `20px` radius만 쓴다. 이미지·SVG·아이콘 없이 번호·제목·설명·업무 범위의 정렬과 여백으로만 위계를 만든다. 카드는 최초 진입 시 최대 `28px` 아래에서 한 번 나타난다.
+
+fine pointer 환경의 카드는 `Lifted Ink Surface`를 사용한다. 내부 surface만 `translateY(-7px) scale(1.006)`로 들어 올리고, 카드 tone별 blue·orange·green·violet radial ink lens와 사전 렌더된 shadow opacity를 포인터 위치에서 드러낸다. 진입은 `320ms power3.out`, 복귀는 `480ms back.out(1.35)`, lens fade는 `180ms`다. 카드 자체는 정보성 `<article>`이며 링크·버튼·role·`tabIndex`·focus·pointer cursor와 hover 전용 정보가 없다. touch, coarse pointer와 reduced motion에서는 surface와 lens가 정적 최종 상태로 남는다.
 
 `1180px` 이하에서는 각 카드가 copy와 image의 세로 구조가 되고 `760px` 이하에서는 한 열로 전환한다. 네 서비스 ID는 Footer 이외의 직접 접근을 위해 유지하며 `scroll-margin-top`으로 고정 Header와 겹치지 않게 한다.
 
@@ -113,6 +116,9 @@ Footer는 둥근 CTA 카드, 그라디언트와 이메일 pill이 없는 검은 
 - magnetic 외곽과 press 내부 surface를 분리해 transform 충돌을 막고, reduced motion은 색상과 focus outline만 유지한다.
 - 이메일은 연락처 영역에 작은 텍스트로 유지하며 주소, 회사·법적 정보와 문의 서버 경계를 바꾸지 않는다.
 - Footer의 서비스 탐색 nav는 렌더링하지 않는다.
+- CTA 아래는 서비스 설명과 문의처의 information rail, 개인정보처리방침·이용약관·사업자 정보의 legal metadata, 장식용 `FUTUR.` signature 순서로 구성한다. 정보 rail과 legal metadata 시작점에만 hairline을 두어 Footer 하단의 구분선은 정확히 두 개다.
+- signature는 기존 reveal observer로 `700ms`에 한 번만 아래에서 나타난다. fine pointer에서는 포인터를 따라가는 radial glyph mask가 글자 안의 blue-to-white 색만 드러내며 wordmark 자체를 이동·확대·회전하지 않는다.
+- signature는 `aria-hidden='true'`인 순수 장식이다. touch·coarse pointer·reduced motion과 no-JavaScript에서는 clip, 이동, 지연과 lens 없이 처음부터 정적으로 표시한다.
 
 ## Legal Pages and Scrollbar
 
@@ -133,12 +139,13 @@ Footer는 둥근 CTA 카드, 그라디언트와 이메일 pill이 없는 검은 
 - [ ] Team·Stack·Process·Operations DOM과 `?team=` 분기가 없다.
 - [ ] Services는 이미지 없는 타이포그래피 카드 4개이며 sticky index와 surface gate가 없다.
 - [ ] 1번·4번 전폭, 2번·3번 반폭의 desktop bento가 tablet·mobile에서 안전하게 한 열로 전환된다.
+- [ ] 서비스 카드는 fine pointer에서만 Lifted Ink Surface를 제공하고 정보성 article 및 기본 포인터 계약을 유지한다.
 - [ ] Hero particle opacity가 `0.62 → 0.16` 구간에서 감소하고 기존 renderer hysteresis가 유지된다.
 - [ ] SUIT·Space Grotesk가 로컬 파일로 제공되고 Wanted Sans 요청이 없다.
 - [ ] Technology는 card 없는 kinetic row 4개, `20s` marquee와 전체 분류 16개·기술 70개를 제공한다.
 - [ ] 전체 기술 disclosure는 sticky summary, curtain reveal, 닫힘 scroll anchoring과 입력 반전을 제공하고 no-JS·reduced motion에서는 native 동작을 유지한다.
 - [ ] FAQ 3개의 질문과 답변이 처음부터 보이고 accordion control이 없다.
-- [ ] Footer에 blue magnetic·liquid `문의하기` CTA와 작은 이메일이 있고 서비스 탐색 nav는 없다.
+- [ ] Footer에 blue magnetic·liquid `문의하기` CTA, information rail, legal metadata, 한 번 나타나는 장식 시그니처와 작은 이메일이 있고 서비스 탐색 nav는 없다.
 - [ ] 기본 포인터가 유지되고 custom ring/dot cursor DOM과 dataset이 없다.
 - [ ] `/privacy`, `/terms`는 독립 페이지이며 `퓨터 / Futur` 표기와 공용 PageScrollbar 계약을 유지한다.
 - [ ] `1280px`, `1180px`, `900px`, `390px`에서 레이아웃과 가로 overflow가 안전하다.

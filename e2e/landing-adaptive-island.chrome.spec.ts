@@ -858,6 +858,51 @@ test('switches Header ink when the incoming surface crosses the island midpoint'
   expect(toneTransitions).toEqual({ glass: '0.24s, 0.24s', logo: '0.24s' });
 });
 
+test('tracks the surface midpoint across mobile island expansion and collapse', async ({
+  page,
+}) => {
+  await page.setViewportSize(mobileViewport);
+  await page.goto('/');
+  const nav = header(page);
+  await expect(nav).toHaveAttribute('data-header-hydrated', 'true');
+
+  await page.evaluate(() => {
+    const servicesElement = document.querySelector<HTMLElement>('#services')!;
+    const servicesDocumentTop = servicesElement.getBoundingClientRect().top + window.scrollY;
+    window.scrollTo({ top: servicesDocumentTop - 60, behavior: 'instant' });
+  });
+
+  const readBoundaryGeometry = () =>
+    nav.evaluate((element) => {
+      const headerRect = element.getBoundingClientRect();
+      const servicesTop = document
+        .querySelector<HTMLElement>('#services')!
+        .getBoundingClientRect().top;
+      return {
+        headerMidpoint: headerRect.top + headerRect.height / 2,
+        servicesTop,
+      };
+    });
+
+  await expect(nav).toHaveAttribute('data-header-glass-tone', 'dark');
+  const compactGeometry = await readBoundaryGeometry();
+  expect(compactGeometry.headerMidpoint).toBeLessThan(compactGeometry.servicesTop);
+
+  await compactButton(page).click();
+  await expect(nav).toHaveAttribute('data-header-layout', 'mobile-expanded');
+  await expect(nav).not.toHaveAttribute('data-header-motion');
+  const expandedGeometry = await readBoundaryGeometry();
+  expect(expandedGeometry.headerMidpoint).toBeGreaterThan(expandedGeometry.servicesTop);
+  await expect(nav).toHaveAttribute('data-header-glass-tone', 'light');
+
+  await (await expectExpandedController(page, '서비스')).click();
+  await expect(nav).toHaveAttribute('data-header-layout', 'mobile-compact');
+  await expect(nav).not.toHaveAttribute('data-header-motion');
+  const collapsedGeometry = await readBoundaryGeometry();
+  expect(collapsedGeometry.headerMidpoint).toBeLessThan(collapsedGeometry.servicesTop);
+  await expect(nav).toHaveAttribute('data-header-glass-tone', 'dark');
+});
+
 test('keeps the desktop logo and navigation links in tab order at full scroll progress', async ({
   page,
 }) => {

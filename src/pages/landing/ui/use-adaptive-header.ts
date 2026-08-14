@@ -423,15 +423,20 @@ export function useAdaptiveHeader({ headerRef, menuRef, toggleRef }: AdaptiveHea
 
   useEffect(() => {
     let frameId = 0;
-    const updateActiveSection = () => {
+    let shouldUpdateActiveSection = false;
+    const scheduleHeaderMeasurement = (includeActiveSection: boolean) => {
+      shouldUpdateActiveSection ||= includeActiveSection;
       window.cancelAnimationFrame(frameId);
       frameId = window.requestAnimationFrame(() => {
+        frameId = 0;
         const nextGlassTone = getVisibleHeaderSurface(headerRef.current, glassToneRef.current);
         if (nextGlassTone !== glassToneRef.current) {
           glassToneRef.current = nextGlassTone;
           setGlassTone(nextGlassTone);
         }
-        if (layoutRef.current === 'mobile-expanded') return;
+        const updateSection = shouldUpdateActiveSection;
+        shouldUpdateActiveSection = false;
+        if (!updateSection || layoutRef.current === 'mobile-expanded') return;
         const nextSectionId = getVisibleSectionId(headerRef.current) ?? 'hero';
         if (nextSectionId === activeSectionIdRef.current) return;
 
@@ -439,6 +444,11 @@ export function useAdaptiveHeader({ headerRef, menuRef, toggleRef }: AdaptiveHea
         setActiveSectionId(nextSectionId);
       });
     };
+    const updateActiveSection = () => scheduleHeaderMeasurement(true);
+    const updateHeaderTone = () => scheduleHeaderMeasurement(false);
+    const resizeObserver = new ResizeObserver(updateHeaderTone);
+    const header = headerRef.current;
+    if (header) resizeObserver.observe(header);
 
     window.addEventListener('scroll', updateActiveSection, { passive: true });
     window.addEventListener('resize', updateActiveSection);
@@ -447,6 +457,7 @@ export function useAdaptiveHeader({ headerRef, menuRef, toggleRef }: AdaptiveHea
 
     return () => {
       window.cancelAnimationFrame(frameId);
+      resizeObserver.disconnect();
       window.removeEventListener('scroll', updateActiveSection);
       window.removeEventListener('resize', updateActiveSection);
       window.removeEventListener('landing-surface-change', updateActiveSection);

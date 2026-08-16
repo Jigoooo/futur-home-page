@@ -1,84 +1,177 @@
-name: CI
+name: CI & Deploy
 
 on:
   pull_request:
   push:
-    branches: [main]
+    branches: [master]
+  workflow_dispatch:
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+permissions:
+  contents: read
 
 jobs:
-  lint:
+  verify:
+    name: Verify production build
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          cache: 'pnpm'
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm lint
-
-  typecheck:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          cache: 'pnpm'
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm exec tsc -b --noEmit
-
-  e2e-a11y:
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 45
     env:
       CI: 'true'
     steps:
       - uses: actions/checkout@v4
+
       - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
       - uses: actions/setup-node@v4
         with:
-          node-version: 24
-          cache: 'pnpm'
-      - run: pnpm install --frozen-lockfile
+          node-version: 22
+          cache: pnpm
 
-      - name: Resolve Playwright version
-        id: pw
-        run: echo "version=$(node -p "require('./node_modules/@playwright/test/package.json').version")" >> $GITHUB_OUTPUT
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
 
-      - name: Cache Playwright browsers
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/ms-playwright
-          key: pw-${{ runner.os }}-${{ steps.pw.outputs.version }}
+      - name: Lint
+        run: pnpm lint
 
-      - name: Install Chrome + deps
+      - name: Typecheck
+        run: pnpm exec tsc -b --noEmit
+
+      - name: Install Chrome
         run: pnpm exec playwright install --with-deps chrome
 
       - name: Build production bundle
         run: pnpm build
 
-      - name: Start production server
-        run: |
-          pnpm start &
-          npx wait-on http://127.0.0.1:3000 --timeout 60000
-
-      - name: Run a11y E2E (axe-core)
+      - name: Run the full production E2E suite
         env:
+          PLAYWRIGHT_E2E: '1'
+          PLAYWRIGHT_PRODUCTION_SERVER: '1'
           PLAYWRIGHT_SKIP_WEB_SERVER: '1'
-          PLAYWRIGHT_BASE_URL: 'http://127.0.0.1:3000'
-        run: pnpm exec playwright test --project=a11y --reporter=list,html
+          PLAYWRIGHT_BASE_URL: http://127.0.0.1:3000
+        run: |
+          set -Eeuo pipefail
+          env PLAYWRIGHT_E2E=1 PORT=3000 node .output/server/index.mjs > "$RUNNER_TEMP/futur-server.log" 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          pnpm exec wait-on http://127.0.0.1:3000 --timeout 60000
+          pnpm exec playwright test --workers=1
 
-      - name: Upload Playwright HTML report
+      - name: Upload Playwright report on failure
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-report
-          path: playwright-report/
+          name: playwright-report-${{ github.sha }}
+          path: |
+            playwright-report/
+            test-results/
+          if-no-files-found: ignore
           retention-days: 14
+
+      - name: Upload verified Nitro output
+        uses: actions/upload-artifact@v4
+        with:
+          name: nitro-output-${{ github.sha }}
+          path: .output/
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 7
+
+  deploy:
+    name: Deploy production release
+    needs: verify
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    concurrency:
+      group: futur-production
+      cancel-in-progress: false
+    env:
+      SSH_HOST: ${{ secrets.SSH_HOST }}
+      SSH_USERNAME: ${{ secrets.SSH_USERNAME }}
+      SSH_PORT: ${{ secrets.SSH_PORT }}
+      DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+      RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+      CONTACT_FROM_EMAIL: ${{ secrets.CONTACT_FROM_EMAIL }}
+      CONTACT_TO_EMAIL: ${{ secrets.CONTACT_TO_EMAIL }}
+      CONTACT_RATE_LIMIT_SALT: ${{ secrets.CONTACT_RATE_LIMIT_SALT }}
+      CONTACT_TRUST_PROXY: ${{ secrets.CONTACT_TRUST_PROXY }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download verified Nitro output
+        uses: actions/download-artifact@v4
+        with:
+          name: nitro-output-${{ github.sha }}
+          path: .output
+
+      - name: Prepare SSH and release package
+        env:
+          SSH_KEY: ${{ secrets.SSH_KEY }}
+        run: |
+          set -Eeuo pipefail
+          umask 077
+          install -m 600 /dev/null "$RUNNER_TEMP/futur_deploy_key"
+          printf '%s\n' "$SSH_KEY" > "$RUNNER_TEMP/futur_deploy_key"
+          ssh-keyscan -p "$SSH_PORT" -H "$SSH_HOST" > "$RUNNER_TEMP/futur_known_hosts"
+          tar -C .output -czf "$RUNNER_TEMP/futur-output.tar.gz" .
+          {
+            printf 'RESEND_API_KEY=%q\n' "$RESEND_API_KEY"
+            printf 'CONTACT_FROM_EMAIL=%q\n' "$CONTACT_FROM_EMAIL"
+            printf 'CONTACT_TO_EMAIL=%q\n' "$CONTACT_TO_EMAIL"
+            printf 'CONTACT_RATE_LIMIT_SALT=%q\n' "$CONTACT_RATE_LIMIT_SALT"
+            printf 'CONTACT_TRUST_PROXY=%q\n' "$CONTACT_TRUST_PROXY"
+          } > "$RUNNER_TEMP/futur-runtime.env"
+
+      - name: Upload and activate release
+        run: |
+          set -Eeuo pipefail
+          ssh_options=(
+            -i "$RUNNER_TEMP/futur_deploy_key"
+            -o "UserKnownHostsFile=$RUNNER_TEMP/futur_known_hosts"
+            -o StrictHostKeyChecking=yes
+            -p "$SSH_PORT"
+          )
+          remote="${SSH_USERNAME}@${SSH_HOST}"
+          incoming="${DEPLOY_PATH%/}/.incoming/${GITHUB_SHA}"
+          printf -v prepare_command '%q ' mkdir -p "$incoming"
+          ssh "${ssh_options[@]}" "$remote" "$prepare_command"
+          scp -q -P "$SSH_PORT" \
+            -i "$RUNNER_TEMP/futur_deploy_key" \
+            -o "UserKnownHostsFile=$RUNNER_TEMP/futur_known_hosts" \
+            -o StrictHostKeyChecking=yes \
+            "$RUNNER_TEMP/futur-output.tar.gz" \
+            "$RUNNER_TEMP/futur-runtime.env" \
+            deploy/pm2/ecosystem.config.cjs \
+            deploy/scripts/deploy-release.sh \
+            "$remote:$incoming/"
+          printf -v deploy_command '%q ' bash "$incoming/deploy-release.sh" deploy "$DEPLOY_PATH" "$GITHUB_SHA" "$incoming"
+          ssh "${ssh_options[@]}" "$remote" "$deploy_command"
+
+      - name: Verify public HTTPS and finalize
+        run: |
+          set -Eeuo pipefail
+          ssh_options=(
+            -i "$RUNNER_TEMP/futur_deploy_key"
+            -o "UserKnownHostsFile=$RUNNER_TEMP/futur_known_hosts"
+            -o StrictHostKeyChecking=yes
+            -p "$SSH_PORT"
+          )
+          remote="${SSH_USERNAME}@${SSH_HOST}"
+          incoming="${DEPLOY_PATH%/}/.incoming/${GITHUB_SHA}"
+          public_ok='false'
+          for attempt in {1..12}; do
+            if curl -fsS --max-time 15 -H 'Cache-Control: no-cache' \
+              "https://futur.co.kr/?deploy=${GITHUB_SHA}" | grep -Fq 'BUILT FOR WHAT'; then
+              public_ok='true'
+              break
+            fi
+            sleep 5
+          done
+          if [[ "$public_ok" != 'true' ]]; then
+            printf -v rollback_command '%q ' bash "$incoming/deploy-release.sh" rollback "$DEPLOY_PATH" "$GITHUB_SHA" "$incoming"
+            ssh "${ssh_options[@]}" "$remote" "$rollback_command"
+            exit 1
+          fi
+          printf -v finalize_command '%q ' bash "$incoming/deploy-release.sh" finalize "$DEPLOY_PATH" "$GITHUB_SHA" "$incoming"
+          ssh "${ssh_options[@]}" "$remote" "$finalize_command"

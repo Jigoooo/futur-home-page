@@ -40,6 +40,7 @@ test('lifts one fine-pointer service surface and tracks the local ink lens', asy
   const card = page.locator('[data-service-card]').first();
   const surface = card.locator('[data-service-card-surface]');
   const lens = card.locator('[data-service-card-lens]');
+  await card.scrollIntoViewIfNeeded();
   const box = await card.boundingBox();
   expect(box).not.toBeNull();
 

@@ -12,8 +12,13 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as MenuRouteImport } from './routes/menu'
+import { Route as ContactRouteImport } from './routes/contact'
 import { Route as SplatRouteImport } from './routes/$'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as PolicyTermsRouteImport } from './routes/policy.terms'
+import { Route as PolicyPrivacyRouteImport } from './routes/policy.privacy'
+import { Route as InternalE2eContactInquiryRouteImport } from './routes/internal-e2e.contact-inquiry'
 
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
@@ -30,6 +35,16 @@ const PrivacyRoute = PrivacyRouteImport.update({
   path: '/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MenuRoute = MenuRouteImport.update({
+  id: '/menu',
+  path: '/menu',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContactRoute = ContactRouteImport.update({
+  id: '/contact',
+  path: '/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SplatRoute = SplatRouteImport.update({
   id: '/$',
   path: '/$',
@@ -40,43 +55,110 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PolicyTermsRoute = PolicyTermsRouteImport.update({
+  id: '/policy/terms',
+  path: '/policy/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PolicyPrivacyRoute = PolicyPrivacyRouteImport.update({
+  id: '/policy/privacy',
+  path: '/policy/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InternalE2eContactInquiryRoute =
+  InternalE2eContactInquiryRouteImport.update({
+    id: '/internal-e2e/contact-inquiry',
+    path: '/internal-e2e/contact-inquiry',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/$': typeof SplatRoute
+  '/contact': typeof ContactRoute
+  '/menu': typeof MenuRoute
   '/privacy': typeof PrivacyRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
+  '/internal-e2e/contact-inquiry': typeof InternalE2eContactInquiryRoute
+  '/policy/privacy': typeof PolicyPrivacyRoute
+  '/policy/terms': typeof PolicyTermsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/$': typeof SplatRoute
+  '/contact': typeof ContactRoute
+  '/menu': typeof MenuRoute
   '/privacy': typeof PrivacyRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
+  '/internal-e2e/contact-inquiry': typeof InternalE2eContactInquiryRoute
+  '/policy/privacy': typeof PolicyPrivacyRoute
+  '/policy/terms': typeof PolicyTermsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/$': typeof SplatRoute
+  '/contact': typeof ContactRoute
+  '/menu': typeof MenuRoute
   '/privacy': typeof PrivacyRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
+  '/internal-e2e/contact-inquiry': typeof InternalE2eContactInquiryRoute
+  '/policy/privacy': typeof PolicyPrivacyRoute
+  '/policy/terms': typeof PolicyTermsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/$' | '/privacy' | '/sitemap.xml' | '/terms'
+  fullPaths:
+    | '/'
+    | '/$'
+    | '/contact'
+    | '/menu'
+    | '/privacy'
+    | '/sitemap.xml'
+    | '/terms'
+    | '/internal-e2e/contact-inquiry'
+    | '/policy/privacy'
+    | '/policy/terms'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/$' | '/privacy' | '/sitemap.xml' | '/terms'
-  id: '__root__' | '/' | '/$' | '/privacy' | '/sitemap.xml' | '/terms'
+  to:
+    | '/'
+    | '/$'
+    | '/contact'
+    | '/menu'
+    | '/privacy'
+    | '/sitemap.xml'
+    | '/terms'
+    | '/internal-e2e/contact-inquiry'
+    | '/policy/privacy'
+    | '/policy/terms'
+  id:
+    | '__root__'
+    | '/'
+    | '/$'
+    | '/contact'
+    | '/menu'
+    | '/privacy'
+    | '/sitemap.xml'
+    | '/terms'
+    | '/internal-e2e/contact-inquiry'
+    | '/policy/privacy'
+    | '/policy/terms'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   SplatRoute: typeof SplatRoute
+  ContactRoute: typeof ContactRoute
+  MenuRoute: typeof MenuRoute
   PrivacyRoute: typeof PrivacyRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TermsRoute: typeof TermsRoute
+  InternalE2eContactInquiryRoute: typeof InternalE2eContactInquiryRoute
+  PolicyPrivacyRoute: typeof PolicyPrivacyRoute
+  PolicyTermsRoute: typeof PolicyTermsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -102,6 +184,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/menu': {
+      id: '/menu'
+      path: '/menu'
+      fullPath: '/menu'
+      preLoaderRoute: typeof MenuRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/contact': {
+      id: '/contact'
+      path: '/contact'
+      fullPath: '/contact'
+      preLoaderRoute: typeof ContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/$': {
       id: '/$'
       path: '/$'
@@ -116,15 +212,41 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/policy/terms': {
+      id: '/policy/terms'
+      path: '/policy/terms'
+      fullPath: '/policy/terms'
+      preLoaderRoute: typeof PolicyTermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/policy/privacy': {
+      id: '/policy/privacy'
+      path: '/policy/privacy'
+      fullPath: '/policy/privacy'
+      preLoaderRoute: typeof PolicyPrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/internal-e2e/contact-inquiry': {
+      id: '/internal-e2e/contact-inquiry'
+      path: '/internal-e2e/contact-inquiry'
+      fullPath: '/internal-e2e/contact-inquiry'
+      preLoaderRoute: typeof InternalE2eContactInquiryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   SplatRoute: SplatRoute,
+  ContactRoute: ContactRoute,
+  MenuRoute: MenuRoute,
   PrivacyRoute: PrivacyRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TermsRoute: TermsRoute,
+  InternalE2eContactInquiryRoute: InternalE2eContactInquiryRoute,
+  PolicyPrivacyRoute: PolicyPrivacyRoute,
+  PolicyTermsRoute: PolicyTermsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

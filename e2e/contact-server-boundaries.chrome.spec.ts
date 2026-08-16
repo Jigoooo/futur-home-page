@@ -38,34 +38,17 @@ async function callContactServer(
   input: ReturnType<typeof validInquiry>,
   identity: RequestIdentityOptions,
 ) {
-  return page.evaluate(
-    async ({ payload, requestIdentity }) => {
-      const modulePath = '/src/pages/landing/server/contact-inquiry.functions.ts';
-      const server = (await import(/* @vite-ignore */ modulePath)) as {
-        submitContactInquiry: (options: {
-          data: typeof payload;
-          headers: Record<string, string>;
-        }) => Promise<ServerResult>;
-      };
+  const headers: Record<string, string> = {};
+  if (identity.e2eRequester) headers['x-contact-e2e-requester'] = identity.e2eRequester;
+  if (identity.forwardedFor) headers['x-forwarded-for'] = identity.forwardedFor;
+  if (identity.now !== undefined) headers['x-contact-e2e-now'] = String(identity.now);
 
-      const headers: Record<string, string> = {};
-      if (requestIdentity.e2eRequester) {
-        headers['x-contact-e2e-requester'] = requestIdentity.e2eRequester;
-      }
-      if (requestIdentity.forwardedFor) {
-        headers['x-forwarded-for'] = requestIdentity.forwardedFor;
-      }
-      if (requestIdentity.now !== undefined) {
-        headers['x-contact-e2e-now'] = String(requestIdentity.now);
-      }
-
-      return server.submitContactInquiry({
-        data: payload,
-        headers,
-      });
-    },
-    { payload: input, requestIdentity: identity },
-  );
+  const response = await page.request.post('/internal-e2e/contact-inquiry', {
+    data: input,
+    headers,
+  });
+  expect(response.status()).toBe(200);
+  return response.json() as Promise<ServerResult>;
 }
 
 test('rejects invalid allowlists, bounds, consents, honeypot, and form age on the server', async ({

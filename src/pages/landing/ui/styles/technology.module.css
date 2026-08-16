@@ -515,7 +515,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .marquee {
-    animation: none;
+    animation: none !important;
     animation-play-state: paused;
     transform: none !important;
     will-change: auto;

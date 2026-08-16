@@ -100,7 +100,7 @@ test('keeps technology motion static without JavaScript and with reduced motion'
   await expect(reducedTechnology.locator('[data-technology-marquee-control]')).toBeHidden();
   for (const marquee of await reducedTechnology.locator('[data-technology-marquee]').all()) {
     await expect(marquee).toHaveAttribute('data-technology-marquee-state', 'reduced');
-    await expect(marquee).toHaveCSS('animation-play-state', 'paused');
+    await expect(marquee).toHaveCSS('animation-name', 'none');
   }
   await reducedPage.close();
 });

@@ -31,11 +31,10 @@ export const Route = createFileRoute('/sitemap.xml')({
   server: {
     handlers: {
       GET: async () => {
-        const today = new Date().toISOString().split('T')[0];
         const sitemap = generateSitemapXml([
           {
             loc: `${COMPANY_INFOS.URL}/`,
-            lastmod: today,
+            lastmod: '2026-08-16',
             changefreq: 'weekly',
             priority: 1,
           },

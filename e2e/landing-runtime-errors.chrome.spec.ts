@@ -65,6 +65,10 @@ test('initial hydration emits no React attribute mismatch warning', async ({ pag
 });
 
 test('root hydration suppression does not hide descendant mismatches', async ({ page }) => {
+  test.skip(
+    process.env.PLAYWRIGHT_PRODUCTION_SERVER === '1',
+    'React production builds intentionally omit development hydration diagnostics',
+  );
   const hydrationWarnings: string[] = [];
 
   await page.route('**/', async (route) => {

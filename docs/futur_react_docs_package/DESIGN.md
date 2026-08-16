@@ -454,11 +454,14 @@ Motion:
 
 ### 9.1 Header
 
-- sticky pill nav
-- 흰색 translucent background
-- blur는 약하게
-- CTA는 오른쪽에 명확하게
-- 모바일에서는 nav menu를 숨기고 CTA 또는 menu button 제공
+- Header는 viewport 상단에 고정된 하나의 glass surface를 사용한다.
+- 데스크톱은 스크롤에 따라 폭과 높이만 연속적으로 정리하며 로고·서비스·기술·FAQ·문의 링크를 계속 노출한다.
+- `900px` 이하에서는 `mobile-persistent` 단일 레이아웃을 사용한다. 로고·서비스·기술·FAQ·문의 링크를 한 줄에 상시 노출하고 접기·펼치기 상태를 만들지 않는다.
+- 모바일 높이는 `58px`, 좌우 여백은 `10px`, hash target 안전 거리는 `82px`로 고정한다. 스크롤 중 width·height·내부 배치는 변하지 않는다.
+- 모바일에는 메뉴 toggle, close button, `aria-expanded`, 별도 active indicator를 두지 않는다. 데스크톱과 같은 공유 indicator와 `aria-current="location"`을 사용한다.
+- `320px`에서도 문구를 숨기지 않는다. 로고 `18px`, 메뉴 `11px`, 링크 padding `4px`까지 축소해 한 줄을 유지한다.
+- no-JS·reduced motion에서도 같은 전체 내비게이션이 즉시 보이고 키보드 순서에 포함돼야 한다.
+- 실제 배경 surface가 Header 중간선을 통과할 때 light/dark glass tone을 전환한다.
 
 ### 9.2 Hero
 

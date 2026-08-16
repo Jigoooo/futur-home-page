@@ -1,5 +1,7 @@
 # FUTUR Shared Active Navigation Indicator 설계
 
+> Updated on 2026-08-17. 공유 active indicator는 데스크톱과 `mobile-persistent`에서 함께 사용한다. 이전 모바일 Compact/Expanded 제외 조건은 더 이상 적용하지 않는다.
+
 ## 1. 목적
 
 데스크톱 Header의 활성 메뉴가 스크롤에 따라 바뀔 때 현재 밑줄은 이전 항목에서 사라지고 새

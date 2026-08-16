@@ -1,20 +1,5 @@
 import gsap from 'gsap';
 
-export type MobileHeaderLayout = 'mobile-compact' | 'mobile-expanded';
-export type HeaderMotionPhase = 'idle' | 'opening' | 'closing';
-
-export type MobileHeaderMotionOptions = {
-  header: HTMLElement;
-  indicator: HTMLElement | null;
-  menuItems: HTMLElement[];
-  onComplete: () => void;
-  onPhaseChange: (phase: HeaderMotionPhase) => void;
-  previousTimeline: gsap.core.Timeline | null;
-  reducedMotion: boolean;
-  target: MobileHeaderLayout;
-  viewportWidth: number;
-};
-
 export const DESKTOP_HEADER_SCROLL_RANGE = 160;
 
 export function getDesktopHeaderProgress(scrollY: number) {
@@ -58,87 +43,4 @@ export function clearDesktopHeaderFrame(header: HTMLElement) {
   ]) {
     header.style.removeProperty(name);
   }
-}
-
-export function getMobileHeaderGeometry(layout: MobileHeaderLayout, viewportWidth: number) {
-  return layout === 'mobile-expanded'
-    ? { width: Math.min(370, viewportWidth - 20), height: 158 }
-    : { width: Math.min(220, viewportWidth - 20), height: 56 };
-}
-
-export function startMobileHeaderMotion(
-  options: MobileHeaderMotionOptions,
-): gsap.core.Timeline | null {
-  const {
-    header,
-    indicator,
-    menuItems,
-    onComplete,
-    onPhaseChange,
-    previousTimeline,
-    reducedMotion,
-    target,
-    viewportWidth,
-  } = options;
-  const current = header.getBoundingClientRect();
-  const destination = getMobileHeaderGeometry(target, viewportWidth);
-  const opening = target === 'mobile-expanded';
-  const interrupted = previousTimeline !== null;
-  const clear = () => {
-    delete header.dataset.headerMotion;
-    header.style.removeProperty('--header-mobile-width');
-    header.style.removeProperty('--header-mobile-height');
-    gsap.set([...menuItems, indicator].filter(Boolean), {
-      clearProps: 'opacity,transform,transformOrigin',
-    });
-    onPhaseChange('idle');
-  };
-
-  previousTimeline?.eventCallback('onInterrupt', null);
-  previousTimeline?.kill();
-  header.style.setProperty('--header-mobile-width', `${current.width}px`);
-  header.style.setProperty('--header-mobile-height', `${current.height}px`);
-
-  if (reducedMotion) {
-    clear();
-    onComplete();
-    return null;
-  }
-
-  header.dataset.headerMotion = 'true';
-  onPhaseChange(opening ? 'opening' : 'closing');
-  const timeline = gsap.timeline({
-    onComplete: () => {
-      clear();
-      onComplete();
-    },
-    onInterrupt: clear,
-  });
-  timeline.to(
-    header,
-    {
-      '--header-mobile-height': `${destination.height}px`,
-      '--header-mobile-width': `${destination.width}px`,
-      duration: opening ? 0.32 : 0.28,
-      ease: 'power3.inOut',
-    },
-    0,
-  );
-
-  if (opening) {
-    if (!interrupted) gsap.set(menuItems, { opacity: 0, y: 6 });
-    timeline.to(
-      menuItems,
-      { duration: 0.2, ease: 'power2.out', opacity: 1, stagger: 0.028, y: 0 },
-      0.07,
-    );
-    if (indicator) {
-      if (!interrupted) gsap.set(indicator, { scaleX: 0.78, transformOrigin: 'left center' });
-      timeline.to(indicator, { duration: 0.07, ease: 'power2.out', scaleX: 1 }, 0.21);
-    }
-  } else {
-    timeline.to(menuItems, { duration: 0.12, ease: 'power2.in', opacity: 0, y: -2 }, 0);
-  }
-
-  return timeline;
 }

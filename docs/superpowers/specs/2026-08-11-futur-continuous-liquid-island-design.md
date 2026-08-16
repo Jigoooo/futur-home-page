@@ -1,5 +1,7 @@
 # FUTUR Continuous Liquid Island 설계
 
+> Partially superseded on 2026-08-17. 데스크톱 연속 geometry는 유지하지만 모바일 Compact/Expanded timeline은 제거됐고 `mobile-persistent` 상시 내비게이션으로 대체됐다.
+
 ## 1. 목적
 
 현재 Adaptive Island는 데스크톱에서 Hero 전체 메뉴를 `220×58px` Compact 버튼으로 교체하고,

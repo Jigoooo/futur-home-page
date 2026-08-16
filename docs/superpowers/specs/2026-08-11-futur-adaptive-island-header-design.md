@@ -1,5 +1,7 @@
 # FUTUR Adaptive Island 상단바 설계
 
+> Superseded on 2026-08-17. 모바일 Compact/Expanded 계약은 `2026-08-17-mobile-header-persistent-navigation-design.md`의 상시 노출 `mobile-persistent` 계약으로 대체됐다. 데스크톱 glass surface와 tone 원칙만 역사적 배경으로 참고한다.
+
 ## 1. 목표와 확정 범위
 
 상단바를 Hero의 전체 탐색에서 스크롤 후 작은 `FUTUR.` 섬으로 변하는 Adaptive Island로 바꾼다. 상단바는 페이지의 현재 위치를 안내하고 필요할 때만 다섯 개 탐색 항목을 펼친다. 문의 폼 UI와 그 진입 링크는 랜딩에서 제거하되, 실제 연락 가능한 Footer 이메일과 향후 재사용 가능한 문의 입력·서버 경계는 유지한다.

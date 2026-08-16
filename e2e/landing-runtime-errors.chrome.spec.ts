@@ -32,11 +32,14 @@ test('initial load and primary interactions emit no runtime errors', async ({ pa
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/');
   await waitForLandingHydration(page);
-  const headerToggle = page.locator('[data-header-toggle]');
-  await expect(headerToggle).toBeVisible();
-  await headerToggle.click();
-  await expect(headerToggle).toHaveAttribute('aria-expanded', 'true');
-  await page.keyboard.press('Escape');
+  await expect(page.locator('[data-landing-nav]')).toHaveAttribute(
+    'data-header-layout',
+    'mobile-persistent',
+  );
+  await page
+    .getByRole('navigation', { name: '주요 메뉴' })
+    .getByRole('link', { name: '기술' })
+    .click();
   await page.locator('#footer a[data-landing-magnetic]').hover();
   await page.mouse.move(0, 0);
 

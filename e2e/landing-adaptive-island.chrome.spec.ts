@@ -88,6 +88,29 @@ test('keeps the mobile header geometry stable with active-only navigation', asyn
   }
 });
 
+test('keeps the full menu comfortably spaced at tablet widths', async ({ page }) => {
+  for (const viewport of [
+    { width: 900, height: 844 },
+    { width: 768, height: 844 },
+    { width: 561, height: 844 },
+  ]) {
+    await page.setViewportSize(viewport);
+    await page.goto('/');
+    await waitForHeader(page, 'mobile-persistent');
+
+    const links = navigation(page).getByRole('link');
+    await expect(links).toHaveCount(4);
+    for (const link of await links.all()) await expect(link).toBeVisible();
+
+    await expect(navigation(page)).toHaveCSS('font-size', '14px');
+    await expect(header(page).locator('[data-header-section-link]').first()).toHaveCSS(
+      'padding-left',
+      '8px',
+    );
+    await expectNoHorizontalOverflow(page);
+  }
+});
+
 test('keeps mobile navigation active through direct scroll state', async ({ page }) => {
   await page.setViewportSize(mobileViewports[0]);
   await page.goto('/');
@@ -351,6 +374,9 @@ test('keeps navigation and core content available without JavaScript', async ({ 
 
   await expect(header(page).getByRole('link', { name: 'FUTUR home' })).toBeVisible();
   await expect(navigation(page).getByRole('link')).toHaveCount(4);
+  for (const name of ['서비스', '기술', 'FAQ', '문의']) {
+    await expect(navigation(page).getByRole('link', { name, exact: true })).toBeVisible();
+  }
   await expect(header(page).locator('[data-header-toggle], [data-header-close]')).toHaveCount(0);
   await expect(page.locator('#services')).toContainText('새로운 서비스부터');
   await expect(page.locator('#technology')).toContainText('기술은 목적과 환경에 맞게 선택합니다.');

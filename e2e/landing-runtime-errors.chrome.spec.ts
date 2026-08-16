@@ -36,10 +36,10 @@ test('initial load and primary interactions emit no runtime errors', async ({ pa
     'data-header-layout',
     'mobile-persistent',
   );
-  await page
-    .getByRole('navigation', { name: '주요 메뉴' })
-    .getByRole('link', { name: '기술' })
-    .click();
+  await page.goto('/#technology');
+  await waitForLandingHydration(page);
+  await expect(page).toHaveURL(/#technology$/);
+  await page.locator('#technology').evaluate((element) => element.scrollIntoView());
   await page.locator('#footer a[data-landing-magnetic]').hover();
   await page.mouse.move(0, 0);
 

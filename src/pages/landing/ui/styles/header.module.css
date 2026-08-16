@@ -252,26 +252,56 @@
   }
 }
 
-@media (max-width: 340px) {
+@media (max-width: 560px) {
+  .nav {
+    width: calc(100% - 24px);
+    height: 60px;
+  }
+
   .glassShell {
-    padding-inline: 10px 6px;
+    padding-inline: 14px;
   }
 
   .logo {
-    font-size: 18px;
+    font-size: 20px;
   }
 
   .navMenu {
-    font-size: 11px;
+    position: static;
+    flex: 1 1 auto;
+    font-size: 13px;
   }
 
-  .navMenu a {
-    padding-inline: 4px;
+  .menuLinks {
+    position: static;
+    width: 100%;
+    justify-content: flex-end;
+    gap: 0;
+  }
+
+  .nav[data-header-hydrated='true'] [data-header-section-link]:not([aria-current='location']),
+  :global(html[data-header-initial-layout='mobile-persistent'])
+    .nav[data-header-hydrated='false']
+    [data-header-section-link]:not([aria-current='location']) {
+    display: none;
+  }
+
+  .nav[data-header-hydrated='true'] [data-header-section-link][aria-current='location'] {
+    position: absolute;
+    left: 50%;
+    min-height: 44px;
+    padding-inline: 12px;
+    transform: translateX(-50%);
   }
 
   .navMenu .contactLink {
-    min-width: 42px;
-    padding-inline: 6px;
+    min-width: 52px;
+    margin-left: auto;
+    padding-inline: 11px;
+  }
+
+  .activeIndicator {
+    display: none;
   }
 }
 

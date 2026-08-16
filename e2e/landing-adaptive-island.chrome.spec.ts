@@ -14,6 +14,10 @@ function navigation(page: Page) {
   return page.getByRole('navigation', { name: '주요 메뉴' });
 }
 
+async function visibleSectionLabels(page: Page) {
+  return navigation(page).locator('[data-header-section-link]:visible').allTextContents();
+}
+
 async function waitForHeader(page: Page, layout: 'desktop-fluid' | 'mobile-persistent') {
   await expect(header(page)).toHaveAttribute('data-header-hydrated', 'true');
   await expect(header(page)).toHaveAttribute('data-header-layout', layout);
@@ -92,6 +96,57 @@ test('keeps mobile navigation active and directly operable', async ({ page }) =>
   await expect(page).toHaveURL(/#technology$/);
   await expect(technologyLink).toHaveAttribute('aria-current', 'location');
   await expect(header(page).locator('[data-header-active-indicator]')).toBeVisible();
+});
+
+test('shows only the current section between the mobile logo and inquiry action', async ({
+  page,
+}) => {
+  for (const viewport of [
+    { width: 560, height: 844 },
+    { width: 390, height: 844 },
+    { width: 320, height: 720 },
+  ]) {
+    await page.setViewportSize(viewport);
+    await page.goto('/');
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await waitForHeader(page, 'mobile-persistent');
+
+    const nav = header(page);
+    await expect(nav.getByRole('link', { name: 'FUTUR home' })).toBeVisible();
+    await expect(navigation(page).getByRole('link', { name: '문의', exact: true })).toBeVisible();
+    await expect.poll(() => visibleSectionLabels(page)).toEqual([]);
+    await expect(nav.locator('[data-header-active-indicator]')).toBeHidden();
+
+    for (const [selector, label] of [
+      ['#services', '서비스'],
+      ['#technology', '기술'],
+      ['#faq', 'FAQ'],
+    ] as const) {
+      await page.locator(selector).evaluate((element) => element.scrollIntoView());
+      await expect.poll(() => visibleSectionLabels(page)).toEqual([label]);
+
+      const frame = await page.evaluate(() => {
+        const root = document.querySelector<HTMLElement>('[data-landing-nav]')!;
+        const active = root.querySelector<HTMLElement>('[data-header-section-link][aria-current]')!;
+        const rootRect = root.getBoundingClientRect();
+        const activeRect = active.getBoundingClientRect();
+        return {
+          activeCenter: activeRect.left + activeRect.width / 2,
+          headerCenter: rootRect.left + rootRect.width / 2,
+          headerHeight: rootRect.height,
+          headerWidth: rootRect.width,
+        };
+      });
+
+      expect(frame.activeCenter).toBeCloseTo(frame.headerCenter, 0);
+      expect(frame.headerHeight).toBeCloseTo(60, 0);
+      expect(frame.headerWidth).toBeCloseTo(viewport.width - 24, 0);
+    }
+
+    await page.locator('#footer').evaluate((element) => element.scrollIntoView());
+    await expect.poll(() => visibleSectionLabels(page)).toEqual([]);
+    await expectNoHorizontalOverflow(page);
+  }
 });
 
 test('keeps every header destination directly available to keyboard users', async ({ page }) => {

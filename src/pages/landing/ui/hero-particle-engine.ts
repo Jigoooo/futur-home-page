@@ -36,7 +36,7 @@ type PointerSample = HeroParticlePointer & {
   velocity: number;
 };
 
-type ParticleTier = {
+export type ParticleTier = {
   dpr: number;
   emit: number;
   main: number;
@@ -103,7 +103,7 @@ function shouldUseCiLightParticleTier() {
   );
 }
 
-function getParticleTier(width: number, ciLightParticles: boolean): ParticleTier {
+export function getParticleTier(width: number, ciLightParticles: boolean): ParticleTier {
   if (ciLightParticles) {
     if (width < 720) return { main: 4_000, emit: 0, dpr: 1 };
     if (width < 1_024) return { main: 6_000, emit: 300, dpr: 1 };

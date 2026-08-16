@@ -185,26 +185,6 @@ async function sampleReducedMotionFrames(page: Page) {
   });
 }
 
-async function sampleHeaderFrames(page: Page, durationMs: number) {
-  return header(page).evaluate(async (element, duration) => {
-    const samples: Array<{ height: number; radius: number; width: number }> = [];
-    const startedAt = performance.now();
-
-    do {
-      const rect = element.getBoundingClientRect();
-      const glass = element.querySelector<HTMLElement>('[data-header-glass]');
-      samples.push({
-        height: Math.round(rect.height * 100) / 100,
-        radius: Number.parseFloat(getComputedStyle(glass!).borderRadius),
-        width: Math.round(rect.width * 100) / 100,
-      });
-      await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
-    } while (performance.now() - startedAt < duration);
-
-    return samples;
-  }, durationMs);
-}
-
 type DesktopIndicatorFrame = {
   activeHref: string | null;
   opacity: number;
@@ -324,20 +304,26 @@ async function readReducedIndicatorOnNextFrame(page: Page, targetSectionId: 'tec
   }, targetSectionId);
 }
 
-async function sampleNavigationFontSizes(page: Page, durationMs: number) {
-  return header(page)
-    .locator('nav[aria-label="주요 메뉴"] a')
-    .evaluateAll(async (elements, duration) => {
-      const samples: string[][] = [];
-      const startedAt = performance.now();
+type DesktopHeaderFrame = { height: number; radius: number; width: number };
 
-      do {
-        samples.push(elements.map((element) => getComputedStyle(element).fontSize));
-        await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
-      } while (performance.now() - startedAt < duration);
+async function readDesktopHeaderFrame(page: Page): Promise<DesktopHeaderFrame> {
+  return header(page).evaluate((element) => {
+    const rect = element.getBoundingClientRect();
+    const glass = element.querySelector<HTMLElement>('[data-header-glass]');
+    const round = (value: number) => Math.round(value * 100) / 100;
 
-      return samples;
-    }, durationMs);
+    return {
+      height: round(rect.height),
+      radius: round(Number.parseFloat(getComputedStyle(glass!).borderRadius)),
+      width: round(rect.width),
+    };
+  });
+}
+
+async function settleDesktopHeaderAt(page: Page, scrollY: number, expected: DesktopHeaderFrame) {
+  await page.evaluate((top) => window.scrollTo({ top, behavior: 'instant' }), scrollY);
+  await expect.poll(() => readDesktopHeaderFrame(page)).toEqual(expected);
+  return readDesktopHeaderFrame(page);
 }
 
 async function readHeaderGeometry(page: Page) {
@@ -521,59 +507,52 @@ test('keeps desktop fluid navigation visible through continuous scroll-linked ge
   const initialFontSizes = await links.evaluateAll((elements) =>
     elements.map((element) => getComputedStyle(element).fontSize),
   );
+  const checkpoints = [
+    { expected: { height: 76, radius: 28, width: 1232 }, scrollY: 0 },
+    { expected: { height: 74, radius: 27, width: 1207.36 }, scrollY: 40 },
+    { expected: { height: 72, radius: 26, width: 1182.72 }, scrollY: 80 },
+    { expected: { height: 70, radius: 25, width: 1158.08 }, scrollY: 120 },
+    { expected: { height: 68, radius: 24, width: 1133.44 }, scrollY: 160 },
+  ] satisfies Array<{ expected: DesktopHeaderFrame; scrollY: number }>;
+  const shrinkingSamples: DesktopHeaderFrame[] = [];
 
-  for (const scrollY of [0, 40, 80, 120, 160]) {
-    await page.evaluate((top) => window.scrollTo({ top, behavior: 'instant' }), scrollY);
+  for (const checkpoint of checkpoints) {
+    shrinkingSamples.push(
+      await settleDesktopHeaderAt(page, checkpoint.scrollY, checkpoint.expected),
+    );
     await expect(header(page)).toHaveAttribute('data-header-layout', 'desktop-fluid');
     await expect(links).toHaveCount(4);
     for (const link of await links.all()) await expect(link).toBeVisible();
     await expect(logo).toBeVisible();
     await expect(toggle).toHaveAttribute('aria-hidden', 'true');
     await expect(toggle).toHaveAttribute('tabindex', '-1');
+    await expect
+      .poll(() =>
+        links.evaluateAll((elements) =>
+          elements.map((element) => getComputedStyle(element).fontSize),
+        ),
+      )
+      .toEqual(initialFontSizes);
   }
 
-  await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
-  await page.waitForTimeout(240);
-  const shrinkingSamplesPromise = sampleHeaderFrames(page, 360);
-  const fontSizeSamplesPromise = sampleNavigationFontSizes(page, 360);
-  await page.evaluate(() => window.scrollTo({ top: 160, behavior: 'instant' }));
-  const shrinkingSamples = await shrinkingSamplesPromise;
-  const fontSizeSamples = await fontSizeSamplesPromise;
-
-  expect(new Set(shrinkingSamples.map(({ width }) => width)).size).toBeGreaterThanOrEqual(5);
-  const finalShrinkingSample = shrinkingSamples[shrinkingSamples.length - 1]!;
-  expect(finalShrinkingSample.width).toBeCloseTo(1133.44, 0);
-  expect(finalShrinkingSample.height).toBeCloseTo(68, 0);
-  expect(finalShrinkingSample.radius).toBeCloseTo(24, 0);
+  expect(new Set(shrinkingSamples.map(({ width }) => width)).size).toBe(checkpoints.length);
   for (let index = 1; index < shrinkingSamples.length; index += 1) {
-    expect(shrinkingSamples[index]!.width).toBeLessThanOrEqual(shrinkingSamples[index - 1]!.width);
-    expect(shrinkingSamples[index]!.height).toBeLessThanOrEqual(
-      shrinkingSamples[index - 1]!.height,
-    );
-    expect(shrinkingSamples[index]!.radius).toBeLessThanOrEqual(
-      shrinkingSamples[index - 1]!.radius,
-    );
+    expect(shrinkingSamples[index]!.width).toBeLessThan(shrinkingSamples[index - 1]!.width);
+    expect(shrinkingSamples[index]!.height).toBeLessThan(shrinkingSamples[index - 1]!.height);
+    expect(shrinkingSamples[index]!.radius).toBeLessThan(shrinkingSamples[index - 1]!.radius);
   }
 
-  const restoringSamplesPromise = sampleHeaderFrames(page, 360);
-  await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
-  const restoringSamples = await restoringSamplesPromise;
-  for (let index = 1; index < restoringSamples.length; index += 1) {
-    expect(restoringSamples[index]!.width).toBeGreaterThanOrEqual(
-      restoringSamples[index - 1]!.width,
-    );
-    expect(restoringSamples[index]!.height).toBeGreaterThanOrEqual(
-      restoringSamples[index - 1]!.height,
-    );
-    expect(restoringSamples[index]!.radius).toBeGreaterThanOrEqual(
-      restoringSamples[index - 1]!.radius,
+  const restoringSamples: DesktopHeaderFrame[] = [];
+  for (const checkpoint of checkpoints.slice(0, -1).reverse()) {
+    restoringSamples.push(
+      await settleDesktopHeaderAt(page, checkpoint.scrollY, checkpoint.expected),
     );
   }
-  const finalRestoringSample = restoringSamples[restoringSamples.length - 1]!;
-  expect(finalRestoringSample.width).toBeCloseTo(1232, 0);
-  expect(finalRestoringSample.height).toBeCloseTo(76, 0);
-  expect(finalRestoringSample.radius).toBeCloseTo(28, 0);
-  expect(fontSizeSamples.every((sample) => sample.join() === initialFontSizes.join())).toBe(true);
+  for (let index = 1; index < restoringSamples.length; index += 1) {
+    expect(restoringSamples[index]!.width).toBeGreaterThan(restoringSamples[index - 1]!.width);
+    expect(restoringSamples[index]!.height).toBeGreaterThan(restoringSamples[index - 1]!.height);
+    expect(restoringSamples[index]!.radius).toBeGreaterThan(restoringSamples[index - 1]!.radius);
+  }
 });
 
 test('avoids settled desktop geometry writes through the Hero to Services boundary', async ({

@@ -39,11 +39,14 @@ test.describe('운영 배포 계약', () => {
     expect(workflow).toContain('cancel-in-progress: false');
   });
 
-  test('일반 shard에만 명시적인 CI 경량 파티클 쿠키를 제공한다', () => {
+  test('일반 shard와 Hero 브라우저 검증에만 명시적인 CI 경량 파티클 쿠키를 제공한다', () => {
     const workflow = readFileSync(workflowPath, 'utf8');
     const playwrightConfig = readFileSync(playwrightConfigPath, 'utf8');
+    const e2eJob = workflow.match(/\n {2}e2e:[\s\S]*?\n {2}hero-e2e:/)?.[0] ?? '';
+    const heroJob = workflow.match(/\n {2}hero-e2e:[\s\S]*?\n {2}deploy:/)?.[0] ?? '';
 
-    expect(workflow).toContain("PLAYWRIGHT_CI_LIGHT_PARTICLES: '1'");
+    expect(e2eJob).toContain("PLAYWRIGHT_CI_LIGHT_PARTICLES: '1'");
+    expect(heroJob).toContain("PLAYWRIGHT_CI_LIGHT_PARTICLES: '1'");
     expect(playwrightConfig).toContain('PLAYWRIGHT_CI_LIGHT_PARTICLES');
     expect(playwrightConfig).toContain('futur-e2e-particles');
     expect(playwrightConfig).toContain('retries: process.env.CI ? 1 : 0');

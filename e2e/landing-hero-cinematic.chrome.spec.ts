@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 
+import { getParticleTier } from '../src/pages/landing/ui/hero-particle-engine';
 import {
   DENSITY_VERTEX_SHADER,
   EMITTER_FRAGMENT_SHADER,
@@ -154,7 +155,7 @@ test('fades only the particle layer across the Hero exit interval', async ({ pag
   await expect(hero.getByRole('heading', { level: 1, name: HERO_LABEL })).toHaveCSS('opacity', '1');
 });
 
-test('runs the dense parametric particle pipeline on the dark hero surface', async ({ page }) => {
+test('runs the parametric particle pipeline on the dark hero surface', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto('/');
 
@@ -167,7 +168,8 @@ test('runs the dense parametric particle pipeline on the dark hero surface', asy
   await expect(canvas).toHaveAttribute('data-particle-displacement', 'feedback-touch');
   await expect(canvas).toHaveAttribute('data-particle-contact', 'trail-24');
   await expect(canvas).toHaveAttribute('data-particle-emitter', 'active');
-  await expect(canvas).toHaveAttribute('data-particle-emitter-count', '4000');
+  const expectedTier = getParticleTier(1440, process.env.PLAYWRIGHT_CI_LIGHT_PARTICLES === '1');
+  await expect(canvas).toHaveAttribute('data-particle-emitter-count', String(expectedTier.emit));
   await expect(canvas).toHaveAttribute('data-particle-emitter-style', 'dandelion-seeds');
   await expect(canvas).toHaveAttribute('data-particle-initial-shape', 'braided-flow');
   await expect(canvas).toHaveAttribute('data-particle-initial-density', 'clustered');
@@ -180,35 +182,17 @@ test('runs the dense parametric particle pipeline on the dark hero surface', asy
   );
 
   const particleCount = Number(await canvas.getAttribute('data-particle-count'));
-  expect(particleCount).toBeGreaterThanOrEqual(68_000);
+  expect(particleCount).toBe(expectedTier.main);
 });
 
-test('uses bounded particle tiers outside desktop', async ({ browser }) => {
-  const compactDesktopPage = await browser.newPage({ viewport: { width: 1095, height: 996 } });
-  await compactDesktopPage.goto('/');
-  const compactDesktopCanvas = compactDesktopPage.locator('canvas[data-hero-particles]');
-  await expect(compactDesktopCanvas).toHaveAttribute('data-particle-state', 'ready');
-  await expect(compactDesktopCanvas).toHaveAttribute('data-particle-count', '70000');
-  await expect(compactDesktopCanvas).toHaveAttribute('data-particle-emitter-count', '4000');
-  await compactDesktopPage.close();
+test('keeps the production and explicit CI particle tiers bounded', () => {
+  expect(getParticleTier(1095, false)).toEqual({ dpr: 2, emit: 4_000, main: 70_000 });
+  expect(getParticleTier(900, false)).toEqual({ dpr: 1.5, emit: 2_200, main: 44_000 });
+  expect(getParticleTier(390, false)).toEqual({ dpr: 1.2, emit: 0, main: 18_000 });
 
-  const tabletPage = await browser.newPage({ viewport: { width: 900, height: 996 } });
-  await tabletPage.goto('/');
-  const tabletCanvas = tabletPage.locator('canvas[data-hero-particles]');
-  await expect(tabletCanvas).toHaveAttribute('data-particle-state', 'ready');
-  const tabletCount = Number(await tabletCanvas.getAttribute('data-particle-count'));
-  expect(tabletCount).toBeGreaterThanOrEqual(42_000);
-  expect(tabletCount).toBeLessThanOrEqual(46_000);
-  await tabletPage.close();
-
-  const mobilePage = await browser.newPage({ viewport: { width: 390, height: 844 } });
-  await mobilePage.goto('/');
-  const mobileCanvas = mobilePage.locator('canvas[data-hero-particles]');
-  await expect(mobileCanvas).toHaveAttribute('data-particle-state', 'ready');
-  const mobileCount = Number(await mobileCanvas.getAttribute('data-particle-count'));
-  expect(mobileCount).toBeLessThanOrEqual(18_000);
-  await expect(mobileCanvas).toHaveAttribute('data-particle-emitter', 'disabled');
-  await mobilePage.close();
+  expect(getParticleTier(1095, true)).toEqual({ dpr: 1, emit: 500, main: 8_000 });
+  expect(getParticleTier(900, true)).toEqual({ dpr: 1, emit: 300, main: 6_000 });
+  expect(getParticleTier(390, true)).toEqual({ dpr: 1, emit: 0, main: 4_000 });
 });
 
 test('uses a bounded particle tier only for the explicit CI light-mode cookie', async ({

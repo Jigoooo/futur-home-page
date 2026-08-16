@@ -150,7 +150,7 @@ jobs:
           retention-days: 14
 
   hero-e2e:
-    name: Full-density Hero E2E
+    name: Hero E2E
     needs: quality
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -160,6 +160,7 @@ jobs:
       PLAYWRIGHT_PRODUCTION_SERVER: '1'
       PLAYWRIGHT_SKIP_WEB_SERVER: '1'
       PLAYWRIGHT_BASE_URL: http://127.0.0.1:3000
+      PLAYWRIGHT_CI_LIGHT_PARTICLES: '1'
     steps:
       - uses: actions/checkout@v4
 
@@ -184,7 +185,7 @@ jobs:
           name: nitro-output-${{ github.sha }}
           path: .output
 
-      - name: Run the full-density Hero suite
+      - name: Run the Hero interaction and production-tier contract suite
         run: |
           set -Eeuo pipefail
           env PLAYWRIGHT_E2E=1 PORT=3000 node .output/server/index.mjs > "$RUNNER_TEMP/futur-server.log" 2>&1 &

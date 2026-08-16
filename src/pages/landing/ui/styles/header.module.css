@@ -279,10 +279,7 @@
     gap: 0;
   }
 
-  .nav[data-header-hydrated='true'] [data-header-section-link]:not([aria-current='location']),
-  :global(html[data-header-initial-layout='mobile-persistent'])
-    .nav[data-header-hydrated='false']
-    [data-header-section-link]:not([aria-current='location']) {
+  .nav[data-header-hydrated='true'] [data-header-section-link]:not([aria-current='location']) {
     display: none;
   }
 

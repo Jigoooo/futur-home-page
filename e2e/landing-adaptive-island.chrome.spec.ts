@@ -59,20 +59,23 @@ test('keeps desktop navigation visible through scroll-linked geometry', async ({
   await expect(links).toHaveCount(4);
 });
 
-test('keeps the complete navigation visible in a fixed mobile header', async ({ page }) => {
+test('keeps the mobile header geometry stable with active-only navigation', async ({ page }) => {
   for (const viewport of mobileViewports) {
     await page.setViewportSize(viewport);
     await page.goto('/');
+    await page.evaluate(() => window.scrollTo(0, 0));
     await waitForHeader(page, 'mobile-persistent');
 
     const nav = header(page);
     const initial = await nav.boundingBox();
     await expect(nav.getByRole('link', { name: 'FUTUR home' })).toBeVisible();
-    await expect(navigation(page).getByRole('link')).toHaveCount(4);
+    await expect(navigation(page).getByRole('link', { name: '문의', exact: true })).toBeVisible();
+    await expect.poll(() => visibleSectionLabels(page)).toEqual([]);
     await expect(nav.locator('[data-header-toggle], [data-header-close]')).toHaveCount(0);
 
-    await page.evaluate(() => window.scrollTo(0, 620));
+    await page.locator('#services').evaluate((element) => element.scrollIntoView());
     await page.waitForTimeout(80);
+    await expect.poll(() => visibleSectionLabels(page)).toEqual(['서비스']);
     const scrolled = await nav.boundingBox();
 
     expect(initial).not.toBeNull();
@@ -85,17 +88,17 @@ test('keeps the complete navigation visible in a fixed mobile header', async ({ 
   }
 });
 
-test('keeps mobile navigation active and directly operable', async ({ page }) => {
+test('keeps mobile navigation active through direct scroll state', async ({ page }) => {
   await page.setViewportSize(mobileViewports[0]);
   await page.goto('/');
   await waitForHeader(page, 'mobile-persistent');
 
-  const technologyLink = navigation(page).getByRole('link', { name: '기술' });
-  await technologyLink.click();
+  await page.locator('#technology').evaluate((element) => element.scrollIntoView());
 
-  await expect(page).toHaveURL(/#technology$/);
+  const technologyLink = navigation(page).getByRole('link', { name: '기술', exact: true });
+  await expect.poll(() => visibleSectionLabels(page)).toEqual(['기술']);
   await expect(technologyLink).toHaveAttribute('aria-current', 'location');
-  await expect(header(page).locator('[data-header-active-indicator]')).toBeVisible();
+  await expect(header(page).locator('[data-header-active-indicator]')).toBeHidden();
 });
 
 test('shows only the current section between the mobile logo and inquiry action', async ({
@@ -149,23 +152,58 @@ test('shows only the current section between the mobile logo and inquiry action'
   }
 });
 
-test('keeps every header destination directly available to keyboard users', async ({ page }) => {
+test('keeps a direct mobile hash destination visible before and after hydration', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/#technology');
+  await waitForHeader(page, 'mobile-persistent');
+
+  await page.evaluate(() => {
+    document.documentElement.dataset.headerInitialLayout = 'mobile-persistent';
+    const root = document.querySelector<HTMLElement>('[data-landing-nav]')!;
+    root.dataset.headerHydrated = 'false';
+    root.querySelectorAll('[data-header-section-link][aria-current]').forEach((link) => {
+      link.removeAttribute('aria-current');
+    });
+  });
+  const preHydrationDisplay = await page.evaluate(
+    () =>
+      getComputedStyle(document.querySelector('[data-header-section-link][href="#technology"]')!)
+        .display,
+  );
+  expect(preHydrationDisplay).not.toBe('none');
+
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.reload();
+  await waitForHeader(page, 'mobile-persistent');
+  await expect(page).toHaveURL(/#technology$/);
+  await page.locator('#technology').evaluate((element) => element.scrollIntoView());
+  await expect.poll(() => visibleSectionLabels(page)).toEqual(['기술']);
+  await expect(navigation(page).getByRole('link', { name: '기술', exact: true })).toHaveAttribute(
+    'aria-current',
+    'location',
+  );
+});
+
+test('keeps mobile section destinations reachable through direct scroll state', async ({
+  page,
+}) => {
   await page.setViewportSize(mobileViewports[0]);
   await page.goto('/');
   await waitForHeader(page, 'mobile-persistent');
 
-  const expectedLinks = [
-    ['FUTUR home', '#top'],
-    ['서비스', '#services'],
-    ['기술', '#technology'],
-    ['FAQ', '#faq'],
-    ['문의', '#footer'],
+  const expectedSections = [
+    ['#services', '서비스'],
+    ['#technology', '기술'],
+    ['#faq', 'FAQ'],
   ] as const;
 
-  for (const [name, href] of expectedLinks) {
-    const link = page.getByRole('link', { name, exact: true });
-    await expect(link).toHaveAttribute('href', href);
-    await expect(link).not.toHaveAttribute('tabindex', '-1');
+  for (const [selector, label] of expectedSections) {
+    await page.locator(selector).evaluate((element) => element.scrollIntoView());
+    const link = navigation(page).getByRole('link', { name: label, exact: true });
+    await expect.poll(() => visibleSectionLabels(page)).toEqual([label]);
+    await expect(link).toHaveAttribute('aria-current', 'location');
   }
 });
 
@@ -188,8 +226,14 @@ test('keeps the mobile header geometry stable across breakpoint round trips', as
   await expect(header(page).locator('[data-header-motion-phase]')).toHaveCount(0);
 });
 
-test('uses the shared active indicator on desktop and mobile', async ({ page }) => {
-  for (const viewport of [desktopViewport, mobileViewports[0]]) {
+test('uses the shared active indicator on desktop and tablet, but not narrow mobile', async ({
+  page,
+}) => {
+  for (const [viewport, indicatorVisible] of [
+    [desktopViewport, true],
+    [{ width: 720, height: 844 }, true],
+    [mobileViewports[0], false],
+  ] as const) {
     await page.setViewportSize(viewport);
     await page.goto('/');
     await waitForHeader(page, viewport.width > 900 ? 'desktop-fluid' : 'mobile-persistent');
@@ -198,11 +242,18 @@ test('uses the shared active indicator on desktop and mobile', async ({ page }) 
     await expect(nav.locator('[data-header-active-indicator]')).toHaveCount(1);
     await expect(nav.locator('[data-header-mobile-active-indicator]')).toHaveCount(0);
 
-    await navigation(page).getByRole('link', { name: 'FAQ' }).click();
+    await page.locator('#faq').evaluate((element) => element.scrollIntoView());
+    if (!indicatorVisible) {
+      await expect.poll(() => visibleSectionLabels(page)).toEqual(['FAQ']);
+    }
     await expect(navigation(page).getByRole('link', { name: 'FAQ' })).toHaveAttribute(
       'aria-current',
       'location',
     );
+    if (!indicatorVisible) {
+      await expect(nav.locator('[data-header-active-indicator]')).toBeHidden();
+      continue;
+    }
     await expect
       .poll(() =>
         nav
@@ -250,7 +301,14 @@ test('lands hash navigation below the fixed Header on desktop and mobile', async
     await page.goto('/');
     await waitForHeader(page, viewport.width > 900 ? 'desktop-fluid' : 'mobile-persistent');
 
-    await navigation(page).getByRole('link', { name: '기술' }).click();
+    if (viewport.width <= 560) {
+      await page.goto('/#technology');
+      await waitForHeader(page, 'mobile-persistent');
+      await page.locator('#technology').evaluate((element) => element.scrollIntoView());
+      await page.evaluate(() => window.scrollBy(0, -82));
+    } else {
+      await navigation(page).getByRole('link', { name: '기술' }).click();
+    }
     await expect(page).toHaveURL(/#technology$/);
     await expect
       .poll(() =>
@@ -277,7 +335,9 @@ test('keeps the mobile Header static with reduced motion', async ({ browser }) =
 
   expect(after).toEqual(before);
   await expect(nav.locator('[data-header-toggle], [data-header-close]')).toHaveCount(0);
-  await expect(navigation(page).getByRole('link')).toHaveCount(4);
+  await expect.poll(() => visibleSectionLabels(page)).toEqual([]);
+  await page.locator('#technology').evaluate((element) => element.scrollIntoView());
+  await expect.poll(() => visibleSectionLabels(page)).toEqual(['기술']);
   await context.close();
 });
 

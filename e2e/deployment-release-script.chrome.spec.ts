@@ -74,6 +74,7 @@ fi
   const env: NodeJS.ProcessEnv = {
     ...process.env,
     HOME: fakeHome,
+    NVM_DIR: join(fakeHome, '.nvm'),
     PATH: `${fakeBin}:${process.env.PATH ?? '/usr/bin:/bin'}`,
     FAKE_PM2_LOG: pm2Log,
     FAKE_CURL_COUNT: curlCount,

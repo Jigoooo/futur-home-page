@@ -4,12 +4,13 @@ import { fileURLToPath } from 'node:url';
 
 const projectRoot = fileURLToPath(new URL('../', import.meta.url));
 const workflowPath = `${projectRoot}.github/workflows/ci.yml`;
+const playwrightConfigPath = `${projectRoot}playwright.config.ts`;
 const ecosystemPath = `${projectRoot}deploy/pm2/ecosystem.config.cjs`;
 const deployScriptPath = `${projectRoot}deploy/scripts/deploy-release.sh`;
 const e2eContactRoutePath = `${projectRoot}src/routes/internal-e2e.contact-inquiry.ts`;
 
 test.describe('운영 배포 계약', () => {
-  test('PR과 master를 같은 기준으로 검증하고 master만 배포한다', () => {
+  test('PR과 master를 분리된 품질·계약·E2E 작업으로 검증하고 master만 배포한다', () => {
     const workflow = readFileSync(workflowPath, 'utf8');
 
     expect(workflow).toContain('name: CI & Deploy');
@@ -22,13 +23,31 @@ test.describe('운영 배포 계약', () => {
     expect(workflow).toContain('pnpm lint');
     expect(workflow).toContain('pnpm exec tsc -b --noEmit');
     expect(workflow).toContain('pnpm build');
+    expect(workflow).toContain('deployment-contract:');
+    expect(workflow).toContain('e2e:');
+    expect(workflow).toContain('hero-e2e:');
+    expect(workflow).toContain('shard: [1, 2, 3, 4]');
+    expect(workflow).toContain('PLAYWRIGHT_CI_LIGHT_PARTICLES');
+    expect(workflow).toContain('landing-hero-cinematic.chrome.spec.ts');
     expect(workflow).toContain('PLAYWRIGHT_E2E=1');
     expect(workflow).toContain("PLAYWRIGHT_PRODUCTION_SERVER: '1'");
-    expect(workflow).toContain('playwright test --workers=1');
+    expect(workflow).toContain('--shard="${SHARD}/4" --workers=1');
+    expect(workflow).toContain('--timeout=90000 --retries=1');
     expect(workflow).toContain('include-hidden-files: true');
-    expect(workflow).toMatch(/deploy:\s*\n(?:.|\n)*?needs:\s*verify/);
+    expect(workflow).toContain('needs: [quality, deployment-contract, e2e, hero-e2e]');
     expect(workflow).toContain("github.ref == 'refs/heads/master'");
     expect(workflow).toContain('cancel-in-progress: false');
+  });
+
+  test('일반 shard에만 명시적인 CI 경량 파티클 쿠키를 제공한다', () => {
+    const workflow = readFileSync(workflowPath, 'utf8');
+    const playwrightConfig = readFileSync(playwrightConfigPath, 'utf8');
+
+    expect(workflow).toContain("PLAYWRIGHT_CI_LIGHT_PARTICLES: '1'");
+    expect(playwrightConfig).toContain('PLAYWRIGHT_CI_LIGHT_PARTICLES');
+    expect(playwrightConfig).toContain('futur-e2e-particles');
+    expect(playwrightConfig).toContain('retries: process.env.CI ? 1 : 0');
+    expect(playwrightConfig).toContain("video: process.env.CI ? 'off' : 'retain-on-failure'");
   });
 
   test('기존 SSH 인증정보와 문의 환경변수만 운영 배포에 전달한다', () => {

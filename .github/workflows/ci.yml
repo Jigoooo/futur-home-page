@@ -10,10 +10,10 @@ permissions:
   contents: read
 
 jobs:
-  verify:
-    name: Verify production build
+  quality:
+    name: Quality and production build
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 15
     env:
       CI: 'true'
     steps:
@@ -37,36 +37,8 @@ jobs:
       - name: Typecheck
         run: pnpm exec tsc -b --noEmit
 
-      - name: Install Chrome
-        run: pnpm exec playwright install --with-deps chrome
-
       - name: Build production bundle
         run: pnpm build
-
-      - name: Run the full production E2E suite
-        env:
-          PLAYWRIGHT_E2E: '1'
-          PLAYWRIGHT_PRODUCTION_SERVER: '1'
-          PLAYWRIGHT_SKIP_WEB_SERVER: '1'
-          PLAYWRIGHT_BASE_URL: http://127.0.0.1:3000
-        run: |
-          set -Eeuo pipefail
-          env PLAYWRIGHT_E2E=1 PORT=3000 node .output/server/index.mjs > "$RUNNER_TEMP/futur-server.log" 2>&1 &
-          server_pid=$!
-          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
-          pnpm exec wait-on http://127.0.0.1:3000 --timeout 60000
-          pnpm exec playwright test --workers=1
-
-      - name: Upload Playwright report on failure
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: playwright-report-${{ github.sha }}
-          path: |
-            playwright-report/
-            test-results/
-          if-no-files-found: ignore
-          retention-days: 14
 
       - name: Upload verified Nitro output
         uses: actions/upload-artifact@v4
@@ -77,9 +49,165 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
+  deployment-contract:
+    name: Deployment contracts
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      CI: 'true'
+      PLAYWRIGHT_SKIP_WEB_SERVER: '1'
+      PLAYWRIGHT_BASE_URL: http://127.0.0.1:3000
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Verify release and workflow contracts
+        run: >-
+          pnpm exec playwright test
+          e2e/deployment-contract.chrome.spec.ts
+          e2e/deployment-release-script.chrome.spec.ts
+          --project=chrome --workers=1 --retries=0
+
+  e2e:
+    name: Production E2E (${{ matrix.shard }}/4)
+    needs: quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
+    env:
+      CI: 'true'
+      PLAYWRIGHT_E2E: '1'
+      PLAYWRIGHT_PRODUCTION_SERVER: '1'
+      PLAYWRIGHT_SKIP_WEB_SERVER: '1'
+      PLAYWRIGHT_BASE_URL: http://127.0.0.1:3000
+      PLAYWRIGHT_CI_LIGHT_PARTICLES: '1'
+      SHARD: ${{ matrix.shard }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Chrome
+        run: pnpm exec playwright install --with-deps chrome
+
+      - name: Download verified Nitro output
+        uses: actions/download-artifact@v4
+        with:
+          name: nitro-output-${{ github.sha }}
+          path: .output
+
+      - name: Run production E2E shard
+        env:
+          PLAYWRIGHT_E2E: '1'
+        run: |
+          set -Eeuo pipefail
+          env PLAYWRIGHT_E2E=1 PORT=3000 node .output/server/index.mjs > "$RUNNER_TEMP/futur-server.log" 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          pnpm exec wait-on http://127.0.0.1:3000 --timeout 60000
+          mapfile -t specs < <(
+            find e2e -type f \( -name '*.chrome.spec.ts' -o -name '*.a11y.spec.ts' \) \
+              ! -name 'deployment-contract.chrome.spec.ts' \
+              ! -name 'deployment-release-script.chrome.spec.ts' \
+              ! -name 'landing-hero-cinematic.chrome.spec.ts' \
+              -print | sort
+          )
+          pnpm exec playwright test "${specs[@]}" --shard="${SHARD}/4" --workers=1
+
+      - name: Upload Playwright report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-shard-${{ matrix.shard }}-${{ github.sha }}
+          path: |
+            playwright-report/
+            test-results/
+          if-no-files-found: ignore
+          retention-days: 14
+
+  hero-e2e:
+    name: Full-density Hero E2E
+    needs: quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      CI: 'true'
+      PLAYWRIGHT_E2E: '1'
+      PLAYWRIGHT_PRODUCTION_SERVER: '1'
+      PLAYWRIGHT_SKIP_WEB_SERVER: '1'
+      PLAYWRIGHT_BASE_URL: http://127.0.0.1:3000
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Chrome
+        run: pnpm exec playwright install --with-deps chrome
+
+      - name: Download verified Nitro output
+        uses: actions/download-artifact@v4
+        with:
+          name: nitro-output-${{ github.sha }}
+          path: .output
+
+      - name: Run the full-density Hero suite
+        run: |
+          set -Eeuo pipefail
+          env PLAYWRIGHT_E2E=1 PORT=3000 node .output/server/index.mjs > "$RUNNER_TEMP/futur-server.log" 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          pnpm exec wait-on http://127.0.0.1:3000 --timeout 60000
+          pnpm exec playwright test e2e/landing-hero-cinematic.chrome.spec.ts \
+            --project=chrome --workers=1 --timeout=90000 --retries=1
+
+      - name: Upload Hero Playwright report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-hero-${{ github.sha }}
+          path: |
+            playwright-report/
+            test-results/
+          if-no-files-found: ignore
+          retention-days: 14
+
   deploy:
     name: Deploy production release
-    needs: verify
+    needs: [quality, deployment-contract, e2e, hero-e2e]
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
     timeout-minutes: 20

@@ -24,6 +24,7 @@ const SURFACE_COUNT = 4;
 const SURFACE_HOLD_MS = 5_800;
 const SURFACE_MORPH_MS = 520;
 const SURFACE_CYCLE_MS = SURFACE_HOLD_MS + SURFACE_MORPH_MS;
+const CI_LIGHT_PARTICLE_COOKIE = 'futur-e2e-particles=lite';
 
 export type HeroParticlePointer = {
   x: number;
@@ -95,7 +96,20 @@ function halton(index: number, base: number) {
   return result;
 }
 
-function getParticleTier(width: number): ParticleTier {
+function shouldUseCiLightParticleTier() {
+  return (
+    navigator.webdriver &&
+    document.cookie.split(';').some((cookie) => cookie.trim() === CI_LIGHT_PARTICLE_COOKIE)
+  );
+}
+
+function getParticleTier(width: number, ciLightParticles: boolean): ParticleTier {
+  if (ciLightParticles) {
+    if (width < 720) return { main: 4_000, emit: 0, dpr: 1 };
+    if (width < 1_024) return { main: 6_000, emit: 300, dpr: 1 };
+    return { main: 8_000, emit: 500, dpr: 1 };
+  }
+
   if (width < 720) return { main: 18_000, emit: 0, dpr: 1.2 };
   if (width < 1_024) return { main: 44_000, emit: 2_200, dpr: 1.5 };
   return { main: 70_000, emit: 4_000, dpr: 2 };
@@ -194,7 +208,8 @@ export function createHeroParticleEngine(canvas: HTMLCanvasElement): HeroParticl
   }
 
   const bounds = canvas.getBoundingClientRect();
-  const tier = getParticleTier(Math.max(bounds.width, window.innerWidth));
+  const ciLightParticles = shouldUseCiLightParticleTier();
+  const tier = getParticleTier(Math.max(bounds.width, window.innerWidth), ciLightParticles);
   const particleData = createParticleData(tier.main, tier.emit);
   const uvBuffer = createArrayBuffer(gl, particleData.uvs);
   const seedBuffer = createArrayBuffer(gl, particleData.seeds);
@@ -429,6 +444,7 @@ export function createHeroParticleEngine(canvas: HTMLCanvasElement): HeroParticl
   };
 
   canvas.dataset.particleCount = String(tier.main);
+  if (ciLightParticles) canvas.dataset.particleTestMode = 'ci-lite';
   canvas.dataset.particleDensity = 'active';
   canvas.dataset.particleDepth = 'far-middle-near';
   canvas.dataset.particleContact = `trail-${POINTER_TRAIL_SIZE}`;

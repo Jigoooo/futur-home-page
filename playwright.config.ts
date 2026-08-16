@@ -1,17 +1,36 @@
 import { defineConfig, devices } from '@playwright/test';
 
 const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? 'http://localhost:3000';
+const lightParticleStorageState =
+  process.env.PLAYWRIGHT_CI_LIGHT_PARTICLES === '1'
+    ? {
+        cookies: [
+          {
+            name: 'futur-e2e-particles',
+            value: 'lite',
+            domain: new URL(baseURL).hostname,
+            path: '/',
+            expires: -1,
+            httpOnly: false,
+            secure: baseURL.startsWith('https://'),
+            sameSite: 'Lax' as const,
+          },
+        ],
+        origins: [],
+      }
+    : undefined;
 
 export default defineConfig({
   testDir: './e2e',
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 2 : 0,
+  retries: process.env.CI ? 1 : 0,
   reporter: 'list',
   use: {
     baseURL,
+    storageState: lightParticleStorageState,
     trace: 'on-first-retry',
-    video: 'retain-on-failure',
+    video: process.env.CI ? 'off' : 'retain-on-failure',
   },
   projects: [
     {

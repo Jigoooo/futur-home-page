@@ -211,6 +211,26 @@ test('uses bounded particle tiers outside desktop', async ({ browser }) => {
   await mobilePage.close();
 });
 
+test('uses a bounded particle tier only for the explicit CI light-mode cookie', async ({
+  page,
+}) => {
+  const baseURL = String(test.info().project.use.baseURL);
+  await page.context().addCookies([
+    {
+      name: 'futur-e2e-particles',
+      value: 'lite',
+      url: new URL('/', baseURL).toString(),
+    },
+  ]);
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/');
+
+  const canvas = page.locator('canvas[data-hero-particles]');
+  await expect(canvas).toHaveAttribute('data-particle-state', 'ready');
+  await expect(canvas).toHaveAttribute('data-particle-test-mode', 'ci-lite');
+  expect(Number(await canvas.getAttribute('data-particle-count'))).toBeLessThanOrEqual(8_000);
+});
+
 test('morphs surfaces and accumulates a damped contact trail', async ({ page }) => {
   await page.goto('/');
 

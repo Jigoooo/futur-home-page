@@ -26,6 +26,7 @@ interface Harness {
   deployPath: string;
   env: NodeJS.ProcessEnv;
   prepareRelease: (sha: string, validArtifact?: boolean) => string;
+  seedLegacyProcess: () => void;
   run: (action: 'deploy' | 'rollback' | 'finalize', sha: string) => void;
 }
 
@@ -35,6 +36,7 @@ function createHarness(): Harness {
   const fakeBin = join(root, 'bin');
   const fakeHome = join(root, 'home');
   const pm2Log = join(root, 'pm2.log');
+  const pm2State = join(root, 'pm2-state');
   const curlCount = join(root, 'curl-count');
 
   mkdirSync(fakeBin, { recursive: true });
@@ -47,8 +49,18 @@ printf '%s\n' "$*" >> "$FAKE_PM2_LOG"
 mkdir -p "$HOME/.pm2"
 case "\${1:-}" in
   save) printf 'legacy-process-dump' > "$HOME/.pm2/dump.pm2" ;;
-  startOrReload) [[ "\${FAKE_PM2_FAIL_START:-0}" != '1' ]] ;;
-  delete|resurrect) ;;
+  startOrReload)
+    [[ "\${FAKE_PM2_FAIL_START:-0}" != '1' ]]
+    if [[ "\${FAKE_PM2_PRESERVE_LEGACY_ON_RELOAD:-0}" != '1' || "$(cat "$FAKE_PM2_STATE" 2>/dev/null || true)" != 'legacy' ]]; then
+      printf 'new' > "$FAKE_PM2_STATE"
+    fi
+    ;;
+  start)
+    [[ "\${FAKE_PM2_FAIL_START:-0}" != '1' ]]
+    printf 'new' > "$FAKE_PM2_STATE"
+    ;;
+  delete) rm -f "$FAKE_PM2_STATE" ;;
+  resurrect) printf 'legacy' > "$FAKE_PM2_STATE" ;;
 esac
 `,
   );
@@ -61,7 +73,9 @@ if [[ -f "$FAKE_CURL_COUNT" ]]; then count="$(<"$FAKE_CURL_COUNT")"; fi
 count=$((count + 1))
 printf '%s' "$count" > "$FAKE_CURL_COUNT"
 if [[ "\${FAKE_CURL_MODE:-marker}" == 'fail-new' && "$count" -le 12 ]]; then exit 22; fi
-if [[ "\${FAKE_CURL_MODE:-marker}" == 'marker' ]]; then
+if [[ "\${FAKE_CURL_MODE:-marker}" == 'pm2-state' && "$(cat "$FAKE_PM2_STATE" 2>/dev/null || true)" == 'new' ]]; then
+  printf '<h1>BUILT FOR WHAT</h1>'
+elif [[ "\${FAKE_CURL_MODE:-marker}" == 'marker' ]]; then
   printf '<h1>BUILT FOR WHAT</h1>'
 else
   printf '<h1>legacy homepage</h1>'
@@ -77,6 +91,7 @@ fi
     NVM_DIR: join(fakeHome, '.nvm'),
     PATH: `${fakeBin}:${process.env.PATH ?? '/usr/bin:/bin'}`,
     FAKE_PM2_LOG: pm2Log,
+    FAKE_PM2_STATE: pm2State,
     FAKE_CURL_COUNT: curlCount,
     FAKE_CURL_MODE: 'marker',
   };
@@ -104,7 +119,13 @@ fi
     });
   };
 
-  return { root, deployPath, env, prepareRelease, run };
+  const seedLegacyProcess = () => {
+    writeFileSync(pm2State, 'legacy');
+    env.FAKE_PM2_PRESERVE_LEGACY_ON_RELOAD = '1';
+    env.FAKE_CURL_MODE = 'pm2-state';
+  };
+
+  return { root, deployPath, env, prepareRelease, seedLegacyProcess, run };
 }
 
 test.describe('release 배포 스크립트', () => {
@@ -129,6 +150,18 @@ test.describe('release 배포 스크립트', () => {
     expect(
       readFileSync(join(harness.deployPath, 'shared', 'last-successful-release'), 'utf8'),
     ).toBe(firstSha);
+  });
+
+  test('같은 이름의 기존 PM2 앱을 새 Nitro 프로세스로 교체한다', () => {
+    harness.prepareRelease(firstSha);
+    harness.seedLegacyProcess();
+
+    harness.run('deploy', firstSha);
+
+    expect(readlinkSync(join(harness.deployPath, 'current'))).toBe(
+      join(harness.deployPath, 'releases', firstSha),
+    );
+    expect(readFileSync(join(harness.root, 'pm2-state'), 'utf8')).toBe('new');
   });
 
   test('다음 release의 외부 검증이 실패하면 직전 release로 되돌릴 수 있다', () => {

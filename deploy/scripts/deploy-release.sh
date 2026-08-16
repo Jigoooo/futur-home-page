@@ -101,6 +101,14 @@ wait_for_any_homepage() {
   return 1
 }
 
+start_futur_process() {
+  # PM2 keeps the existing script and execution mode when startOrReload finds
+  # an app with the same name. Replace it so the Nitro fork contract is always
+  # applied, including the first migration from the legacy cluster process.
+  pm2 delete futur >/dev/null 2>&1 || true
+  pm2 start "$ecosystem_config" --only futur --update-env
+}
+
 rollback_release() {
   local previous_release=''
   if [[ -f "${state_dir}/previous-release" ]]; then
@@ -110,7 +118,7 @@ rollback_release() {
   if [[ -n "$previous_release" && -d "$previous_release" ]]; then
     switch_current "$previous_release"
     load_runtime_env
-    pm2 startOrReload "$ecosystem_config" --update-env
+    start_futur_process
     wait_for_new_homepage
     return
   fi
@@ -182,7 +190,7 @@ deploy_release() {
 
   load_runtime_env
   switch_current "$release_dir"
-  if ! pm2 startOrReload "$ecosystem_config" --update-env || ! wait_for_new_homepage; then
+  if ! start_futur_process || ! wait_for_new_homepage; then
     rollback_release
     return 1
   fi

@@ -58,8 +58,8 @@ export function useServiceCardHoverMotion(sectionRef: RefObject<HTMLElement | nu
               gsap.killTweensOf(surface);
               gsap.killTweensOf(lens, 'opacity');
               gsap.to(surface, {
-                y: -7,
-                scale: 1.006,
+                y: -4,
+                scale: 1.002,
                 '--service-card-shadow-opacity': 1,
                 duration: 0.32,
                 ease: 'power3.out',
@@ -81,7 +81,7 @@ export function useServiceCardHoverMotion(sectionRef: RefObject<HTMLElement | nu
                 scale: 1,
                 '--service-card-shadow-opacity': 0,
                 duration: 0.48,
-                ease: 'back.out(1.35)',
+                ease: 'back.out(1.2)',
                 overwrite: true,
                 onComplete: () => {
                   gsap.set(surface, { clearProps: 'transform' });

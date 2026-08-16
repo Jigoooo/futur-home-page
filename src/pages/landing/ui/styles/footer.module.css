@@ -162,8 +162,12 @@
 
 .legalPrimary,
 .legalSecondary {
-  color: rgba(226, 232, 242, 0.66);
-  font-size: 13px;
+  font-size: 14px;
+}
+
+.contactDetails .legalPrimary,
+.contactDetails .legalSecondary {
+  color: rgba(226, 232, 242, 0.74);
 }
 
 .legalPrimary {
@@ -186,8 +190,8 @@
   margin: 0;
   padding: 0;
   flex-wrap: wrap;
-  color: rgba(211, 218, 231, 0.64);
-  font-size: 13px;
+  color: rgba(211, 218, 231, 0.7);
+  font-size: 14px;
   line-height: 1.6;
 }
 

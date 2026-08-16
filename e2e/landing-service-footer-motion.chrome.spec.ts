@@ -51,14 +51,14 @@ test('lifts one fine-pointer service surface and tracks the local ink lens', asy
         return matrix.m42;
       }),
     )
-    .toBeLessThan(-5.5);
+    .toBeLessThan(-3.7);
   const activeTransform = await surface.evaluate((element) => {
     const matrix = new DOMMatrixReadOnly(getComputedStyle(element).transform);
     return { rotateB: matrix.b, rotateC: matrix.c, scale: matrix.a, y: matrix.m42 };
   });
-  expect(activeTransform.y).toBeGreaterThan(-8.5);
-  expect(activeTransform.scale).toBeGreaterThan(1.003);
-  expect(activeTransform.scale).toBeLessThan(1.009);
+  expect(activeTransform.y).toBeGreaterThan(-4.5);
+  expect(activeTransform.scale).toBeGreaterThan(1.001);
+  expect(activeTransform.scale).toBeLessThan(1.003);
   expect(activeTransform.rotateB).toBeCloseTo(0, 5);
   expect(activeTransform.rotateC).toBeCloseTo(0, 5);
 
@@ -95,7 +95,12 @@ test('redirects a service return tween on rapid re-entry', async ({ page }) => {
     .poll(() =>
       surface.evaluate((element) => new DOMMatrixReadOnly(getComputedStyle(element).transform).m42),
     )
-    .toBeLessThan(-5.5);
+    .toBeLessThan(-3.7);
+  await expect
+    .poll(() =>
+      surface.evaluate((element) => new DOMMatrixReadOnly(getComputedStyle(element).transform).m42),
+    )
+    .toBeGreaterThan(-4.5);
 });
 
 test('keeps service cards static for reduced motion and touch', async ({ browser }) => {

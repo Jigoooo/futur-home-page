@@ -43,6 +43,8 @@ test('presents four factual technology rows with continuous type at intermediate
     '배포와 트래픽, 관측, 변경 이력을 관리할 수 있는 운영 환경을 구성합니다.',
   ]);
 
+  await rows.first().scrollIntoViewIfNeeded();
+  await expect(marquees.first()).toHaveAttribute('data-technology-marquee-state', 'running');
   const initialTime = await marquees
     .first()
     .evaluate((element) => Number(element.getAnimations()[0]?.currentTime ?? 0));

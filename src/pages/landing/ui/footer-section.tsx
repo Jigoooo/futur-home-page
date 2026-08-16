@@ -69,7 +69,7 @@ export function FooterSection() {
         </div>
 
         <div className={styles.legalMetadata}>
-          <div className={styles.legalFacts}>
+          <div className={styles.legalFacts} data-footer-legal-facts>
             <span>© 2026 FUTUR. All rights reserved.</span>
             <span>
               대표 {COMPANY_INFOS.CEO} · 사업자등록번호 {COMPANY_INFOS.BUSINESS_LICENSE} ·

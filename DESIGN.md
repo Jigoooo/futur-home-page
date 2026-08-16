@@ -84,9 +84,9 @@ Services는 짧은 전환 인트로와 네 개의 타이포그래피 중심 capa
 
 surface는 warm off-white `#F4F4F0`이며 Hero와 명확한 cut으로 전환한다. 인트로는 desktop 두 열, tablet·mobile 한 열이고 viewport를 채우지 않는 자연 높이를 쓴다.
 
-desktop은 두 열 bento다. 1번과 4번은 전폭, 2번과 3번은 반폭이며 카드 surface는 각각 ice, sand, mint, periwinkle의 낮은 채도 단색이다. 기본 상태에는 border와 shadow를 사용하지 않고 `20px` radius만 쓴다. 이미지·SVG·아이콘 없이 번호·제목·설명·업무 범위의 정렬과 여백으로만 위계를 만든다. 카드는 최초 진입 시 최대 `28px` 아래에서 한 번 나타난다.
+desktop은 두 열 bento다. 1번과 4번은 전폭, 2번과 3번은 반폭이며 카드 surface는 각각 ice, sand, mint, periwinkle의 낮은 채도 단색이다. 기본 상태에는 border와 shadow를 사용하지 않고 `20px` radius만 쓴다. 이미지·SVG·아이콘 없이 번호·제목·설명·업무 범위의 정렬과 여백으로만 위계를 만든다. 인트로와 gallery 간격은 desktop `clamp(52px, 5vw, 72px)`, tablet `56px`, mobile `48px`이고 카드는 최초 진입 시 최대 `20px` 아래에서 한 번 나타난다.
 
-fine pointer 환경의 카드는 `Lifted Ink Surface`를 사용한다. 내부 surface만 `translateY(-7px) scale(1.006)`로 들어 올리고, 카드 tone별 blue·orange·green·violet radial ink lens와 사전 렌더된 shadow opacity를 포인터 위치에서 드러낸다. 진입은 `320ms power3.out`, 복귀는 `480ms back.out(1.35)`, lens fade는 `180ms`다. 카드 자체는 정보성 `<article>`이며 링크·버튼·role·`tabIndex`·focus·pointer cursor와 hover 전용 정보가 없다. touch, coarse pointer와 reduced motion에서는 surface와 lens가 정적 최종 상태로 남는다.
+fine pointer 환경의 카드는 `Lifted Ink Surface`를 사용한다. 내부 surface만 `translateY(-4px) scale(1.002)`로 들어 올리고, 카드 tone별 blue·orange·green·violet radial ink lens와 사전 렌더된 shadow opacity를 포인터 위치에서 드러낸다. 진입은 `320ms power3.out`, 복귀는 `480ms back.out(1.2)`, lens fade는 `180ms`다. 카드 자체는 정보성 `<article>`이며 링크·버튼·role·`tabIndex`·focus·pointer cursor와 hover 전용 정보가 없다. touch, coarse pointer와 reduced motion에서는 surface와 lens가 정적 최종 상태로 남는다.
 
 페이지와 Services 루트에서 가로 overflow를 숨기지 않는다. clipping은 서비스 lens와 Technology marquee처럼 장식이 자체 경계를 가져야 하는 로컬 필드에만 둔다.
 
@@ -99,11 +99,11 @@ Technology는 near-black `#090B10` surface 위에 네 개의 경계 없는 kinet
 - 제목: `기술은 목적과 환경에 맞게 선택합니다.`
 - 기본 화면: 클라이언트, 백엔드·데이터, AI·AX, 클라우드·운영의 번호·역량명·설명과 대형 대표 기술 띠
 - native `<details>/<summary>`: 기본 닫힘, `기술 범위 전체 보기`
-- 전체 화면: 16개 분류와 70개 기술을 평문 행으로 표시
+- 전체 화면: 네 직군 chapter 안에 16개 분류와 70개 기술을 평문 행으로 표시
 
-row는 얇은 hairline으로만 나눈다. 대표 기술 띠는 화면 너비와 무관하게 `20s`의 일정한 속도로 무한 marquee하며 행마다 방향을 교차한다. 기술명은 desktop `clamp(28px, 2.8vw, 44px)`, mobile `clamp(24px, 7.4vw, 32px)`이고 hover와 focus에서는 일시 정지한다. pin·snap·sticky·스크롤 진행 연동은 사용하지 않으며 reduced motion은 transform 없는 정적 기술 띠를 노출한다.
+row는 얇은 hairline으로만 나눈다. 대표 기술 띠는 화면 너비와 무관하게 `20s`의 일정한 속도로 무한 marquee하며 행마다 방향을 교차한다. 제목 우측의 단일 `Pause / Play` 컨트롤은 네 줄의 사용자 정지 상태를 함께 관리하고 각 줄의 hover는 해당 줄만 임시 정지한다. 각 marquee viewport가 화면 밖에 있거나 문서가 숨겨지면 자동 정지하며 사용자가 선택한 정지 상태가 우선한다. JavaScript 연결 전과 no-JS는 기본 정적 상태이고 reduced motion에서는 컨트롤을 숨기고 transform 없는 정적 기술 띠를 노출한다. pin·snap·sticky·스크롤 진행 연동은 사용하지 않는다.
 
-전체 기술 disclosure는 native `<details>/<summary>`를 유지하면서 모션만 progressive enhancement한다. 펼친 summary는 원래 문서 위치에 남고, 전체 목록 마지막에 JavaScript가 연결된 경우에만 편집형 `기술 범위 접기` 행을 제공한다. panel은 `480ms` 높이 전환, 내부 목록은 `420ms` top-to-bottom curtain으로 열리고 각 분류는 기존 in-view observer를 통해 `16px`, `360ms`, `50ms` cadence로 한 번만 나타난다. 하단 닫기는 `300ms` 동안 panel과 현재 보이는 분류를 정리하며 summary가 Header 아래 desktop `96px`, mobile `82px`에 오도록 스크롤하고 focus를 돌려준다. 진행 중 반대 입력은 잠그지 않고 현재 프레임에서 반전한다. no-JS에서는 native summary만 사용하고 reduced motion에서는 하단 닫기와 위치 보정이 즉시 적용된다.
+전체 기술 disclosure는 native `<details>/<summary>`를 유지하면서 모션만 progressive enhancement한다. 펼친 목록은 클라이언트, 백엔드·데이터, AI·AX, 클라우드·운영의 네 chapter로 묶고 chapter 제목 아래에 기존 네 분류를 둔다. 펼친 summary는 원래 문서 위치에 남고, 전체 목록 마지막에 JavaScript가 연결된 경우에만 편집형 `기술 범위 접기` 행을 제공한다. panel은 `480ms` 높이 전환, 내부 목록은 `420ms` top-to-bottom curtain으로 열리고 각 분류는 기존 in-view observer를 통해 `16px`, `360ms`, `50ms` cadence로 한 번만 나타난다. 하단 닫기는 `300ms` 동안 panel과 현재 보이는 분류를 정리하며 summary가 Header 아래 desktop `96px`, mobile `82px`에 오도록 스크롤하고 focus를 돌려준다. 진행 중 반대 입력은 잠그지 않고 현재 프레임에서 반전한다. no-JS에서는 native summary만 사용하고 reduced motion에서는 하단 닫기와 위치 보정이 즉시 적용된다.
 
 기술 버전, 숙련도와 프로젝트 수치를 표시하지 않는다. AI는 모델 자체 개발이 아니라 검증된 모델과 조직 데이터·업무 흐름을 연결하는 통합 역량으로 설명한다. 긴 기술명은 `390px`에서 줄바꿈해야 한다.
 
@@ -120,6 +120,7 @@ Footer는 둥근 CTA 카드, 그라디언트와 이메일 pill이 없는 검은 
 - 이메일은 연락처 영역에 작은 텍스트로 유지하며 주소, 회사·법적 정보와 문의 서버 경계를 바꾸지 않는다.
 - Footer의 서비스 탐색 nav는 렌더링하지 않는다.
 - CTA 아래는 `FUTUR.` 브랜드 / 서비스 범위와 주소 / 문의와 정책의 utility grid, 사업자 정보의 legal metadata 순서로 구성한다. utility와 legal metadata 시작점에만 hairline을 두어 Footer 하단의 구분선은 정확히 두 개다.
+- 법적 링크와 사업자 정보는 `14px`로 표시하고 dark surface에서 각각 약 `74%`, `70%` 대비를 유지한다.
 - utility hairline은 `620ms`에 왼쪽에서 오른쪽으로 한 번 나타나고 세 열은 `12px`, `520ms`, `60ms` cadence로 한 번만 등장한다. pointer 추적과 반복 모션은 사용하지 않는다.
 - desktop은 `0.7fr / 1.25fr / 0.8fr`, `561~900px`은 브랜드 전폭과 하단 2열, `560px` 이하는 단일 열이다. touch·coarse pointer·reduced motion과 no-JavaScript에서는 처음부터 정적으로 표시한다.
 
@@ -131,7 +132,7 @@ Footer는 둥근 CTA 카드, 그라디언트와 이메일 pill이 없는 검은 
 
 ## Motion, Accessibility and Product Truth
 
-본문은 기존 `data-landing-reveal` 관찰자를 재사용하고 한 번 보인 항목은 다시 숨기지 않는다. 서비스 카드와 기술 설명은 단위별로 나타나고 대표 기술 띠는 스크롤 위치와 독립적으로 움직인다. SSR/no-JS에서는 모든 핵심 콘텐츠가 보인다. `prefers-reduced-motion`에서는 이동, 지연과 부드러운 스크롤을 제거하고 처음부터 최종 상태를 표시한다.
+본문은 기존 `data-landing-reveal` 관찰자를 재사용하고 한 번 보인 항목은 다시 숨기지 않는다. `FUTUR Field`는 콘텐츠 reveal 최대 `20px`, 포인터 반응 최대 `4px`, scale 최대 `1.002`를 공통 상한으로 삼고 blur·glow·3D tilt·반복 bounce를 사용하지 않는다. 서비스 카드와 기술 설명은 단위별로 나타나고 대표 기술 띠는 스크롤 진행과 독립적으로 움직인다. SSR/no-JS에서는 모든 핵심 콘텐츠가 보인다. `prefers-reduced-motion`에서는 이동, 지연과 부드러운 스크롤을 제거하고 처음부터 최종 상태를 표시한다.
 
 고객 로고·후기·사례·숫자 지표, 팀 인원과 경력, 상시 지원·응답 시간·자동 계약·확정 일정 같은 근거 없는 증거를 만들지 않는다. 공개 문의 폼과 `#contact`는 제거된 상태를 유지하되 contact server/model/mail safety, company JSON-LD, 개인정보처리방침과 이용약관의 실제 경계는 유지한다.
 
@@ -145,7 +146,7 @@ Footer는 둥근 CTA 카드, 그라디언트와 이메일 pill이 없는 검은 
 - [ ] 서비스 카드는 fine pointer에서만 Lifted Ink Surface를 제공하고 정보성 article 및 기본 포인터 계약을 유지한다.
 - [ ] Hero particle opacity와 renderer hysteresis가 유지되며 네 surface가 형태별 frame scale, visibility gain과 contour 보정을 사용한다.
 - [ ] SUIT·Space Grotesk가 로컬 파일로 제공되고 Wanted Sans 요청이 없다.
-- [ ] Technology는 card 없는 kinetic row 4개, `20s` marquee와 전체 분류 16개·기술 70개를 제공한다.
+- [ ] Technology는 card 없는 kinetic row 4개, `20s` marquee, 단일 Pause/Play와 네 직군 chapter·전체 분류 16개·기술 70개를 제공한다.
 - [ ] 전체 기술 disclosure는 비고정 summary, curtain reveal, 하단 닫기·scroll anchoring과 입력 반전을 제공하고 no-JS·reduced motion 계약을 유지한다.
 - [ ] FAQ는 여섯 문항 single-open accordion이며 키보드·ARIA 상태가 동기화된다.
 - [ ] Footer에 blue magnetic·liquid `문의하기` CTA, 3열 utility grid, legal metadata와 작은 이메일이 있고 대형 signature와 서비스 탐색 nav는 없다.

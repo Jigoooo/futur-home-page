@@ -1,5 +1,7 @@
 # Technology Continuous Marquee Implementation Plan
 
+> Superseded on 2026-08-16. 네 개의 `20s` 교차 marquee는 유지하지만, 현재 계약은 제목 우측 공용 Pause/Play, viewport·문서 가시성 자동 정지, no-JS 기본 정지와 네 직군 disclosure chapter를 포함한다. 상세 기준은 루트 `DESIGN.md`를 따른다.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Replace the breakpoint-limited scroll-driven technology motion with a readable continuous marquee that works at desktop, tablet, and mobile widths.

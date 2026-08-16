@@ -276,7 +276,10 @@ test('keeps technology marquees moving without page scroll across desktop, table
     expect(after.scrollY).toBe(before.scrollY);
   }
 
-  const firstViewport = page.locator('[data-technology-row]').first().locator('[aria-label]');
+  const firstViewport = page
+    .locator('[data-technology-row]')
+    .first()
+    .locator('[data-technology-marquee-viewport]');
   const firstMarquee = firstViewport.locator('[data-technology-marquee]');
   await firstViewport.hover();
   await expect(firstMarquee).toHaveCSS('animation-play-state', 'paused');

@@ -14,6 +14,8 @@ React Bits의 Rotating Text가 사용하는 mask와 위·아래 교체 구조를
 - `561px` 이상에서는 기존 전체 메뉴와 shared active indicator를 그대로 사용한다.
 - Hero와 Footer에서는 중앙 라벨을 비운다. 섹션 밖에서 별도 `홈`·`문의` 문구를 만들지 않는다.
 - Header의 surface probe, glass tone, hash navigation과 문의 CTA는 변경하지 않는다.
+- 현재 섹션명만 `15px`, weight `750`, letter-spacing `-0.015em`으로 강조한다.
+- 로고 `20px`와 문의 버튼 `13px`의 크기·굵기는 유지해 중앙 라벨만 또렷하게 만든다.
 
 ## 3. DOM과 상태 권위
 
@@ -53,6 +55,7 @@ React Bits의 Rotating Text가 사용하는 mask와 위·아래 교체 구조를
 ## 7. 검증 계약
 
 - `560px`, `390px`, `320px`에서 서비스→기술→FAQ 이동 시 이전 라벨은 위로 빠지고 새 라벨은 아래에서 들어온다.
+- 같은 세 viewport에서 현재 섹션명은 `15px / 750 / -0.015em`이고 문의 버튼의 기존 타이포그래피는 변하지 않는다.
 - 종료 상태에서 활성 라벨 중심과 Header 중심의 오차는 `1px` 이하다.
 - Hero와 Footer에서는 중앙 라벨이 없고, 서비스·기술·FAQ에서는 하나만 보인다.
 - 연속 전환 중 timeline이 누적되지 않고 최종 `aria-current`, inert, opacity와 transform이 정확하다.

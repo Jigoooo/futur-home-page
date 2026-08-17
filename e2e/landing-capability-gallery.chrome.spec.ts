@@ -132,15 +132,15 @@ test('enhances the native technology disclosure without pinning the summary', as
 
   await expect(disclosure).toHaveAttribute('open', '');
   await expect(summary.getByText('기술 범위 접기', { exact: true })).toBeVisible();
-  await page.waitForTimeout(80);
 
   const firstGroup = disclosure.locator('[data-technology-group]').first();
-  const firstGroupOpeningState = await firstGroup.evaluate((element) => ({
-    opacity: Number.parseFloat(getComputedStyle(element).opacity),
-    visible: element.getAttribute('data-landing-visible'),
-  }));
-  expect(firstGroupOpeningState.visible).toBe('true');
-  expect(firstGroupOpeningState.opacity).toBeGreaterThan(0);
+  await expect(firstGroup).toHaveAttribute('data-landing-visible', 'true');
+  await expect
+    .poll(
+      () => firstGroup.evaluate((element) => Number.parseFloat(getComputedStyle(element).opacity)),
+      { intervals: [16, 16, 32, 32], timeout: 1_000 },
+    )
+    .toBeGreaterThan(0);
 
   const openingFrame = await panel.evaluate((element) => ({
     height: element.getBoundingClientRect().height,

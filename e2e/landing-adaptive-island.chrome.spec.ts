@@ -61,6 +61,21 @@ async function readDesktopHeaderFrame(page: Page): Promise<DesktopHeaderFrame> {
   });
 }
 
+async function readActiveMobileFrame(page: Page) {
+  return page.evaluate(() => {
+    const root = document.querySelector<HTMLElement>('[data-landing-nav]')!;
+    const active = root.querySelector<HTMLElement>(
+      '[data-header-section-link][aria-current="location"]',
+    )!;
+    const rootRect = root.getBoundingClientRect();
+    const activeRect = active.getBoundingClientRect();
+    return {
+      activeCenter: activeRect.left + activeRect.width / 2,
+      headerCenter: rootRect.left + rootRect.width / 2,
+    };
+  });
+}
+
 async function settleDesktopHeaderAt(page: Page, scrollY: number, expected: DesktopHeaderFrame) {
   await page.evaluate((top) => window.scrollTo({ top, behavior: 'instant' }), scrollY);
   await expect.poll(() => readDesktopHeaderFrame(page)).toEqual(expected);
@@ -751,28 +766,71 @@ test('shows only the current section between the mobile logo and inquiry action'
       await page.locator(selector).evaluate((element) => element.scrollIntoView());
       await expect.poll(() => visibleSectionLabels(page)).toEqual([label]);
 
-      const frame = await page.evaluate(() => {
+      const frame = await readActiveMobileFrame(page);
+      const headerFrame = await page.evaluate(() => {
         const root = document.querySelector<HTMLElement>('[data-landing-nav]')!;
-        const active = root.querySelector<HTMLElement>('[data-header-section-link][aria-current]')!;
         const rootRect = root.getBoundingClientRect();
-        const activeRect = active.getBoundingClientRect();
-        return {
-          activeCenter: activeRect.left + activeRect.width / 2,
-          headerCenter: rootRect.left + rootRect.width / 2,
-          headerHeight: rootRect.height,
-          headerWidth: rootRect.width,
-        };
+        return { headerHeight: rootRect.height, headerWidth: rootRect.width };
       });
 
       expect(frame.activeCenter).toBeCloseTo(frame.headerCenter, 0);
-      expect(frame.headerHeight).toBeCloseTo(60, 0);
-      expect(frame.headerWidth).toBeCloseTo(viewport.width - 24, 0);
+      expect(headerFrame.headerHeight).toBeCloseTo(60, 0);
+      expect(headerFrame.headerWidth).toBeCloseTo(viewport.width - 24, 0);
     }
 
     await page.locator('#footer').evaluate((element) => element.scrollIntoView());
     await expect.poll(() => visibleSectionLabels(page)).toEqual([]);
     await expectNoHorizontalOverflow(page);
   }
+});
+
+test('emphasizes only the current narrow-mobile section label', async ({ browser, page }) => {
+  for (const viewport of [
+    { width: 560, height: 844 },
+    { width: 390, height: 844 },
+    { width: 320, height: 720 },
+  ]) {
+    await page.setViewportSize(viewport);
+    await page.goto('/#technology');
+    await waitForHeader(page, 'mobile-persistent');
+    await scrollSectionIntoView(page, 'technology');
+    await waitForMobileRoll(page);
+
+    const current = navigation(page).getByRole('link', { name: '기술', exact: true });
+    const inquiry = navigation(page).getByRole('link', { name: '문의', exact: true });
+
+    await expect(current).toHaveCSS('font-size', '15px');
+    await expect(current).toHaveCSS('font-weight', '750');
+    await expect(current).toHaveCSS('letter-spacing', '-0.225px');
+    await expect(inquiry).toHaveCSS('font-size', '13px');
+    await expect(inquiry).toHaveCSS('font-weight', '700');
+
+    const frame = await readActiveMobileFrame(page);
+    expect(frame.activeCenter).toBeCloseTo(frame.headerCenter, 0);
+    await expectNoHorizontalOverflow(page);
+  }
+
+  await page.setViewportSize({ width: 561, height: 844 });
+  await page.goto('/#technology');
+  await waitForHeader(page, 'mobile-persistent');
+  await expect(navigation(page).getByRole('link', { name: '기술', exact: true })).toHaveCSS(
+    'font-size',
+    '14px',
+  );
+
+  const noJs = await browser.newContext({
+    javaScriptEnabled: false,
+    viewport: { width: 390, height: 844 },
+  });
+  const noJsPage = await noJs.newPage();
+  await noJsPage.goto('/#technology');
+  await expect(
+    noJsPage.getByRole('navigation', { name: '주요 메뉴' }).getByRole('link', {
+      name: '기술',
+      exact: true,
+    }),
+  ).toHaveCSS('font-size', '13px');
+  await noJs.close();
 });
 
 test('keeps a direct mobile hash destination accessible before hydration and enhanced after it', async ({

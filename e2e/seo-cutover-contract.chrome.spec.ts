@@ -5,6 +5,9 @@ import { fileURLToPath } from 'node:url';
 const projectRoot = fileURLToPath(new URL('../', import.meta.url));
 
 test.describe('검색 색인 이관 계약', () => {
+  const homeTitle = 'FUTUR | 웹·앱·업무 시스템·AI 통합 개발';
+  const homeDescription =
+    '퓨처(Futur)는 웹·앱, SaaS·솔루션, 업무 시스템·SI, AI 통합·AX 구축과 운영·유지보수를 함께하는 개발 파트너입니다.';
   const redirects = [
     ['/contact', '/#footer'],
     ['/menu', '/#services'],
@@ -61,5 +64,91 @@ test.describe('검색 색인 이관 계약', () => {
 
     expect(existsSync(`${projectRoot}public/favicon.ico`)).toBe(true);
     expect(existsSync(`${projectRoot}scripts/generate-seo-assets.sh`)).toBe(true);
+  });
+
+  test('홈의 검색 메타와 회사 구조화 데이터를 사실 기반으로 제공한다', async ({ page }) => {
+    await page.goto('/');
+
+    await expect(page).toHaveTitle(homeTitle);
+    await expect(page.locator('meta[name="description"]')).toHaveAttribute(
+      'content',
+      homeDescription,
+    );
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
+      'href',
+      'https://futur.co.kr/',
+    );
+    await expect(page.locator('meta[property="og:title"]')).toHaveAttribute('content', homeTitle);
+    await expect(page.locator('meta[property="og:image"]')).toHaveAttribute(
+      'content',
+      'https://futur.co.kr/media/share/futur-main-og-v2.png',
+    );
+    await expect(page.locator('meta[property="og:image:type"]')).toHaveAttribute(
+      'content',
+      'image/png',
+    );
+    await expect(page.locator('link[rel="icon"][sizes="48x48"]')).toHaveAttribute(
+      'href',
+      '/favicon-48.png',
+    );
+    await expect(page.locator('meta[name="keywords"]')).toHaveCount(0);
+    await expect(page.locator('meta[name="geo.position"], meta[name="ICBM"]')).toHaveCount(0);
+
+    const structuredData = JSON.parse(
+      (await page.locator('script[type="application/ld+json"]').textContent()) ?? '{}',
+    ) as { '@graph'?: Array<Record<string, unknown>> };
+    const website = structuredData['@graph']?.find((item) => item['@type'] === 'WebSite');
+    const organization = structuredData['@graph']?.find((item) => item['@type'] === 'Organization');
+
+    expect(website).toMatchObject({
+      '@id': 'https://futur.co.kr/#website',
+      alternateName: ['퓨터', 'Futur'],
+      name: 'FUTUR',
+      url: 'https://futur.co.kr/',
+    });
+    expect(organization).toMatchObject({
+      '@id': 'https://futur.co.kr/#organization',
+      legalName: '퓨터',
+      logo: {
+        '@type': 'ImageObject',
+        height: 512,
+        url: 'https://futur.co.kr/organization-logo-512.png',
+        width: 512,
+      },
+      name: 'FUTUR',
+    });
+    expect(JSON.stringify(organization)).not.toMatch(
+      /telephone|sameAs|rating|review|numberOfEmployees|완료 프로젝트|고객 만족/,
+    );
+  });
+
+  test('법적 문서와 404가 각 URL에 맞는 색인 계약을 가진다', async ({ page }) => {
+    for (const [path, canonical] of [
+      ['/privacy', 'https://futur.co.kr/privacy'],
+      ['/terms', 'https://futur.co.kr/terms'],
+    ] as const) {
+      await page.goto(path);
+      await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
+        'content',
+        'noindex,follow',
+      );
+      await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', canonical);
+      await expect(page.locator('meta[property="og:url"]')).toHaveAttribute('content', canonical);
+    }
+
+    const response = await page.goto('/missing-search-document');
+    expect(response?.status()).toBe(404);
+    await expect(page).toHaveTitle('페이지를 찾을 수 없습니다 · FUTUR');
+    await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
+      'content',
+      'noindex,nofollow',
+    );
+  });
+
+  test('release marker는 검색 결과에 노출되지 않는다', async ({ request }) => {
+    const response = await request.get('/futur-release');
+
+    expect(response.headers()['cache-control']).toBe('no-store');
+    expect(response.headers()['x-robots-tag']).toBe('noindex, nofollow, nosnippet');
   });
 });

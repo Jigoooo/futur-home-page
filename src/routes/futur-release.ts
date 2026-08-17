@@ -8,6 +8,7 @@ export const Route = createFileRoute('/futur-release')({
         const headers = {
           'Cache-Control': 'no-store',
           'Content-Type': 'text/plain; charset=utf-8',
+          'X-Robots-Tag': 'noindex, nofollow, nosnippet',
         };
 
         if (!releaseSha) {

@@ -13,9 +13,9 @@ export const COMPANY_INFOS = {
   BUSINESS_LICENSE: '731-01-03807',
   MAIL_ORDER_LICENSE: '2024-전북익산-0393',
   URL: 'https://futur.co.kr',
-  LOGO_URL: 'https://futur.co.kr/logo_512x512.png',
+  LOGO_URL: 'https://futur.co.kr/organization-logo-512.png',
   DESCRIPTION:
-    '혁신적인 SI 솔루션으로 비즈니스의 미래를 설계합니다. 맞춤형 시스템 통합, 엔터프라이즈 솔루션, IT 전략 컨설팅을 제공합니다.',
+    '웹·앱, SaaS·솔루션, 업무 시스템·SI, AI 통합·AX 구축과 운영·유지보수를 함께하는 개발 파트너입니다.',
   PRIVACY_OFFICER: {
     NAME: '김지우',
     POSITION: '대표',

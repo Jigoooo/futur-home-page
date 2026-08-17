@@ -103,6 +103,11 @@ test('shows a single-open editorial FAQ and a centered tactile footer inquiry bu
   });
   expect(centerDelta).toBeLessThanOrEqual(1);
 
+  await page.mouse.move(1, 1);
+  await expect(page.locator('[data-landing-page]')).toHaveAttribute(
+    'data-landing-interactions-ready',
+    'true',
+  );
   await inquiry.scrollIntoViewIfNeeded();
   const box = await inquiry.boundingBox();
   expect(box).not.toBeNull();

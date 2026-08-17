@@ -796,12 +796,23 @@ test('emphasizes only the current narrow-mobile section label', async ({ browser
     await scrollSectionIntoView(page, 'technology');
     await waitForMobileRoll(page);
 
+    const logo = header(page).getByRole('link', { name: 'FUTUR home' });
     const current = navigation(page).getByRole('link', { name: '기술', exact: true });
+    const inactiveServices = navigation(page).locator(
+      '[data-header-section-link][href="#services"]',
+    );
+    const inactiveFaq = navigation(page).locator('[data-header-section-link][href="#faq"]');
     const inquiry = navigation(page).getByRole('link', { name: '문의', exact: true });
 
+    await expect(logo).toHaveCSS('font-size', '20px');
+    await expect(logo).toHaveCSS('font-weight', '700');
     await expect(current).toHaveCSS('font-size', '15px');
     await expect(current).toHaveCSS('font-weight', '750');
     await expect(current).toHaveCSS('letter-spacing', '-0.225px');
+    for (const inactive of [inactiveServices, inactiveFaq]) {
+      await expect(inactive).toHaveCSS('font-size', '13px');
+      await expect(inactive).toHaveCSS('font-weight', '700');
+    }
     await expect(inquiry).toHaveCSS('font-size', '13px');
     await expect(inquiry).toHaveCSS('font-weight', '700');
 
@@ -813,10 +824,17 @@ test('emphasizes only the current narrow-mobile section label', async ({ browser
   await page.setViewportSize({ width: 561, height: 844 });
   await page.goto('/#technology');
   await waitForHeader(page, 'mobile-persistent');
-  await expect(navigation(page).getByRole('link', { name: '기술', exact: true })).toHaveCSS(
+  await expect(header(page).getByRole('link', { name: 'FUTUR home' })).toHaveCSS(
     'font-size',
-    '14px',
+    '20px',
   );
+  await expect(header(page).getByRole('link', { name: 'FUTUR home' })).toHaveCSS(
+    'font-weight',
+    '700',
+  );
+  const tabletCurrent = navigation(page).getByRole('link', { name: '기술', exact: true });
+  await expect(tabletCurrent).toHaveCSS('font-size', '14px');
+  await expect(tabletCurrent).toHaveCSS('font-weight', '700');
 
   const noJs = await browser.newContext({
     javaScriptEnabled: false,
@@ -824,12 +842,11 @@ test('emphasizes only the current narrow-mobile section label', async ({ browser
   });
   const noJsPage = await noJs.newPage();
   await noJsPage.goto('/#technology');
-  await expect(
-    noJsPage.getByRole('navigation', { name: '주요 메뉴' }).getByRole('link', {
-      name: '기술',
-      exact: true,
-    }),
-  ).toHaveCSS('font-size', '13px');
+  const noJsCurrent = noJsPage
+    .getByRole('navigation', { name: '주요 메뉴' })
+    .getByRole('link', { name: '기술', exact: true });
+  await expect(noJsCurrent).toHaveCSS('font-size', '13px');
+  await expect(noJsCurrent).toHaveCSS('font-weight', '700');
   await noJs.close();
 });
 

@@ -49,3 +49,26 @@
 ## Concerns
 
 - 없음. 다만 shared Playwright 출력 채널이 combined runner의 마지막 결과를 유실할 수 있어, 향후 동일 검증은 spec별 실행 결과를 기준으로 기록하는 편이 재현 가능하다.
+
+## Fix round 1
+
+### 변경
+
+- 561px breakpoint round-trip은 이제 390px에서 서비스 섹션으로 진입해 `enhanced` / `idle` 상태를 실제로 확인한 뒤 resize한다. resize 뒤 세 섹션 링크의 visible·non-inert·aria-hidden 없음과 FAQ 진입 시 shared active indicator의 실표시(width와 opacity)를 검증한다.
+- 빠른 서비스 재진입은 `#services`의 정확한 `aria-current="location"`, `inert=false`, `aria-hidden` 없음 및 `#technology` / `#faq` 각각의 `inert=true`, `aria-hidden="true"`를 명시적으로 검증한다.
+
+### Covering tests 및 실제 출력
+
+| 명령 | 결과 |
+| --- | --- |
+| adaptive focused grep (`rapid mobile section changes|breakpoint round trips`), Chrome, workers=1 | 2 passed (7.9s) |
+| adaptive Chrome spec 전체, workers=1 | 16 passed (58.8s) |
+| `pnpm lint` / `pnpm exec tsc -b --noEmit` / `git diff --check` | 모두 exit 0 |
+
+새 요구사항은 현재 Task 1 구현에서 GREEN이었다. 테스트가 실제 결함을 드러내지 않았으므로 hook/CSS production 변경은 추가하지 않았다.
+
+### Self-review
+
+- 561px 테스트는 더 이상 enhancement가 적용되기 전의 초기 상태만 검사하지 않는다.
+- 빠른 전환 테스트는 집계된 `aria-current` 개수 대신 각 최종 링크의 접근성 상태를 직접 검증한다.
+- source 문자열이나 내부 상수 없이 실제 visibility, inert/aria, indicator geometry를 사용했다.

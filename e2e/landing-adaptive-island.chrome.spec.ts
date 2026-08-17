@@ -293,21 +293,16 @@ test('settles rapid mobile section changes on the final accessible anchor', asyn
   await expect.poll(() => visibleSectionLabels(page)).toEqual(['서비스']);
   await expect(navigation(page).locator('[data-header-roll-role]')).toHaveCount(0);
 
-  const anchorState = await navigation(page)
-    .locator('[data-header-section-link]')
-    .evaluateAll((links) =>
-      links.map((link) => ({
-        current: link.getAttribute('aria-current'),
-        hidden: link.getAttribute('aria-hidden'),
-        href: link.getAttribute('href'),
-        inert: (link as HTMLElement).inert,
-      })),
-    );
-  expect(anchorState.filter((item) => item.current === 'location')).toHaveLength(1);
-  expect(anchorState.find((item) => item.href === '#services')).toMatchObject({
-    hidden: null,
-    inert: false,
-  });
+  const servicesLink = navigation(page).locator('[data-header-section-link][href="#services"]');
+  const technologyLink = navigation(page).locator('[data-header-section-link][href="#technology"]');
+  const faqLink = navigation(page).locator('[data-header-section-link][href="#faq"]');
+  await expect(servicesLink).toHaveAttribute('aria-current', 'location');
+  await expect(servicesLink).toHaveJSProperty('inert', false);
+  await expect(servicesLink).not.toHaveAttribute('aria-hidden', 'true');
+  for (const inactiveLink of [technologyLink, faqLink]) {
+    await expect(inactiveLink).toHaveJSProperty('inert', true);
+    await expect(inactiveLink).toHaveAttribute('aria-hidden', 'true');
+  }
 
   await page.locator('#footer').evaluate((element) => element.scrollIntoView());
   await waitForMobileRoll(page);
@@ -425,6 +420,9 @@ test('keeps the mobile header geometry stable across breakpoint round trips', as
   await page.goto('/');
   await waitForHeader(page, 'mobile-persistent');
   const before = await header(page).boundingBox();
+  await page.locator('#services').evaluate((element) => element.scrollIntoView());
+  await expect.poll(() => visibleSectionLabels(page)).toEqual(['서비스']);
+  await waitForMobileRoll(page);
 
   await page.setViewportSize({ width: 561, height: 844 });
   await expect(header(page)).not.toHaveAttribute('data-header-mobile-roll', 'enhanced');
@@ -433,6 +431,19 @@ test('keeps the mobile header geometry stable across breakpoint round trips', as
     await expect(link).not.toHaveAttribute('aria-hidden', 'true');
     await expect(link).toBeVisible();
   }
+  await page.locator('#faq').evaluate((element) => element.scrollIntoView());
+  await expect(navigation(page).getByRole('link', { name: 'FAQ', exact: true })).toHaveAttribute(
+    'aria-current',
+    'location',
+  );
+  const sharedIndicator = header(page).locator('[data-header-active-indicator]');
+  await expect(sharedIndicator).toBeVisible();
+  await expect
+    .poll(() => sharedIndicator.evaluate((element) => element.getBoundingClientRect().width))
+    .toBeGreaterThan(0);
+  await expect
+    .poll(() => sharedIndicator.evaluate((element) => Number(getComputedStyle(element).opacity)))
+    .toBeGreaterThan(0.75);
 
   await page.setViewportSize({ width: 901, height: 844 });
   await waitForHeader(page, 'desktop-fluid');

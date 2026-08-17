@@ -224,6 +224,7 @@ test.describe('release 배포 스크립트', () => {
     expect(readlinkSync(join(harness.deployPath, 'current'))).toBe(
       join(harness.deployPath, 'releases', firstSha),
     );
+    expect(existsSync(join(harness.deployPath, '.incoming', secondSha))).toBe(false);
   });
 
   test('첫 전환에서 PM2 시작이 실패하면 저장한 기존 PM2 상태를 복구한다', () => {
@@ -233,6 +234,7 @@ test.describe('release 배포 스크립트', () => {
     expect(() => harness.run('deploy', firstSha)).toThrow();
     expect(existsSync(join(harness.deployPath, 'current'))).toBe(false);
     expect(readFileSync(join(harness.root, 'pm2.log'), 'utf8')).toContain('resurrect');
+    expect(existsSync(join(harness.deployPath, '.incoming', firstSha))).toBe(false);
   });
 
   test('Nitro 진입점이 없는 artifact는 활성화하지 않는다', () => {
@@ -250,5 +252,6 @@ test.describe('release 배포 스크립트', () => {
     expect(() => harness.run('deploy', firstSha)).toThrow();
     expect(existsSync(join(harness.deployPath, 'current'))).toBe(false);
     expect(readFileSync(join(harness.root, 'pm2.log'), 'utf8')).toContain('resurrect');
+    expect(existsSync(join(harness.deployPath, '.incoming', firstSha))).toBe(false);
   });
 });

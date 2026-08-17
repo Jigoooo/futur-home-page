@@ -110,6 +110,12 @@ wait_for_any_homepage() {
   return 1
 }
 
+cleanup_incoming() {
+  if [[ "$incoming_dir" == "${deploy_path}/.incoming/${release_sha}" && -d "$incoming_dir" ]]; then
+    rm -rf -- "$incoming_dir"
+  fi
+}
+
 start_futur_process() {
   # PM2 keeps the existing script and execution mode when startOrReload finds
   # an app with the same name. Replace it so the Nitro fork contract is always
@@ -131,6 +137,7 @@ rollback_release() {
     load_runtime_env "$previous_sha"
     start_futur_process
     wait_for_release "$previous_sha"
+    cleanup_incoming
     return
   fi
 
@@ -142,6 +149,7 @@ rollback_release() {
     install -m 600 "${state_dir}/pm2-before-release.dump" "${pm2_home}/dump.pm2"
     pm2 resurrect
     wait_for_any_homepage
+    cleanup_incoming
     return
   fi
 
@@ -220,9 +228,7 @@ finalize_release() {
     esac
   done < <(find "$releases_dir" -mindepth 1 -maxdepth 1 -type d -print0 | xargs -0 -r ls -1dt | tail -n +6)
 
-  if [[ "$incoming_dir" == "${deploy_path}/.incoming/${release_sha}" && -d "$incoming_dir" ]]; then
-    rm -rf -- "$incoming_dir"
-  fi
+  cleanup_incoming
 }
 
 case "$action" in

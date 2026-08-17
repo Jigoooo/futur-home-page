@@ -40,7 +40,7 @@ test.describe('검색 색인 이관 계약', () => {
     const robots = readFileSync(`${projectRoot}public/robots.txt`, 'utf8');
 
     expect(sitemapRoute).not.toContain('new Date()');
-    expect(sitemapRoute).toContain("lastmod: '2026-08-16'");
+    expect(sitemapRoute).toContain("lastmod: '2026-08-18'");
     expect(robots).toContain('Sitemap: https://futur.co.kr/sitemap.xml');
     expect(existsSync(`${projectRoot}public/navere8ef67b613b49d65b53d06be40fc4072.html`)).toBe(
       true,
@@ -150,5 +150,26 @@ test.describe('검색 색인 이관 계약', () => {
 
     expect(response.headers()['cache-control']).toBe('no-store');
     expect(response.headers()['x-robots-tag']).toBe('noindex, nofollow, nosnippet');
+  });
+
+  test('모든 검색 크롤러에 사실 기반 공개 문서를 제공한다', async ({ request }) => {
+    const robotsResponse = await request.get('/robots.txt');
+    const robots = await robotsResponse.text();
+    expect(robotsResponse.status()).toBe(200);
+    expect(robots).toContain('User-agent: OAI-SearchBot');
+    expect(robots).toContain('User-agent: GPTBot');
+    expect(robots).toContain('User-agent: *');
+    expect(robots.match(/Allow: \//g)).toHaveLength(3);
+    expect(robots).toContain('Sitemap: https://futur.co.kr/sitemap.xml');
+
+    const llmsResponse = await request.get('/llms.txt');
+    const llms = await llmsResponse.text();
+    expect(llmsResponse.status()).toBe(200);
+    expect(llmsResponse.headers()['content-type']).toContain('text/plain');
+    expect(llms).toContain('서비스·솔루션 개발');
+    expect(llms).toContain('업무 시스템·SI');
+    expect(llms).toContain('AI 통합·AX');
+    expect(llms).toContain('운영·유지보수');
+    expect(llms).not.toMatch(/완료 프로젝트|고객 만족|평균 경력|업무시간|포트폴리오|아티클/);
   });
 });

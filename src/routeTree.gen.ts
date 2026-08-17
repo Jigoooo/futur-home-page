@@ -13,6 +13,7 @@ import { Route as TermsRouteImport } from './routes/terms'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as MenuRouteImport } from './routes/menu'
+import { Route as LlmsDottxtRouteImport } from './routes/llms[.]txt'
 import { Route as FuturReleaseRouteImport } from './routes/futur-release'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as SplatRouteImport } from './routes/$'
@@ -39,6 +40,11 @@ const PrivacyRoute = PrivacyRouteImport.update({
 const MenuRoute = MenuRouteImport.update({
   id: '/menu',
   path: '/menu',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LlmsDottxtRoute = LlmsDottxtRouteImport.update({
+  id: '/llms.txt',
+  path: '/llms.txt',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FuturReleaseRoute = FuturReleaseRouteImport.update({
@@ -83,6 +89,7 @@ export interface FileRoutesByFullPath {
   '/$': typeof SplatRoute
   '/contact': typeof ContactRoute
   '/futur-release': typeof FuturReleaseRoute
+  '/llms.txt': typeof LlmsDottxtRoute
   '/menu': typeof MenuRoute
   '/privacy': typeof PrivacyRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -96,6 +103,7 @@ export interface FileRoutesByTo {
   '/$': typeof SplatRoute
   '/contact': typeof ContactRoute
   '/futur-release': typeof FuturReleaseRoute
+  '/llms.txt': typeof LlmsDottxtRoute
   '/menu': typeof MenuRoute
   '/privacy': typeof PrivacyRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -110,6 +118,7 @@ export interface FileRoutesById {
   '/$': typeof SplatRoute
   '/contact': typeof ContactRoute
   '/futur-release': typeof FuturReleaseRoute
+  '/llms.txt': typeof LlmsDottxtRoute
   '/menu': typeof MenuRoute
   '/privacy': typeof PrivacyRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -125,6 +134,7 @@ export interface FileRouteTypes {
     | '/$'
     | '/contact'
     | '/futur-release'
+    | '/llms.txt'
     | '/menu'
     | '/privacy'
     | '/sitemap.xml'
@@ -138,6 +148,7 @@ export interface FileRouteTypes {
     | '/$'
     | '/contact'
     | '/futur-release'
+    | '/llms.txt'
     | '/menu'
     | '/privacy'
     | '/sitemap.xml'
@@ -151,6 +162,7 @@ export interface FileRouteTypes {
     | '/$'
     | '/contact'
     | '/futur-release'
+    | '/llms.txt'
     | '/menu'
     | '/privacy'
     | '/sitemap.xml'
@@ -165,6 +177,7 @@ export interface RootRouteChildren {
   SplatRoute: typeof SplatRoute
   ContactRoute: typeof ContactRoute
   FuturReleaseRoute: typeof FuturReleaseRoute
+  LlmsDottxtRoute: typeof LlmsDottxtRoute
   MenuRoute: typeof MenuRoute
   PrivacyRoute: typeof PrivacyRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
@@ -202,6 +215,13 @@ declare module '@tanstack/react-router' {
       path: '/menu'
       fullPath: '/menu'
       preLoaderRoute: typeof MenuRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/llms.txt': {
+      id: '/llms.txt'
+      path: '/llms.txt'
+      fullPath: '/llms.txt'
+      preLoaderRoute: typeof LlmsDottxtRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/futur-release': {
@@ -261,6 +281,7 @@ const rootRouteChildren: RootRouteChildren = {
   SplatRoute: SplatRoute,
   ContactRoute: ContactRoute,
   FuturReleaseRoute: FuturReleaseRoute,
+  LlmsDottxtRoute: LlmsDottxtRoute,
   MenuRoute: MenuRoute,
   PrivacyRoute: PrivacyRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,

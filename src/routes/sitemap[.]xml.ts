@@ -34,7 +34,7 @@ export const Route = createFileRoute('/sitemap.xml')({
         const sitemap = generateSitemapXml([
           {
             loc: `${COMPANY_INFOS.URL}/`,
-            lastmod: '2026-08-16',
+            lastmod: '2026-08-18',
             changefreq: 'weekly',
             priority: 1,
           },

@@ -23,6 +23,11 @@ async function waitForHeader(page: Page, layout: 'desktop-fluid' | 'mobile-persi
   await expect(header(page)).toHaveAttribute('data-header-layout', layout);
 }
 
+async function waitForMobileRoll(page: Page, state: 'idle' | 'running' | 'reduced' = 'idle') {
+  await expect(header(page)).toHaveAttribute('data-header-mobile-roll', 'enhanced');
+  await expect(header(page)).toHaveAttribute('data-header-mobile-roll-state', state);
+}
+
 async function expectNoHorizontalOverflow(page: Page) {
   await expect
     .poll(() =>
@@ -122,6 +127,47 @@ test('keeps mobile navigation active through direct scroll state', async ({ page
   await expect.poll(() => visibleSectionLabels(page)).toEqual(['기술']);
   await expect(technologyLink).toHaveAttribute('aria-current', 'location');
   await expect(header(page).locator('[data-header-active-indicator]')).toBeHidden();
+});
+
+test('rolls the narrow mobile section label upward through a clipped center lane', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/');
+  await waitForHeader(page, 'mobile-persistent');
+  await waitForMobileRoll(page);
+
+  await page.locator('#services').evaluate((element) => element.scrollIntoView());
+  await expect.poll(() => visibleSectionLabels(page)).toEqual(['서비스']);
+  await waitForMobileRoll(page);
+
+  await page.locator('#technology').evaluate((element) => element.scrollIntoView());
+  await expect(header(page)).toHaveAttribute('data-header-mobile-roll-state', 'running');
+  await expect(
+    navigation(page).locator('[data-header-section-link][data-header-roll-role="outgoing"]'),
+  ).toHaveAttribute('href', '#services');
+  await expect(
+    navigation(page).locator('[data-header-section-link][data-header-roll-role="incoming"]'),
+  ).toHaveAttribute('href', '#technology');
+
+  const motionFrame = await page.evaluate(() => {
+    const outgoing = document.querySelector<HTMLElement>('[data-header-roll-role="outgoing"] span');
+    const incoming = document.querySelector<HTMLElement>('[data-header-roll-role="incoming"] span');
+    return {
+      outgoingY: outgoing ? new DOMMatrixReadOnly(getComputedStyle(outgoing).transform).m42 : null,
+      incomingY: incoming ? new DOMMatrixReadOnly(getComputedStyle(incoming).transform).m42 : null,
+    };
+  });
+  expect(motionFrame.outgoingY).not.toBeNull();
+  expect(motionFrame.incomingY).not.toBeNull();
+
+  await waitForMobileRoll(page);
+  await expect.poll(() => visibleSectionLabels(page)).toEqual(['기술']);
+  await expect(navigation(page).locator('[data-header-roll-role]')).toHaveCount(0);
+  await expect(navigation(page).getByRole('link', { name: '기술', exact: true })).toHaveAttribute(
+    'aria-current',
+    'location',
+  );
 });
 
 test('shows only the current section between the mobile logo and inquiry action', async ({

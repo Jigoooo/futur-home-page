@@ -279,16 +279,32 @@
     gap: 0;
   }
 
-  .nav[data-header-hydrated='true'] [data-header-section-link]:not([aria-current='location']) {
-    display: none;
-  }
-
-  .nav[data-header-hydrated='true'] [data-header-section-link][aria-current='location'] {
+  .nav[data-header-mobile-roll='enhanced'] [data-header-section-link] {
     position: absolute;
     left: 50%;
     min-height: 44px;
+    overflow: clip;
     padding-inline: 12px;
+    opacity: 0;
+    pointer-events: none;
     transform: translateX(-50%);
+    visibility: hidden;
+  }
+
+  .nav[data-header-mobile-roll='enhanced'] [data-header-section-link][aria-current='location'] {
+    opacity: 1;
+    pointer-events: auto;
+    visibility: visible;
+  }
+
+  .nav[data-header-mobile-roll='enhanced'] [data-header-section-link] > span {
+    display: inline-block;
+    will-change: transform, opacity;
+  }
+
+  .nav[data-header-mobile-roll-state='idle'] [data-header-section-link] > span,
+  .nav[data-header-mobile-roll-state='reduced'] [data-header-section-link] > span {
+    will-change: auto;
   }
 
   .navMenu .contactLink {

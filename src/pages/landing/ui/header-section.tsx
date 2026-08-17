@@ -3,6 +3,7 @@ import { useRef } from 'react';
 import { navigationItems } from '../config';
 import styles from './styles/header.module.css';
 import { useAdaptiveHeader } from './use-adaptive-header';
+import { useMobileHeaderSectionRoll } from './use-mobile-header-section-roll';
 
 export function HeaderSection() {
   const headerRef = useRef<HTMLElement | null>(null);
@@ -11,6 +12,7 @@ export function HeaderSection() {
     headerRef,
     menuRef,
   });
+  useMobileHeaderSectionRoll({ activeHref, headerRef, menuRef });
 
   return (
     <header

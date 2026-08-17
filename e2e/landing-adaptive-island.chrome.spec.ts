@@ -278,6 +278,42 @@ test('settles a rapid mobile section roll without leaving an interrupted label b
     ]);
 });
 
+test('settles rapid mobile section changes on the final accessible anchor', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/#services');
+  await waitForHeader(page, 'mobile-persistent');
+  await waitForMobileRoll(page);
+
+  for (const selector of ['#technology', '#faq', '#services']) {
+    await page.locator(selector).evaluate((element) => element.scrollIntoView());
+    await page.waitForTimeout(60);
+  }
+
+  await waitForMobileRoll(page);
+  await expect.poll(() => visibleSectionLabels(page)).toEqual(['서비스']);
+  await expect(navigation(page).locator('[data-header-roll-role]')).toHaveCount(0);
+
+  const anchorState = await navigation(page)
+    .locator('[data-header-section-link]')
+    .evaluateAll((links) =>
+      links.map((link) => ({
+        current: link.getAttribute('aria-current'),
+        hidden: link.getAttribute('aria-hidden'),
+        href: link.getAttribute('href'),
+        inert: (link as HTMLElement).inert,
+      })),
+    );
+  expect(anchorState.filter((item) => item.current === 'location')).toHaveLength(1);
+  expect(anchorState.find((item) => item.href === '#services')).toMatchObject({
+    hidden: null,
+    inert: false,
+  });
+
+  await page.locator('#footer').evaluate((element) => element.scrollIntoView());
+  await waitForMobileRoll(page);
+  await expect.poll(() => visibleSectionLabels(page)).toEqual([]);
+});
+
 test('shows only the current section between the mobile logo and inquiry action', async ({
   page,
 }) => {
@@ -389,6 +425,14 @@ test('keeps the mobile header geometry stable across breakpoint round trips', as
   await page.goto('/');
   await waitForHeader(page, 'mobile-persistent');
   const before = await header(page).boundingBox();
+
+  await page.setViewportSize({ width: 561, height: 844 });
+  await expect(header(page)).not.toHaveAttribute('data-header-mobile-roll', 'enhanced');
+  for (const link of await navigation(page).locator('[data-header-section-link]').all()) {
+    await expect(link).not.toHaveAttribute('inert', '');
+    await expect(link).not.toHaveAttribute('aria-hidden', 'true');
+    await expect(link).toBeVisible();
+  }
 
   await page.setViewportSize({ width: 901, height: 844 });
   await waitForHeader(page, 'desktop-fluid');
@@ -514,7 +558,25 @@ test('keeps the mobile Header static with reduced motion', async ({ browser }) =
   await expect(nav.locator('[data-header-toggle], [data-header-close]')).toHaveCount(0);
   await expect.poll(() => visibleSectionLabels(page)).toEqual([]);
   await page.locator('#technology').evaluate((element) => element.scrollIntoView());
+  await waitForMobileRoll(page, 'reduced');
   await expect.poll(() => visibleSectionLabels(page)).toEqual(['기술']);
+  const sectionMotion = await navigation(page)
+    .locator('[data-header-section-link] > span')
+    .evaluateAll((spans) =>
+      spans.map((span) => {
+        const style = getComputedStyle(span);
+        return {
+          animationDuration: style.animationDuration,
+          transform: style.transform,
+          transitionDuration: style.transitionDuration,
+        };
+      }),
+    );
+  expect(sectionMotion).toEqual([
+    { animationDuration: '0s', transform: 'none', transitionDuration: '0s' },
+    { animationDuration: '0s', transform: 'none', transitionDuration: '0s' },
+    { animationDuration: '0s', transform: 'none', transitionDuration: '0s' },
+  ]);
   await context.close();
 });
 
@@ -527,6 +589,7 @@ test('keeps navigation and core content available without JavaScript', async ({ 
   await page.goto('/');
 
   await expect(header(page).getByRole('link', { name: 'FUTUR home' })).toBeVisible();
+  await expect(header(page)).not.toHaveAttribute('data-header-mobile-roll');
   await expect(navigation(page).getByRole('link')).toHaveCount(4);
   for (const name of ['서비스', '기술', 'FAQ', '문의']) {
     await expect(navigation(page).getByRole('link', { name, exact: true })).toBeVisible();

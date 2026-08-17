@@ -40,6 +40,14 @@ test('initial load and primary interactions emit no runtime errors', async ({ pa
   await waitForLandingHydration(page);
   await expect(page).toHaveURL(/#technology$/);
   await page.locator('#technology').evaluate((element) => element.scrollIntoView());
+  for (const selector of ['#services', '#technology', '#faq']) {
+    await page.locator(selector).evaluate((element) => element.scrollIntoView());
+    await page.waitForTimeout(60);
+  }
+  await expect(page.locator('[data-landing-nav]')).toHaveAttribute(
+    'data-header-mobile-roll-state',
+    'idle',
+  );
   await page.locator('#footer a[data-landing-magnetic]').hover();
   await page.mouse.move(0, 0);
 

@@ -13,6 +13,7 @@ import { Route as TermsRouteImport } from './routes/terms'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as MenuRouteImport } from './routes/menu'
+import { Route as FuturReleaseRouteImport } from './routes/futur-release'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as SplatRouteImport } from './routes/$'
 import { Route as IndexRouteImport } from './routes/index'
@@ -38,6 +39,11 @@ const PrivacyRoute = PrivacyRouteImport.update({
 const MenuRoute = MenuRouteImport.update({
   id: '/menu',
   path: '/menu',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FuturReleaseRoute = FuturReleaseRouteImport.update({
+  id: '/futur-release',
+  path: '/futur-release',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ContactRoute = ContactRouteImport.update({
@@ -76,6 +82,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/$': typeof SplatRoute
   '/contact': typeof ContactRoute
+  '/futur-release': typeof FuturReleaseRoute
   '/menu': typeof MenuRoute
   '/privacy': typeof PrivacyRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -88,6 +95,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/$': typeof SplatRoute
   '/contact': typeof ContactRoute
+  '/futur-release': typeof FuturReleaseRoute
   '/menu': typeof MenuRoute
   '/privacy': typeof PrivacyRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -101,6 +109,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/$': typeof SplatRoute
   '/contact': typeof ContactRoute
+  '/futur-release': typeof FuturReleaseRoute
   '/menu': typeof MenuRoute
   '/privacy': typeof PrivacyRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -115,6 +124,7 @@ export interface FileRouteTypes {
     | '/'
     | '/$'
     | '/contact'
+    | '/futur-release'
     | '/menu'
     | '/privacy'
     | '/sitemap.xml'
@@ -127,6 +137,7 @@ export interface FileRouteTypes {
     | '/'
     | '/$'
     | '/contact'
+    | '/futur-release'
     | '/menu'
     | '/privacy'
     | '/sitemap.xml'
@@ -139,6 +150,7 @@ export interface FileRouteTypes {
     | '/'
     | '/$'
     | '/contact'
+    | '/futur-release'
     | '/menu'
     | '/privacy'
     | '/sitemap.xml'
@@ -152,6 +164,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   SplatRoute: typeof SplatRoute
   ContactRoute: typeof ContactRoute
+  FuturReleaseRoute: typeof FuturReleaseRoute
   MenuRoute: typeof MenuRoute
   PrivacyRoute: typeof PrivacyRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
@@ -189,6 +202,13 @@ declare module '@tanstack/react-router' {
       path: '/menu'
       fullPath: '/menu'
       preLoaderRoute: typeof MenuRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/futur-release': {
+      id: '/futur-release'
+      path: '/futur-release'
+      fullPath: '/futur-release'
+      preLoaderRoute: typeof FuturReleaseRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/contact': {
@@ -240,6 +260,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   SplatRoute: SplatRoute,
   ContactRoute: ContactRoute,
+  FuturReleaseRoute: FuturReleaseRoute,
   MenuRoute: MenuRoute,
   PrivacyRoute: PrivacyRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,

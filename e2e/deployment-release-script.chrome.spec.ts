@@ -41,6 +41,7 @@ function createHarness(): Harness {
   const pm2State = join(root, 'pm2-state');
   const curlCount = join(root, 'curl-count');
   const curlLog = join(root, 'curl.log');
+  const activeSha = join(root, 'active-sha');
 
   mkdirSync(fakeBin, { recursive: true });
   mkdirSync(fakeHome, { recursive: true });
@@ -57,10 +58,12 @@ case "\${1:-}" in
     if [[ "\${FAKE_PM2_PRESERVE_LEGACY_ON_RELOAD:-0}" != '1' || "$(cat "$FAKE_PM2_STATE" 2>/dev/null || true)" != 'legacy' ]]; then
       printf 'new' > "$FAKE_PM2_STATE"
     fi
+    printf '%s' "$FUTUR_RELEASE_SHA" > "$FAKE_ACTIVE_SHA"
     ;;
   start)
     [[ "\${FAKE_PM2_FAIL_START:-0}" != '1' ]]
     printf 'new' > "$FAKE_PM2_STATE"
+    printf '%s' "$FUTUR_RELEASE_SHA" > "$FAKE_ACTIVE_SHA"
     ;;
   delete) rm -f "$FAKE_PM2_STATE" ;;
   resurrect) printf 'legacy' > "$FAKE_PM2_STATE" ;;
@@ -78,12 +81,11 @@ count=$((count + 1))
 printf '%s' "$count" > "$FAKE_CURL_COUNT"
 if [[ "\${FAKE_CURL_MODE:-marker}" == 'fail-new' && "$count" -le 12 ]]; then exit 22; fi
 url="\${*: -1}"
-if [[ "$url" == *'/__futur_release.txt'* ]]; then
-  marker="$(readlink "$FAKE_DEPLOY_PATH/current" 2>/dev/null || true)/public/__futur_release.txt"
+if [[ "$url" == *'/futur-release'* ]]; then
   if [[ "\${FAKE_CURL_MODE:-marker}" == 'pm2-state' && "$(cat "$FAKE_PM2_STATE" 2>/dev/null || true)" != 'new' ]]; then
     printf '<h1>legacy homepage</h1>'
-  elif [[ -f "$marker" ]]; then
-    cat "$marker"
+  elif [[ -f "$FAKE_ACTIVE_SHA" ]]; then
+    cat "$FAKE_ACTIVE_SHA"
   else
     printf '<h1>legacy homepage</h1>'
   fi
@@ -109,6 +111,7 @@ fi
     FAKE_CURL_COUNT: curlCount,
     FAKE_CURL_LOG: curlLog,
     FAKE_DEPLOY_PATH: deployPath,
+    FAKE_ACTIVE_SHA: activeSha,
     FAKE_CURL_MODE: 'marker',
   };
 
@@ -174,13 +177,8 @@ test.describe('release 배포 스크립트', () => {
 
     harness.run('deploy', firstSha);
 
-    expect(
-      readFileSync(
-        join(harness.deployPath, 'releases', firstSha, 'public', '__futur_release.txt'),
-        'utf8',
-      ),
-    ).toBe(firstSha);
-    expect(readFileSync(join(harness.root, 'curl.log'), 'utf8')).toContain('/__futur_release.txt');
+    expect(readFileSync(join(harness.root, 'active-sha'), 'utf8')).toBe(firstSha);
+    expect(readFileSync(join(harness.root, 'curl.log'), 'utf8')).toContain('/futur-release');
   });
 
   test('finalize 직전 current가 이전 release로 바뀌면 성공으로 기록하지 않는다', () => {

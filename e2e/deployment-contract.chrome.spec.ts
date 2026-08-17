@@ -8,6 +8,7 @@ const playwrightConfigPath = `${projectRoot}playwright.config.ts`;
 const ecosystemPath = `${projectRoot}deploy/pm2/ecosystem.config.cjs`;
 const deployScriptPath = `${projectRoot}deploy/scripts/deploy-release.sh`;
 const e2eContactRoutePath = `${projectRoot}src/routes/internal-e2e.contact-inquiry.ts`;
+const releaseMarkerRoutePath = `${projectRoot}src/routes/futur-release.ts`;
 
 test.describe('운영 배포 계약', () => {
   test('PR과 master를 분리된 품질·계약·E2E 작업으로 검증하고 master만 배포한다', () => {
@@ -96,12 +97,12 @@ test.describe('운영 배포 계약', () => {
     expect(script).toContain('/current');
     expect(script).toContain('pm2 save');
     expect(script).toContain('pm2 resurrect');
-    expect(script).toContain('__futur_release.txt');
+    expect(script).toContain('/futur-release');
     expect(script).toContain('127.0.0.1:3000');
     expect(script).toContain('rollback');
     expect(script).toMatch(/tail\s+-n\s+\+6/);
 
-    expect(workflow).toContain('__futur_release.txt?deploy=${GITHUB_SHA}');
+    expect(workflow).toContain('futur-release?deploy=${GITHUB_SHA}');
     expect(workflow).toContain('grep -Fxq "$GITHUB_SHA"');
   });
 
@@ -110,5 +111,15 @@ test.describe('운영 배포 계약', () => {
 
     expect(route).toContain("process.env.PLAYWRIGHT_E2E !== '1'");
     expect(route).toContain('status: 404');
+  });
+
+  test('활성 release SHA를 no-store HTTP 응답으로 노출한다', () => {
+    expect(existsSync(releaseMarkerRoutePath)).toBe(true);
+    const route = readFileSync(releaseMarkerRoutePath, 'utf8');
+
+    expect(route).toContain("createFileRoute('/futur-release')");
+    expect(route).toContain('process.env.FUTUR_RELEASE_SHA');
+    expect(route).toContain("'Cache-Control': 'no-store'");
+    expect(route).toContain('status: 503');
   });
 });

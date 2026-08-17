@@ -84,14 +84,16 @@ export function useMobileHeaderSectionRoll({
     if (!header || !menu) return;
 
     const links = Array.from(menu.querySelectorAll<HTMLAnchorElement>(SECTION_SELECTOR));
-    timelineRef.current?.kill();
-
     const previous = previousHrefRef.current
       ? (links.find((link) => link.getAttribute('href') === previousHrefRef.current) ?? null)
       : null;
     const incoming = activeHref
       ? (links.find((link) => link.getAttribute('href') === activeHref) ?? null)
       : null;
+    timelineRef.current?.kill();
+    for (const link of links) {
+      if (link !== previous && link !== incoming) clearAnchorMotion(link);
+    }
 
     if (mode === 'off') {
       restoreAllAnchors(header, links);

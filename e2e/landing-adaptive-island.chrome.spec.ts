@@ -170,6 +170,114 @@ test('rolls the narrow mobile section label upward through a clipped center lane
   );
 });
 
+test('settles a rapid mobile section roll without leaving an interrupted label behind', async ({
+  page,
+}) => {
+  await page.addInitScript(() => {
+    const dateNow = Date.now.bind(Date);
+    let firstTick: number | null = null;
+    Date.now = () => {
+      const currentTick = dateNow();
+      firstTick ??= currentTick;
+      return firstTick + (currentTick - firstTick) * 0.1;
+    };
+  });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/');
+  await waitForHeader(page, 'mobile-persistent');
+
+  await page.locator('#services').evaluate((element) => element.scrollIntoView());
+  await expect.poll(() => visibleSectionLabels(page)).toEqual(['서비스']);
+  await waitForMobileRoll(page);
+
+  await page.evaluate(
+    () =>
+      new Promise<void>((resolve) => {
+        const menu = document.querySelector('[aria-label="주요 메뉴"]')!;
+        const technology = '#technology';
+        const faq = document.querySelector<HTMLElement>('#faq')!;
+        const observer = new MutationObserver(() => {
+          const incoming = menu.querySelector('[data-header-roll-role="incoming"]');
+          if (incoming?.getAttribute('href') !== technology) return;
+          observer.disconnect();
+          faq.scrollIntoView();
+          resolve();
+        });
+        observer.observe(menu, {
+          attributes: true,
+          attributeFilter: ['data-header-roll-role'],
+          subtree: true,
+        });
+        document.querySelector<HTMLElement>(technology)!.scrollIntoView();
+      }),
+  );
+  await expect(header(page)).toHaveAttribute('data-header-mobile-roll-state', 'running');
+  await page.waitForFunction(
+    () =>
+      document
+        .querySelector('[data-header-section-link][data-header-roll-role="incoming"]')
+        ?.getAttribute('href') === '#faq',
+    null,
+    { polling: 'raf' },
+  );
+
+  await expect(
+    navigation(page).locator('[data-header-section-link][data-header-roll-role="outgoing"]'),
+  ).toHaveAttribute('href', '#technology');
+  await expect(
+    navigation(page).locator('[data-header-section-link][data-header-roll-role="incoming"]'),
+  ).toHaveAttribute('href', '#faq');
+  await expect(
+    navigation(page).locator('[data-header-section-link][href="#services"][data-header-roll-role]'),
+  ).toHaveCount(0);
+
+  const interruptionFrame = await page.evaluate(() => {
+    const outgoing = document.querySelector<HTMLElement>('[data-header-roll-role="outgoing"] span');
+    const incoming = document.querySelector<HTMLElement>('[data-header-roll-role="incoming"] span');
+    return {
+      outgoingY: outgoing ? new DOMMatrixReadOnly(getComputedStyle(outgoing).transform).m42 : null,
+      incomingY: incoming ? new DOMMatrixReadOnly(getComputedStyle(incoming).transform).m42 : null,
+    };
+  });
+  expect(interruptionFrame.incomingY).toBeGreaterThan(0);
+
+  await page.waitForTimeout(1500);
+  const exitFrame = await page.evaluate(() => {
+    const outgoing = document.querySelector<HTMLElement>('[data-header-roll-role="outgoing"] span');
+    return outgoing ? new DOMMatrixReadOnly(getComputedStyle(outgoing).transform).m42 : null;
+  });
+  expect(exitFrame).toBeLessThan(0);
+
+  await waitForMobileRoll(page);
+  await expect.poll(() => visibleSectionLabels(page)).toEqual(['FAQ']);
+  await expect(navigation(page).locator('[data-header-roll-role]')).toHaveCount(0);
+  await expect(navigation(page).getByRole('link', { name: 'FAQ', exact: true })).toHaveAttribute(
+    'aria-current',
+    'location',
+  );
+  await expect
+    .poll(() =>
+      navigation(page)
+        .locator('[data-header-section-link]')
+        .evaluateAll((links) =>
+          links.map((link) => {
+            const text = link.querySelector('span')!;
+            return {
+              linkOpacity: (link as HTMLElement).style.opacity,
+              linkVisibility: (link as HTMLElement).style.visibility,
+              textOpacity: (text as HTMLElement).style.opacity,
+              textTransform: (text as HTMLElement).style.transform,
+            };
+          }),
+        ),
+    )
+    .toEqual([
+      { linkOpacity: '', linkVisibility: '', textOpacity: '', textTransform: '' },
+      { linkOpacity: '', linkVisibility: '', textOpacity: '', textTransform: '' },
+      { linkOpacity: '', linkVisibility: '', textOpacity: '', textTransform: '' },
+    ]);
+});
+
 test('shows only the current section between the mobile logo and inquiry action', async ({
   page,
 }) => {

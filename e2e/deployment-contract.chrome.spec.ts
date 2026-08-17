@@ -6,6 +6,7 @@ const projectRoot = fileURLToPath(new URL('../', import.meta.url));
 const workflowPath = `${projectRoot}.github/workflows/ci.yml`;
 const playwrightConfigPath = `${projectRoot}playwright.config.ts`;
 const ecosystemPath = `${projectRoot}deploy/pm2/ecosystem.config.cjs`;
+const nginxConfigPath = `${projectRoot}deploy/nginx/futur.co.kr.conf`;
 const deployScriptPath = `${projectRoot}deploy/scripts/deploy-release.sh`;
 const e2eContactRoutePath = `${projectRoot}src/routes/internal-e2e.contact-inquiry.ts`;
 const releaseMarkerRoutePath = `${projectRoot}src/routes/futur-release.ts`;
@@ -121,5 +122,18 @@ test.describe('운영 배포 계약', () => {
     expect(route).toContain('process.env.FUTUR_RELEASE_SHA');
     expect(route).toContain("'Cache-Control': 'no-store'");
     expect(route).toContain('status: 503');
+  });
+
+  test('www HTTPS를 apex로 보내고 apex Nitro proxy만 유지하는 Nginx 계약을 갖는다', () => {
+    expect(existsSync(nginxConfigPath)).toBe(true);
+    const config = readFileSync(nginxConfigPath, 'utf8');
+
+    expect(config).toContain('server_name futur.co.kr www.futur.co.kr;');
+    expect(config.match(/server_name www\.futur\.co\.kr;/g)).toHaveLength(1);
+    expect(config.match(/server_name futur\.co\.kr;/g)).toHaveLength(1);
+    expect(config.match(/return 301 https:\/\/futur\.co\.kr\$request_uri;/g)).toHaveLength(2);
+    expect(config).toContain('proxy_pass http://localhost:3000;');
+    expect(config).toContain('ssl_certificate /etc/letsencrypt/live/futur.co.kr/fullchain.pem;');
+    expect(config).toContain('ssl_certificate_key /etc/letsencrypt/live/futur.co.kr/privkey.pem;');
   });
 });

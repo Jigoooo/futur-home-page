@@ -606,6 +606,44 @@ test('scopes mobile label will-change to the active roll lifecycle', async ({ pa
   await expect(navigation(page).locator('[data-header-roll-role]')).toHaveCount(0);
 });
 
+test('settles the narrow mobile section label without distance or easing overshoot', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/');
+  await waitForHeader(page, 'mobile-persistent');
+  await scrollSectionIntoView(page, 'services');
+  await expect.poll(() => visibleSectionLabels(page)).toEqual(['서비스']);
+  await waitForMobileRoll(page);
+
+  const incomingFrames = await page.evaluate(
+    () =>
+      new Promise<number[]>((resolve) => {
+        const frames: number[] = [];
+        const startedAt = performance.now();
+        document.querySelector<HTMLElement>('#technology')!.scrollIntoView();
+
+        const sample = () => {
+          const incoming = document.querySelector<HTMLElement>(
+            '[data-header-section-link][href="#technology"][data-header-roll-role="incoming"] span',
+          );
+          if (incoming) {
+            frames.push(new DOMMatrixReadOnly(getComputedStyle(incoming).transform).m42);
+          }
+          if (performance.now() - startedAt < 360) requestAnimationFrame(sample);
+          else resolve(frames);
+        };
+        requestAnimationFrame(sample);
+      }),
+  );
+
+  expect(incomingFrames.some((value) => value > 0.5)).toBe(true);
+  expect(Math.max(...incomingFrames)).toBeLessThanOrEqual(6.1);
+  expect(Math.min(...incomingFrames)).toBeGreaterThanOrEqual(-0.1);
+  await waitForMobileRoll(page);
+  await expect.poll(() => visibleSectionLabels(page)).toEqual(['기술']);
+});
+
 test('settles a rapid mobile section roll without leaving an interrupted label behind', async ({
   page,
 }) => {
@@ -1369,6 +1407,130 @@ test('lands hash navigation below the fixed Header on desktop and mobile', async
       .toBeCloseTo(expectedOffset, 0);
     await expect(header(page)).toHaveCSS('--landing-compact-header-offset', `${expectedOffset}px`);
   }
+});
+
+test('moves Header hash navigation once with a capped monotonic scroll', async ({ page }) => {
+  await page.setViewportSize({ width: 831, height: 900 });
+  await page.goto('/');
+  await waitForHeader(page, 'mobile-persistent');
+  await page.locator('#services').evaluate((element) => {
+    const header = document.querySelector<HTMLElement>('[data-landing-nav]')!;
+    const offset = Number.parseFloat(
+      getComputedStyle(header).getPropertyValue('--landing-compact-header-offset'),
+    );
+    window.scrollTo({
+      behavior: 'instant',
+      top: element.getBoundingClientRect().top + window.scrollY - offset,
+    });
+  });
+  await expect(navigation(page).locator('a[href="#services"]')).toHaveAttribute(
+    'aria-current',
+    'location',
+  );
+
+  const trace = await page.evaluate(
+    () =>
+      new Promise<{
+        activeHrefs: Array<string | null>;
+        duration: number;
+        finalY: number;
+        frames: number[];
+        startY: number;
+      }>((resolve) => {
+        const header = document.querySelector<HTMLElement>('[data-landing-nav]')!;
+        const target = document.querySelector<HTMLElement>('#faq')!;
+        const link = header.querySelector<HTMLAnchorElement>('a[href="#faq"]')!;
+        const offset = Number.parseFloat(
+          getComputedStyle(header).getPropertyValue('--landing-compact-header-offset'),
+        );
+        const startY = window.scrollY;
+        const finalY = target.getBoundingClientRect().top + startY - offset;
+        const frames: number[] = [];
+        const activeHrefs: Array<string | null> = [];
+        const startedAt = performance.now();
+        let settledFrames = 0;
+
+        link.click();
+        const sample = () => {
+          frames.push(window.scrollY);
+          activeHrefs.push(
+            header
+              .querySelector<HTMLAnchorElement>('a[aria-current="location"]')
+              ?.getAttribute('href') ?? null,
+          );
+          settledFrames = Math.abs(window.scrollY - finalY) <= 1 ? settledFrames + 1 : 0;
+          const duration = performance.now() - startedAt;
+          if ((settledFrames >= 3 && duration >= 300) || duration >= 900) {
+            resolve({ activeHrefs, duration, finalY, frames, startY });
+            return;
+          }
+          requestAnimationFrame(sample);
+        };
+        requestAnimationFrame(sample);
+      }),
+  );
+
+  expect(trace.frames.length).toBeGreaterThan(8);
+  expect(new Set(trace.frames.map((value) => Math.round(value))).size).toBeGreaterThan(6);
+  expect(trace.duration).toBeGreaterThanOrEqual(380);
+  expect(trace.duration).toBeLessThanOrEqual(760);
+  expect(Math.max(...trace.frames)).toBeLessThanOrEqual(trace.finalY + 1);
+  expect(
+    trace.frames.every((value, index) => index === 0 || value >= trace.frames[index - 1]! - 1),
+  ).toBe(true);
+  expect(trace.frames.at(-1)).toBeCloseTo(trace.finalY, 0);
+  expect(trace.startY).toBeLessThan(trace.finalY);
+  expect(new Set(trace.activeHrefs)).not.toContain('#technology');
+  await expect(page).toHaveURL(/#faq$/);
+  await expect(navigation(page).locator('a[href="#faq"]')).toHaveAttribute(
+    'aria-current',
+    'location',
+  );
+});
+
+test('cancels a controlled Header scroll when the user takes over', async ({ page }) => {
+  await page.setViewportSize({ width: 831, height: 900 });
+  await page.goto('/');
+  await waitForHeader(page, 'mobile-persistent');
+  await page.locator('#services').evaluate((element) => {
+    const header = document.querySelector<HTMLElement>('[data-landing-nav]')!;
+    const offset = Number.parseFloat(
+      getComputedStyle(header).getPropertyValue('--landing-compact-header-offset'),
+    );
+    window.scrollTo({
+      behavior: 'instant',
+      top: element.getBoundingClientRect().top + window.scrollY - offset,
+    });
+  });
+
+  const takeover = await page.evaluate(
+    () =>
+      new Promise<{ after: number; finalY: number; interruptedAt: number }>((resolve) => {
+        const header = document.querySelector<HTMLElement>('[data-landing-nav]')!;
+        const target = document.querySelector<HTMLElement>('#faq')!;
+        const link = header.querySelector<HTMLAnchorElement>('a[href="#faq"]')!;
+        const offset = Number.parseFloat(
+          getComputedStyle(header).getPropertyValue('--landing-compact-header-offset'),
+        );
+        const startY = window.scrollY;
+        const finalY = target.getBoundingClientRect().top + startY - offset;
+        link.click();
+
+        const waitForMotion = () => {
+          if (Math.abs(window.scrollY - startY) > 40) {
+            window.dispatchEvent(new WheelEvent('wheel', { deltaY: 1 }));
+            const interruptedAt = window.scrollY;
+            window.setTimeout(() => resolve({ after: window.scrollY, finalY, interruptedAt }), 420);
+            return;
+          }
+          requestAnimationFrame(waitForMotion);
+        };
+        requestAnimationFrame(waitForMotion);
+      }),
+  );
+
+  expect(Math.abs(takeover.finalY - takeover.interruptedAt)).toBeGreaterThan(40);
+  expect(Math.abs(takeover.after - takeover.interruptedAt)).toBeLessThanOrEqual(2);
 });
 
 test('keeps the mobile Header static with reduced motion', async ({ browser }) => {

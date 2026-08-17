@@ -130,7 +130,7 @@ Footer는 둥근 CTA 카드, 그라디언트와 이메일 pill이 없는 검은 
 
 공용 `PageScrollbar`는 landing·privacy·terms에서 현재 문서를 제어한다. `pointer: fine`, `min-width: 901px`, `prefers-reduced-motion: no-preference`를 모두 만족할 때만 `html[data-page-scrollbar-enabled='true']`를 추가하고 native scrollbar를 숨긴다. 그 외 환경과 no-JS에서는 native scrolling을 유지한다. track 클릭, thumb drag, idle fade와 페이지 전환 정리를 제공한다.
 
-pathname이 바뀌는 Footer의 법적 Link는 같은 이벤트 턴에서 scroll top을 먼저 `auto`로 맞춘 뒤 Router navigation을 실행한다. 새 법적 문서의 첫 가시 프레임부터 `scrollY=0`이어야 하며 역방향 smooth 이동을 보여서는 안 된다. 전역 `scroll-behavior`는 사용하지 않고 Header hash 링크와 상단 이동 버튼만 명시적 smooth를 사용한다.
+pathname이 바뀌는 Footer의 법적 Link는 같은 이벤트 턴에서 scroll top을 먼저 `auto`로 맞춘 뒤 Router navigation을 실행한다. 새 법적 문서의 첫 가시 프레임부터 `scrollY=0`이어야 하며 역방향 smooth 이동을 보여서는 안 된다. 전역 `scroll-behavior`는 사용하지 않는다. Header hash 링크와 상단 이동 버튼은 Router의 기본 hash jump를 끄고 `420~650ms`, `power2.inOut` 범위의 단일 GSAP scroll을 사용한다. 이동 중 활성 메뉴는 클릭한 목적지로 고정하고 wheel·touch·scroll key 입력이 들어오면 즉시 제어권을 사용자에게 돌려준다. reduced motion에서는 즉시 이동한다.
 
 ## SEO, GEO and Share Identity
 

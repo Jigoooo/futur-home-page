@@ -1,3 +1,4 @@
+import { useRouter } from '@tanstack/react-router';
 import gsap from 'gsap';
 import {
   type MouseEvent,
@@ -101,6 +102,10 @@ export function useAdaptiveHeader({ headerRef, menuRef }: AdaptiveHeaderRefs) {
   const layoutRef = useRef<HeaderLayout>('desktop-fluid');
   const reducedMotionRef = useRef(false);
   const desktopIndicatorTimelineRef = useRef<gsap.core.Timeline | null>(null);
+  const navigationSequenceRef = useRef(0);
+  const navigationTargetSectionIdRef = useRef<string | null>(null);
+  const remeasureActiveSectionRef = useRef<(() => void) | null>(null);
+  const router = useRouter();
 
   const updateLayout = useCallback((nextLayout: HeaderLayout) => {
     if (layoutRef.current === nextLayout) return;
@@ -267,7 +272,8 @@ export function useAdaptiveHeader({ headerRef, menuRef }: AdaptiveHeaderRefs) {
         const updateSection = shouldUpdateActiveSection;
         shouldUpdateActiveSection = false;
         if (!updateSection) return;
-        const nextSectionId = getVisibleSectionId(headerRef.current) ?? 'hero';
+        const nextSectionId =
+          navigationTargetSectionIdRef.current ?? getVisibleSectionId(headerRef.current) ?? 'hero';
         if (nextSectionId === activeSectionIdRef.current) return;
 
         activeSectionIdRef.current = nextSectionId;
@@ -283,6 +289,7 @@ export function useAdaptiveHeader({ headerRef, menuRef }: AdaptiveHeaderRefs) {
     window.addEventListener('scroll', updateActiveSection, { passive: true });
     window.addEventListener('resize', updateActiveSection);
     window.addEventListener('landing-surface-change', updateActiveSection);
+    remeasureActiveSectionRef.current = updateActiveSection;
     updateActiveSection();
 
     return () => {
@@ -291,28 +298,67 @@ export function useAdaptiveHeader({ headerRef, menuRef }: AdaptiveHeaderRefs) {
       window.removeEventListener('scroll', updateActiveSection);
       window.removeEventListener('resize', updateActiveSection);
       window.removeEventListener('landing-surface-change', updateActiveSection);
+      if (remeasureActiveSectionRef.current === updateActiveSection) {
+        remeasureActiveSectionRef.current = null;
+      }
     };
   }, [headerRef]);
 
-  const handleNavigation = useCallback((event: MouseEvent<HTMLAnchorElement>) => {
-    if (!isPlainHashNavigation(event)) return;
+  const handleNavigation = useCallback(
+    (event: MouseEvent<HTMLAnchorElement>) => {
+      if (!isPlainHashNavigation(event)) return;
 
-    const anchor = event.currentTarget;
-    const url = new URL(anchor.href);
-    if (
-      url.origin !== window.location.origin ||
-      url.pathname !== window.location.pathname ||
-      !url.hash
-    ) {
-      return;
-    }
+      const anchor = event.currentTarget;
+      const url = new URL(anchor.href);
+      if (
+        url.origin !== window.location.origin ||
+        url.pathname !== window.location.pathname ||
+        !url.hash
+      ) {
+        return;
+      }
 
-    event.preventDefault();
-    window.requestAnimationFrame(() => {
-      if (window.location.hash !== url.hash) window.history.pushState(null, '', url.hash);
-      window.requestAnimationFrame(() => scrollToHashTarget(url.hash));
-    });
-  }, []);
+      event.preventDefault();
+      const sequence = navigationSequenceRef.current + 1;
+      navigationSequenceRef.current = sequence;
+      const targetId = url.hash.slice(1);
+      const targetSectionId = targetId === 'top' ? 'hero' : targetId;
+      navigationTargetSectionIdRef.current = targetSectionId;
+      if (activeSectionIdRef.current !== targetSectionId) {
+        activeSectionIdRef.current = targetSectionId;
+        setActiveSectionId(targetSectionId);
+      }
+
+      const settleNavigation = () => {
+        if (navigationSequenceRef.current !== sequence) return;
+        navigationTargetSectionIdRef.current = null;
+        remeasureActiveSectionRef.current?.();
+      };
+      const startScroll = () => {
+        if (navigationSequenceRef.current !== sequence) return;
+        const foundTarget = scrollToHashTarget(url.hash, {
+          onComplete: settleNavigation,
+          onInterrupt: settleNavigation,
+        });
+        if (!foundTarget) settleNavigation();
+      };
+
+      if (window.location.hash === url.hash) {
+        startScroll();
+        return;
+      }
+
+      void router
+        .navigate({
+          hash: targetId,
+          hashScrollIntoView: false,
+          resetScroll: false,
+          to: '.',
+        })
+        .then(startScroll, settleNavigation);
+    },
+    [router],
+  );
 
   const activeSection = sectionLabels.get(activeSectionId);
   const activeHref = activeSection?.href ?? null;

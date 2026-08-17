@@ -123,7 +123,7 @@ export function useMobileHeaderSectionRoll({
       const currentY = Number(gsap.getProperty(incomingText, 'y'));
       const currentOpacity = Number(gsap.getProperty(incomingText, 'opacity'));
       if (!incomingText.style.transform && !incomingText.style.opacity) {
-        gsap.set(incomingText, { opacity: 0, y: 10 });
+        gsap.set(incomingText, { opacity: 0, y: 6 });
       } else {
         gsap.set(incomingText, { opacity: currentOpacity, y: currentY });
       }
@@ -135,15 +135,15 @@ export function useMobileHeaderSectionRoll({
     if (previousText) {
       timelineRef.current.to(
         previousText,
-        { duration: 0.18, ease: 'power2.in', opacity: 0, y: -9 },
+        { duration: 0.14, ease: 'power2.in', opacity: 0, y: -6 },
         0,
       );
     }
     if (incomingText) {
       timelineRef.current.to(
         incomingText,
-        { duration: 0.24, ease: 'back.out(1.25)', opacity: 1, y: 0 },
-        0.07,
+        { duration: 0.2, ease: 'power3.out', opacity: 1, y: 0 },
+        0.04,
       );
     }
 

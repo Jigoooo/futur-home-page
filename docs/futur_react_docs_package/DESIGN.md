@@ -468,7 +468,7 @@ Motion:
 - `561px ~ 900px`에서는 높이 `58px`의 Header에 로고·서비스·기술·FAQ·문의를 모두 표시한다.
 - `560px` 이하에서는 너비 `calc(100% - 24px)`, 높이 `60px`의 `FUTUR. | 현재 섹션 | 문의` 구조를 사용한다.
 - `560px` 이하 현재 섹션명은 `15px / 750 / -0.015em`으로 강조하고 로고와 문의 버튼의 typography는 유지한다.
-- 현재 섹션은 중앙 masked lane에서 이전 `-9px`, 새 라벨 `+10px` 범위의 세로 롤링으로 교체한다.
+- 현재 섹션은 중앙 masked lane에서 이전 `-6px`, 새 라벨 `+6px` 범위의 무반동 세로 롤링으로 교체한다. 진입은 `200ms`, `power3.out`이며 overshoot를 사용하지 않는다.
 - Hero와 Footer에서는 중앙 섹션명을 비우고, reduced motion에서는 즉시 교체한다.
 - no-JS에서는 서비스·기술·FAQ·문의 전체 hash navigation을 노출한다.
 - 실제 배경 surface가 Header 중간선을 통과할 때 light/dark glass tone을 전환한다.
@@ -750,7 +750,7 @@ Motion:
 ## 14. 현재 SEO·GEO·공유 자산 계약
 
 - 현재 공개 구조는 `Hero → Services → Technology → FAQ → Footer` 단일 랜딩과 `/privacy`, `/terms`다. 별도 사례·서비스 상세 페이지를 검색 목적으로 만들지 않는다.
-- pathname route 전환은 즉시 top으로 이동하고, Header hash 이동만 명시적으로 smooth를 사용한다.
+- pathname route 전환은 즉시 top으로 이동한다. Header hash 이동은 Router 기본 jump를 끄고 거리 기반 `420~650ms` 단일 scroll로 처리하며 wheel·touch·scroll key 입력 시 즉시 취소한다.
 - 홈 route가 고유 title·description·canonical·Open Graph·X card와 WebSite·Organization JSON-LD를 소유한다.
 - 회사명은 `FUTUR`, 법적 한국어 상호는 `퓨터`, 영문 대체명은 `Futur`로 구분한다.
 - 검색 favicon과 Organization logo는 `#202523` 원형 배경, 18% padding, 외곽 기준 중앙 정렬을 사용한다.

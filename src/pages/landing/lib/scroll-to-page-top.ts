@@ -1,5 +1,76 @@
+import gsap from 'gsap';
+
+type ScrollCallbacks = {
+  onComplete?: () => void;
+  onInterrupt?: () => void;
+};
+
+type ActiveScroll = {
+  cleanup: () => void;
+  onInterrupt?: () => void;
+  tween: gsap.core.Tween;
+};
+
+let activeScroll: ActiveScroll | null = null;
+
 function getScrollBehavior(): ScrollBehavior {
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
+}
+
+function cancelActiveScroll() {
+  const current = activeScroll;
+  if (!current) return;
+
+  activeScroll = null;
+  current.cleanup();
+  current.tween.kill();
+  current.onInterrupt?.();
+}
+
+function getScrollDuration(top: number) {
+  const viewportDistance = Math.abs(top - window.scrollY) / Math.max(window.innerHeight, 1);
+  return Math.min(0.65, 0.42 + Math.max(0, viewportDistance - 1) * 0.07);
+}
+
+function scrollToPosition(top: number, callbacks: ScrollCallbacks = {}) {
+  cancelActiveScroll();
+
+  if (getScrollBehavior() === 'auto' || Math.abs(window.scrollY - top) <= 1) {
+    window.scrollTo({ left: 0, top, behavior: 'auto' });
+    callbacks.onComplete?.();
+    return;
+  }
+
+  const position = { y: window.scrollY };
+  const cancelOnKey = (event: KeyboardEvent) => {
+    if (['ArrowDown', 'ArrowUp', 'End', 'Home', 'PageDown', 'PageUp', ' '].includes(event.key)) {
+      cancelActiveScroll();
+    }
+  };
+  const cancel = () => cancelActiveScroll();
+  const cleanup = () => {
+    window.removeEventListener('wheel', cancel);
+    window.removeEventListener('touchstart', cancel);
+    window.removeEventListener('keydown', cancelOnKey);
+  };
+  const tween = gsap.to(position, {
+    duration: getScrollDuration(top),
+    ease: 'power2.inOut',
+    onComplete: () => {
+      if (activeScroll?.tween !== tween) return;
+      activeScroll = null;
+      cleanup();
+      window.scrollTo({ left: 0, top, behavior: 'auto' });
+      callbacks.onComplete?.();
+    },
+    onUpdate: () => window.scrollTo({ left: 0, top: position.y, behavior: 'auto' }),
+    y: top,
+  });
+
+  activeScroll = { cleanup, onInterrupt: callbacks.onInterrupt, tween };
+  window.addEventListener('wheel', cancel, { passive: true });
+  window.addEventListener('touchstart', cancel, { passive: true });
+  window.addEventListener('keydown', cancelOnKey);
 }
 
 function getTargetId(hash: string) {
@@ -25,18 +96,19 @@ export function getLandingNavOffset() {
 }
 
 export function scrollToPageTop() {
-  window.scrollTo({ top: 0, behavior: getScrollBehavior() });
+  scrollToPosition(0);
 }
 
 export function resetScrollForPageNavigation() {
+  cancelActiveScroll();
   window.scrollTo({ left: 0, top: 0, behavior: 'auto' });
 }
 
-export function scrollToHashTarget(hash: string) {
+export function scrollToHashTarget(hash: string, callbacks: ScrollCallbacks = {}) {
   const targetId = getTargetId(hash);
 
   if (!targetId || targetId === 'top') {
-    scrollToPageTop();
+    scrollToPosition(0, callbacks);
     return true;
   }
 
@@ -49,6 +121,6 @@ export function scrollToHashTarget(hash: string) {
     target.getBoundingClientRect().top + window.scrollY - getLandingNavOffset(),
   );
 
-  window.scrollTo({ top, behavior: getScrollBehavior() });
+  scrollToPosition(top, callbacks);
   return true;
 }

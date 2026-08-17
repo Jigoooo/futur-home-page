@@ -1,6 +1,6 @@
 # FUTUR 모바일 Header 세로 롤링 설계
 
-> Approved on 2026-08-17. 이 설계는 `2026-08-17-mobile-header-active-section-design.md`의 “모바일 섹션명 즉시 교체” 계약을 대체한다. 반응형 노출 구조와 no-JS 전체 탐색 원칙은 그대로 유지한다.
+> Approved on 2026-08-17 and refined on 2026-08-18. 이 설계는 `2026-08-17-mobile-header-active-section-design.md`의 “모바일 섹션명 즉시 교체” 계약을 대체한다. 2026-08-18 보정에서는 hash 선점프와 라벨 반동을 제거했다. 반응형 노출 구조와 no-JS 전체 탐색 원칙은 그대로 유지한다.
 
 ## 1. 목적
 
@@ -13,7 +13,7 @@ React Bits의 Rotating Text가 사용하는 mask와 위·아래 교체 구조를
 - `560px` 이하의 서비스·기술·FAQ 현재 섹션명에만 적용한다.
 - `561px` 이상에서는 기존 전체 메뉴와 shared active indicator를 그대로 사용한다.
 - Hero와 Footer에서는 중앙 라벨을 비운다. 섹션 밖에서 별도 `홈`·`문의` 문구를 만들지 않는다.
-- Header의 surface probe, glass tone, hash navigation과 문의 CTA는 변경하지 않는다.
+- Header의 surface probe, glass tone과 문의 CTA는 변경하지 않는다. hash navigation은 Router 기본 jump와 별도 offset 보정을 겹치지 않는 단일 제어 scroll로 통합한다.
 - 현재 섹션명만 `15px`, weight `750`, letter-spacing `-0.015em`으로 강조한다.
 - 로고 `20px`와 문의 버튼 `13px`의 크기·굵기는 유지해 중앙 라벨만 또렷하게 만든다.
 
@@ -28,13 +28,21 @@ React Bits의 Rotating Text가 사용하는 mask와 위·아래 교체 구조를
 ## 4. 모션
 
 - 중앙 라벨 viewport는 기존 Header 중앙 좌표를 유지하고 `overflow: clip`으로 위·아래 이동을 가린다.
-- 이전 라벨은 `y: 0 → -9px`, `opacity: 1 → 0`으로 빠진다.
-- 새 라벨은 `y: 10px → 0`, `opacity: 0 → 1`로 들어온다.
-- 이전 라벨은 `180ms`, `power2.in`을 사용한다.
-- 새 라벨은 이전 라벨 시작 후 `70ms`에 시작하며 `240ms`, `back.out(1.25)`를 사용한다.
-- 전체 전환은 약 `310ms` 안에 끝난다. scale, blur, 글자별 분해, scramble, glow는 사용하지 않는다.
+- 이전 라벨은 `y: 0 → -6px`, `opacity: 1 → 0`으로 빠진다.
+- 새 라벨은 `y: 6px → 0`, `opacity: 0 → 1`로 들어온다.
+- 이전 라벨은 `140ms`, `power2.in`을 사용한다.
+- 새 라벨은 이전 라벨 시작 후 `40ms`에 시작하며 `200ms`, `power3.out`을 사용한다.
+- 전체 전환은 약 `240ms` 안에 끝난다. overshoot, scale, blur, 글자별 분해, scramble, glow는 사용하지 않는다.
 - Hero·Footer 진입은 이전 라벨의 퇴장만 실행한다. 해당 영역에서 서비스·기술·FAQ로 진입할 때는 새 라벨의 등장만 실행한다.
 - 빠른 스크롤이나 연속 hash 이동이 발생하면 진행 중 timeline을 중단하고 현재 transform·opacity에서 다음 상태로 이어 간다. 완료 후 임시 inline style을 제거한다.
+
+### Hash 이동
+
+- Header anchor는 native href를 유지하되 강화 환경에서는 TanStack Router의 `hashScrollIntoView`를 끈다.
+- 실제 위치 이동은 현재 거리 기준 `420~650ms`, `power2.inOut`의 단일 GSAP scroll이 소유한다.
+- 이동 중 활성 메뉴는 클릭한 목적지로 잠시 고정해 중간 섹션을 지나며 라벨과 indicator가 연속 교체되지 않게 한다.
+- wheel, touchstart, 방향키, Page Up·Down, Home·End와 Space 입력은 진행 중 scroll을 즉시 중단하고 현재 위치 측정으로 돌아간다.
+- `prefers-reduced-motion: reduce`에서는 hash 대상과 Header offset을 한 프레임 안에 즉시 적용한다.
 
 ## 5. 접근성과 fallback
 

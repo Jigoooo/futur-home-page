@@ -27,6 +27,7 @@ state_dir="${shared_dir}/deploy-state/${release_sha}"
 runtime_env="${shared_dir}/runtime.env"
 ecosystem_config="${shared_dir}/ecosystem.config.cjs"
 pm2_home="${PM2_HOME:-${HOME}/.pm2}"
+release_marker_name='__futur_release.txt'
 
 export NVM_DIR="${NVM_DIR:-${HOME}/.nvm}"
 if [[ -s "${NVM_DIR}/nvm.sh" ]]; then
@@ -35,7 +36,7 @@ if [[ -s "${NVM_DIR}/nvm.sh" ]]; then
   nvm use 22 --silent >/dev/null
 fi
 
-for command_name in pm2 curl tar; do
+for command_name in node pm2 curl tar; do
   if ! command -v "$command_name" >/dev/null 2>&1; then
     printf 'Required command is unavailable: %s\n' "$command_name" >&2
     exit 69
@@ -76,13 +77,42 @@ switch_current() {
     printf 'Refusing to replace a non-symlink current path.\n' >&2
     return 1
   fi
-  mv -f "$next_link" "$current_link"
+  node -e \
+    'require("node:fs").renameSync(process.argv[1], process.argv[2])' \
+    "$next_link" "$current_link"
 }
 
-wait_for_new_homepage() {
+ensure_release_marker() {
+  local target="$1"
+  local target_sha
+
+  case "$target" in
+    "${releases_dir}/"*) ;;
+    *)
+      printf 'Refusing to mark a path outside releases.\n' >&2
+      return 1
+      ;;
+  esac
+  target_sha="$(basename "$target")"
+  case "$target_sha" in
+    *[!0-9a-f]*)
+      printf 'Invalid release marker target.\n' >&2
+      return 1
+      ;;
+  esac
+
+  mkdir -p "${target}/public"
+  printf '%s' "$target_sha" > "${target}/public/${release_marker_name}"
+}
+
+wait_for_release() {
+  local expected_sha="$1"
   local attempt
   for attempt in {1..12}; do
-    if curl -fsS --max-time 10 http://127.0.0.1:3000/ | grep -Fq 'BUILT FOR WHAT'; then
+    if [[ "$(readlink "$current_link" 2>/dev/null || true)" == "${releases_dir}/${expected_sha}" ]] \
+      && curl -fsS --max-time 10 \
+        "http://127.0.0.1:3000/${release_marker_name}?deploy=${expected_sha}" \
+        | grep -Fxq "$expected_sha"; then
       return 0
     fi
     sleep 3
@@ -116,10 +146,13 @@ rollback_release() {
   fi
 
   if [[ -n "$previous_release" && -d "$previous_release" ]]; then
+    local previous_sha
+    previous_sha="$(basename "$previous_release")"
+    ensure_release_marker "$previous_release"
     switch_current "$previous_release"
     load_runtime_env
     start_futur_process
-    wait_for_new_homepage
+    wait_for_release "$previous_sha"
     return
   fi
 
@@ -185,12 +218,16 @@ deploy_release() {
     fi
     mv "$staging_dir" "$release_dir"
   fi
+  ensure_release_marker "$release_dir"
+  if [[ -n "$previous_release" && -d "$previous_release" ]]; then
+    ensure_release_marker "$previous_release"
+  fi
   install -m 600 "${incoming_dir}/futur-runtime.env" "$runtime_env"
   install -m 644 "${incoming_dir}/ecosystem.config.cjs" "$ecosystem_config"
 
   load_runtime_env
   switch_current "$release_dir"
-  if ! start_futur_process || ! wait_for_new_homepage; then
+  if ! start_futur_process || ! wait_for_release "$release_sha"; then
     rollback_release
     return 1
   fi
@@ -198,7 +235,7 @@ deploy_release() {
 
 finalize_release() {
   load_runtime_env
-  wait_for_new_homepage
+  wait_for_release "$release_sha"
   pm2 save
   printf '%s' "$release_sha" > "${shared_dir}/last-successful-release"
 

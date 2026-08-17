@@ -9,6 +9,8 @@ import {
   readFileSync,
   readlinkSync,
   rmSync,
+  symlinkSync,
+  unlinkSync,
   writeFileSync,
 } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -38,6 +40,7 @@ function createHarness(): Harness {
   const pm2Log = join(root, 'pm2.log');
   const pm2State = join(root, 'pm2-state');
   const curlCount = join(root, 'curl-count');
+  const curlLog = join(root, 'curl.log');
 
   mkdirSync(fakeBin, { recursive: true });
   mkdirSync(fakeHome, { recursive: true });
@@ -68,12 +71,23 @@ esac
     join(fakeBin, 'curl'),
     `#!/usr/bin/env bash
 set -Eeuo pipefail
+printf '%s\n' "$*" >> "$FAKE_CURL_LOG"
 count=0
 if [[ -f "$FAKE_CURL_COUNT" ]]; then count="$(<"$FAKE_CURL_COUNT")"; fi
 count=$((count + 1))
 printf '%s' "$count" > "$FAKE_CURL_COUNT"
 if [[ "\${FAKE_CURL_MODE:-marker}" == 'fail-new' && "$count" -le 12 ]]; then exit 22; fi
-if [[ "\${FAKE_CURL_MODE:-marker}" == 'pm2-state' && "$(cat "$FAKE_PM2_STATE" 2>/dev/null || true)" == 'new' ]]; then
+url="\${*: -1}"
+if [[ "$url" == *'/__futur_release.txt'* ]]; then
+  marker="$(readlink "$FAKE_DEPLOY_PATH/current" 2>/dev/null || true)/public/__futur_release.txt"
+  if [[ "\${FAKE_CURL_MODE:-marker}" == 'pm2-state' && "$(cat "$FAKE_PM2_STATE" 2>/dev/null || true)" != 'new' ]]; then
+    printf '<h1>legacy homepage</h1>'
+  elif [[ -f "$marker" ]]; then
+    cat "$marker"
+  else
+    printf '<h1>legacy homepage</h1>'
+  fi
+elif [[ "\${FAKE_CURL_MODE:-marker}" == 'pm2-state' && "$(cat "$FAKE_PM2_STATE" 2>/dev/null || true)" == 'new' ]]; then
   printf '<h1>BUILT FOR WHAT</h1>'
 elif [[ "\${FAKE_CURL_MODE:-marker}" == 'marker' ]]; then
   printf '<h1>BUILT FOR WHAT</h1>'
@@ -93,6 +107,8 @@ fi
     FAKE_PM2_LOG: pm2Log,
     FAKE_PM2_STATE: pm2State,
     FAKE_CURL_COUNT: curlCount,
+    FAKE_CURL_LOG: curlLog,
+    FAKE_DEPLOY_PATH: deployPath,
     FAKE_CURL_MODE: 'marker',
   };
 
@@ -147,6 +163,41 @@ test.describe('release 배포 스크립트', () => {
       join(harness.deployPath, 'releases', firstSha),
     );
     harness.run('finalize', firstSha);
+    expect(
+      readFileSync(join(harness.deployPath, 'shared', 'last-successful-release'), 'utf8'),
+    ).toBe(firstSha);
+  });
+
+  test('활성 release SHA marker로 내부 health check를 검증한다', () => {
+    harness.env.FAKE_CURL_MODE = 'release-marker';
+    harness.prepareRelease(firstSha);
+
+    harness.run('deploy', firstSha);
+
+    expect(
+      readFileSync(
+        join(harness.deployPath, 'releases', firstSha, 'public', '__futur_release.txt'),
+        'utf8',
+      ),
+    ).toBe(firstSha);
+    expect(readFileSync(join(harness.root, 'curl.log'), 'utf8')).toContain('/__futur_release.txt');
+  });
+
+  test('finalize 직전 current가 이전 release로 바뀌면 성공으로 기록하지 않는다', () => {
+    harness.env.FAKE_CURL_MODE = 'release-marker';
+    harness.prepareRelease(firstSha);
+    harness.run('deploy', firstSha);
+    harness.run('finalize', firstSha);
+    harness.prepareRelease(secondSha);
+    harness.run('deploy', secondSha);
+
+    unlinkSync(join(harness.deployPath, 'current'));
+    symlinkSync(
+      join(harness.deployPath, 'releases', firstSha),
+      join(harness.deployPath, 'current'),
+    );
+
+    expect(() => harness.run('finalize', secondSha)).toThrow();
     expect(
       readFileSync(join(harness.deployPath, 'shared', 'last-successful-release'), 'utf8'),
     ).toBe(firstSha);

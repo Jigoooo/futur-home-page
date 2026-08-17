@@ -291,7 +291,8 @@ jobs:
           public_ok='false'
           for attempt in {1..12}; do
             if curl -fsS --max-time 15 -H 'Cache-Control: no-cache' \
-              "https://futur.co.kr/?deploy=${GITHUB_SHA}" | grep -Fq 'BUILT FOR WHAT'; then
+              "https://futur.co.kr/__futur_release.txt?deploy=${GITHUB_SHA}" \
+              | grep -Fxq "$GITHUB_SHA"; then
               public_ok='true'
               break
             fi

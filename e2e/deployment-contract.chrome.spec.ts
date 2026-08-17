@@ -89,16 +89,20 @@ test.describe('운영 배포 계약', () => {
   test('release 전환, 내부 확인, 외부 실패 롤백과 최근 5개 보존 계약을 갖는다', () => {
     expect(existsSync(deployScriptPath)).toBe(true);
     const script = readFileSync(deployScriptPath, 'utf8');
+    const workflow = readFileSync(workflowPath, 'utf8');
 
     expect(script).toContain('releases_dir="${deploy_path}/releases"');
     expect(script).toContain('release_dir="${releases_dir}/${release_sha}"');
     expect(script).toContain('/current');
     expect(script).toContain('pm2 save');
     expect(script).toContain('pm2 resurrect');
-    expect(script).toContain('BUILT FOR WHAT');
+    expect(script).toContain('__futur_release.txt');
     expect(script).toContain('127.0.0.1:3000');
     expect(script).toContain('rollback');
     expect(script).toMatch(/tail\s+-n\s+\+6/);
+
+    expect(workflow).toContain('__futur_release.txt?deploy=${GITHUB_SHA}');
+    expect(workflow).toContain('grep -Fxq "$GITHUB_SHA"');
   });
 
   test('문의 검증용 HTTP 경로는 Playwright 서버 밖에서 닫힌다', () => {

@@ -23,6 +23,13 @@ async function waitForHeader(page: Page, layout: 'desktop-fluid' | 'mobile-persi
   await expect(header(page)).toHaveAttribute('data-header-layout', layout);
 }
 
+async function openLandingAtTop(page: Page, layout: 'desktop-fluid' | 'mobile-persistent') {
+  await page.goto('/#top');
+  await waitForHeader(page, layout);
+  await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
+}
+
 async function waitForMobileRoll(page: Page, state: 'idle' | 'running' | 'reduced' = 'idle') {
   await expect(header(page)).toHaveAttribute('data-header-mobile-roll', 'enhanced');
   await expect(header(page)).toHaveAttribute('data-header-mobile-roll-state', state);
@@ -410,9 +417,7 @@ test('writes settled desktop geometry after a retained-scroll reload', async ({ 
 test('keeps the mobile header geometry stable with active-only navigation', async ({ page }) => {
   for (const viewport of mobileViewports) {
     await page.setViewportSize(viewport);
-    await page.goto('/');
-    await page.evaluate(() => window.scrollTo(0, 0));
-    await waitForHeader(page, 'mobile-persistent');
+    await openLandingAtTop(page, 'mobile-persistent');
 
     const nav = header(page);
     const initial = await nav.boundingBox();
@@ -748,9 +753,7 @@ test('shows only the current section between the mobile logo and inquiry action'
     { width: 320, height: 720 },
   ]) {
     await page.setViewportSize(viewport);
-    await page.goto('/');
-    await page.evaluate(() => window.scrollTo(0, 0));
-    await waitForHeader(page, 'mobile-persistent');
+    await openLandingAtTop(page, 'mobile-persistent');
 
     const nav = header(page);
     await expect(nav.getByRole('link', { name: 'FUTUR home' })).toBeVisible();

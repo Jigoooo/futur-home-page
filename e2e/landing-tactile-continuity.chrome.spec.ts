@@ -153,3 +153,36 @@ test('keeps legal documents as Korean-named standalone pages with the shared scr
   await expect(page.locator('html')).not.toHaveAttribute('data-page-scrollbar-enabled', 'true');
   await expect(page.locator('[data-page-scrollbar-track]')).toHaveCount(0);
 });
+
+test('opens legal routes at the top without reverse smooth scrolling', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+
+  for (const destination of ['/privacy', '/terms'] as const) {
+    await page.goto('/#footer');
+    await expect(page.locator(`a[href="${destination}"]`)).toBeVisible();
+    await page.waitForFunction((targetPath) => {
+      const link = document.querySelector<HTMLAnchorElement>(`a[href="${targetPath}"]`);
+      return Boolean(link && Object.keys(link).some((key) => key.startsWith('__reactProps$')));
+    }, destination);
+
+    const trace = await page.evaluate(async (targetPath) => {
+      const link = document.querySelector<HTMLAnchorElement>(`a[href="${targetPath}"]`);
+      if (!link) throw new Error(`legal link is missing: ${targetPath}`);
+
+      link.scrollIntoView({ block: 'center', behavior: 'instant' });
+      link.click();
+
+      const frames: Array<{ path: string; y: number }> = [];
+      const startedAt = performance.now();
+      while (performance.now() - startedAt < 700) {
+        await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+        frames.push({ path: location.pathname, y: Math.round(window.scrollY) });
+      }
+      return frames;
+    }, destination);
+
+    const destinationFrames = trace.filter((frame) => frame.path === destination);
+    expect(destinationFrames.length).toBeGreaterThan(0);
+    expect([...new Set(destinationFrames.map((frame) => frame.y))]).toEqual([0]);
+  }
+});

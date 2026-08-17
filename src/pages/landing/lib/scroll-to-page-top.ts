@@ -28,6 +28,10 @@ export function scrollToPageTop() {
   window.scrollTo({ top: 0, behavior: getScrollBehavior() });
 }
 
+export function resetScrollForPageNavigation() {
+  window.scrollTo({ left: 0, top: 0, behavior: 'auto' });
+}
+
 export function scrollToHashTarget(hash: string) {
   const targetId = getTargetId(hash);
 

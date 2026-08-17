@@ -4,6 +4,7 @@ import { Button } from './button';
 import styles from './styles/footer.module.css';
 import sharedStyles from './styles/shared.module.css';
 import { mailHref } from '../lib/company-links';
+import { resetScrollForPageNavigation } from '../lib/scroll-to-page-top';
 import { COMPANY_INFOS } from '@/entities/company';
 
 export function FooterSection() {
@@ -57,10 +58,18 @@ export function FooterSection() {
               <strong>문의</strong>
               <a href={mailHref}>{COMPANY_INFOS.EMAIL}</a>
               <nav className={styles.legalLinks} aria-label='법적 고지'>
-                <Link to='/privacy' className={styles.legalPrimary}>
+                <Link
+                  to='/privacy'
+                  className={styles.legalPrimary}
+                  onClick={resetScrollForPageNavigation}
+                >
                   개인정보처리방침
                 </Link>
-                <Link to='/terms' className={styles.legalSecondary}>
+                <Link
+                  to='/terms'
+                  className={styles.legalSecondary}
+                  onClick={resetScrollForPageNavigation}
+                >
                   이용약관
                 </Link>
               </nav>

@@ -21,7 +21,6 @@ html {
     linear-gradient(180deg, #fbfcff 0%, #ffffff 46%, #fbfcff 100%);
   background: var(--landing-canvas-background);
   background-attachment: fixed;
-  scroll-behavior: smooth;
   font-synthesis: none;
   text-size-adjust: 100%;
   -webkit-text-size-adjust: 100%;

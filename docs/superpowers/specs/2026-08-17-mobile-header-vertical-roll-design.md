@@ -36,7 +36,7 @@ React Bits의 Rotating Text가 사용하는 mask와 위·아래 교체 구조를
 
 ## 5. 접근성과 fallback
 
-- 라벨은 native anchor로 유지한다. 현재 섹션 변화는 스크롤에 따른 위치 정보이므로 `aria-live`를 추가해 화면 읽기 사용자를 반복적으로 방해하지 않는다.
+- 라벨은 native anchor로 유지한다. 현재 섹션 변화는 스크롤에 따른 위치 정보이므로 `aria-live`를 추가하지 않아 화면 읽기 사용자를 반복적으로 방해하지 않는다.
 - `prefers-reduced-motion: reduce`에서는 timeline을 만들지 않고 활성 anchor를 즉시 표시한다.
 - JavaScript가 없거나 hydration 전에는 `data-header-mobile-roll="enhanced"`가 없으므로 서비스·기술·FAQ·문의 전체 hash navigation을 표시한다.
 - `prefers-contrast: more`와 backdrop-filter 미지원 환경의 색상·focus ring은 기존 Header 계약을 유지한다.

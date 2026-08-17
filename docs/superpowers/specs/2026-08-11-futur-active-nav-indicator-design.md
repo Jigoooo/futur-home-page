@@ -1,6 +1,6 @@
 # FUTUR Shared Active Navigation Indicator 설계
 
-> Updated on 2026-08-17. 공유 active indicator는 데스크톱과 `mobile-persistent`에서 함께 사용한다. 이전 모바일 Compact/Expanded 제외 조건은 더 이상 적용하지 않는다.
+> Updated on 2026-08-17. 공유 active indicator는 데스크톱과 `561px ~ 900px`의 `mobile-persistent`에서 사용한다. `560px` 이하에서는 모바일 세로 롤링을 위해 숨긴다.
 
 ## 1. 목적
 
@@ -14,7 +14,7 @@
 
 사용자가 선택한 A안인 `Shared Glide`를 적용한다.
 
-- 데스크톱의 다섯 nav link 아래에 공유 indicator 하나만 둔다.
+- 데스크톱과 `561px ~ 900px`의 nav link 아래에 공유 indicator 하나만 둔다.
 - 활성 section이 바뀌면 indicator가 이전 link의 x와 width에서 새 link의 x와 width로 이동한다.
 - 새 위치에서 다시 그리는 방식이 아니라 이전 위치와 다음 위치 사이의 연속성이 보여야 한다.
 - 작은 빛점, capsule blob, elastic overshoot는 추가하지 않는다.
@@ -23,7 +23,7 @@
 
 ### 포함
 
-- 데스크톱 `desktop-fluid` nav의 공유 active indicator
+- 데스크톱 `desktop-fluid`와 `561px ~ 900px` `mobile-persistent` nav의 공유 active indicator
 - section tracking, hash navigation, resize에 따른 target geometry 재계산
 - 빠른 스크롤과 반대 방향 입력의 interruption-safe motion
 - reduced-motion과 hydration 전후 대체 경로
@@ -70,7 +70,7 @@ Hero와 Footer처럼 활성 nav가 없는 상태에서는 indicator를 숨긴다
 
 - desktop resize는 한 번의 `requestAnimationFrame`에서 현재 active link rect를 다시 측정한다.
 - resize 보정은 `160ms power2.out`으로 제한한다.
-- 900px 이하로 전환하면 desktop indicator tween과 inline motion 값을 정리한다.
+- `560px` 이하로 전환하면 shared indicator tween과 inline motion 값을 정리하고 indicator를 숨긴다.
 
 ## 6. 시각 계약
 
@@ -107,7 +107,7 @@ Hero와 Footer처럼 활성 nav가 없는 상태에서는 indicator를 숨긴다
 ### 대체 경로
 
 - reduced-motion은 한 frame 안에 최종 target을 적용한다.
-- 390px mobile에서는 desktop shared glide가 실행되지 않고 기존 mobile indicator 계약이 유지된다.
+- `561px ~ 900px`에서는 shared glide가 유지되고, `560px` 이하에서는 indicator가 숨겨진다.
 - desktop nav tab order, runtime error, cursor, a11y 회귀를 함께 통과한다.
 
 ## 9. 권위 관계
@@ -121,6 +121,6 @@ glass tone, contact UI 제거 및 server 보존 경계는 변경하지 않는다
 
 - 스크롤 section 변경 시 하나의 밑줄이 이전 메뉴에서 새 메뉴로 연속 이동한다.
 - motion은 200ms 안에 끝나며 bounce, overshoot, loop가 없다.
-- 빠른 반전, resize, reduced-motion, mobile 전환에서 jump나 stale inline state가 없다.
+- 빠른 반전, resize, reduced-motion, `560px` 경계 전환에서 jump나 stale inline state가 없다.
 - 활성 semantic state와 시각 indicator target이 일치한다.
 - 대상 E2E, Header 회귀, runtime, a11y, lint, build, graphify update, diff-check가 통과한다.

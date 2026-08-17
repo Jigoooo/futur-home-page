@@ -43,4 +43,23 @@ test.describe('검색 색인 이관 계약', () => {
       true,
     );
   });
+
+  test('승인된 검색 아이덴티티와 공유 카드 규격을 제공한다', async ({ request }) => {
+    for (const [path, width, height] of [
+      ['/favicon-48.png', 48, 48],
+      ['/organization-logo-512.png', 512, 512],
+      ['/media/share/futur-main-og-v2.png', 1200, 630],
+    ] as const) {
+      const response = await request.get(path);
+      expect(response.status()).toBe(200);
+      expect(response.headers()['content-type']).toContain('image/png');
+      const image = await response.body();
+      const size = { height: image.readUInt32BE(20), width: image.readUInt32BE(16) };
+
+      expect(size).toEqual({ height, width });
+    }
+
+    expect(existsSync(`${projectRoot}public/favicon.ico`)).toBe(true);
+    expect(existsSync(`${projectRoot}scripts/generate-seo-assets.sh`)).toBe(true);
+  });
 });

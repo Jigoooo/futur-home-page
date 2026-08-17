@@ -1,58 +1,46 @@
 # FUTUR 모바일 Header 상시 노출 설계
 
+> Refined on 2026-08-17. `560px` 이하의 전체 메뉴 상시 노출 계약은 `2026-08-17-mobile-header-active-section-design.md`의 현재 섹션 중심 구조로 보완됐다. `561px` 이상과 접기·펼치기 제거 원칙은 계속 유효하다.
+
 ## 목적
 
-모바일에서 상단 Header가 작은 토글로 접혔다가 큰 메뉴로 펼쳐지는 이중 구조를 제거한다. 데스크톱과 같은 정보 위계를 유지해 로고와 주요 메뉴를 언제든 바로 사용할 수 있게 한다.
+모바일에서 상단 Header가 작은 토글로 접혔다가 큰 메뉴로 펼쳐지는 이중 구조를 제거한다. 이후 좁은 화면의 현재 섹션 표현과 전환 모션은 후속 설계에서 구체화했다.
 
 ## 확정 동작
 
-- `900px 이하`의 Header 상태는 `mobile-persistent` 하나만 사용한다.
-- 로고, 서비스, 기술, FAQ, 문의를 한 줄에 항상 표시한다.
 - 모바일 전용 Menu/X 버튼과 확장 패널을 제거한다.
-- 모바일에서는 스크롤에 따른 너비·높이 변화와 GSAP 레이아웃 전환을 사용하지 않는다.
-- Header는 좌우 여백 `10px`, 높이 약 `58px`의 고정된 유리 표면으로 유지한다.
 - 데스크톱의 기존 스크롤 기반 유동 축소는 변경하지 않는다.
+- 정확한 breakpoint, Header geometry와 현재 섹션 표현은 `2026-08-17-mobile-header-vertical-roll-design.md`를 단일 기준으로 사용한다.
 
 ## 반응형 레이아웃
 
-- 모바일 글자와 링크 간격만 줄여 `320px`에서도 한 줄을 유지한다.
-- 로고는 Space Grotesk를 유지하고 메뉴는 SUIT를 유지한다.
-- 문의 링크는 현재 채움 형태를 유지하되 모바일에서 너비와 안쪽 여백을 줄인다.
-- 메뉴는 가로 스크롤이나 숨김 없이 모두 표시한다.
-- 문서 가로 너비를 넘지 않아야 한다.
+- `561px` 이상 전체 메뉴와 `560px` 이하 현재 섹션 구조의 상세 계약은 후속 세로 롤링 설계를 따른다.
+- 접기·펼치기 메뉴, 모바일 전용 하단 내비게이션, 가로 스크롤 메뉴와 두 줄 Header는 도입하지 않는다.
 
 ## 상태와 접근성
 
-- Header의 메뉴 링크는 모든 화면 크기에서 DOM과 접근성 트리에 노출한다.
-- `aria-current="location"`과 공유 활성 표시를 모바일에서도 사용한다.
 - 해시 이동, 키보드 포커스, Header 표면에 따른 글자색 전환은 유지한다.
 - 모바일 메뉴 토글에 필요했던 `aria-expanded`, focus 복귀, Escape, 외부 클릭과 스크롤 닫기 로직은 삭제한다.
-- JavaScript가 없어도 동일한 상시 노출 메뉴를 제공한다.
+- JavaScript가 없으면 전체 hash navigation을 노출하는 fallback을 유지한다.
 
 ## 모션
 
-- 모바일 Header 레이아웃에는 크기·위치 애니메이션을 적용하지 않는다.
-- 활성 메뉴 표시와 어두운 면·밝은 면 사이의 색상 전환만 유지한다.
-- `prefers-reduced-motion`에서는 기존처럼 모든 전환을 즉시 완료한다.
+- Header shell의 레이아웃 모션을 새로 도입하지 않는다.
+- 활성 섹션 라벨의 세로 롤링과 reduced-motion 대체 동작은 후속 세로 롤링 설계를 따른다.
 
 ## 구현 경계
 
-- `HeaderSection`, `useAdaptiveHeader`, Header CSS와 관련 E2E만 수정한다.
-- 모바일 전용 `startMobileHeaderMotion`, 관련 타입과 사용되지 않는 Menu/X 의존성은 제거한다.
+- `HeaderSection`, `useAdaptiveHeader`, Header CSS와 관련 E2E의 변경 범위를 유지한다.
 - Hero, Services, Technology, FAQ, Footer와 공개 문구는 변경하지 않는다.
 - 데스크톱 Header 크기, 스크롤 보간과 현재 표면 판정 기준은 변경하지 않는다.
 
 ## 검증
 
-- `390×844`와 `320×720`에서 로고와 네 개 메뉴가 항상 보이고 가로 넘침이 없어야 한다.
-- 스크롤 전후 Header의 모바일 너비와 높이가 변하지 않아야 한다.
-- 모바일에 메뉴 토글, 닫기 버튼, `mobile-expanded` 상태가 없어야 한다.
-- 서비스·기술·FAQ·문의 이동과 `aria-current`가 정상이어야 한다.
-- `901px` 전후 전환과 데스크톱 유동 축소가 회귀하지 않아야 한다.
-- no-JS, reduced motion, 키보드와 axe WCAG 2.2 AA 검사를 통과해야 한다.
+- 모든 breakpoint에서 토글·닫기 버튼·`mobile-expanded` 상태가 없어야 한다.
+- hash navigation, 키보드, no-JS, reduced motion과 axe WCAG 2.2 AA 검사를 통과해야 한다.
+- breakpoint별 Header geometry, visibility와 모션 검증은 후속 세로 롤링 설계를 따른다.
 
 ## 제외 사항
 
 - Header의 시각 스타일을 새로 디자인하지 않는다.
 - 메뉴 항목, 순서, 문구와 링크 목적지를 변경하지 않는다.
-- 모바일 전용 하단 내비게이션이나 가로 스크롤 메뉴를 추가하지 않는다.

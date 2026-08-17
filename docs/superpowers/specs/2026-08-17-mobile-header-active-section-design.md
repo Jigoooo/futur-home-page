@@ -1,5 +1,7 @@
 # FUTUR 모바일 활성 섹션 Header 설계
 
+> Refined on 2026-08-17. 섹션명을 즉시 교체하던 모션 계약은 `2026-08-17-mobile-header-vertical-roll-design.md`의 세로 롤링으로 대체됐다. breakpoint, 중앙 정렬과 no-JS fallback은 계속 유효하다.
+
 ## 1. 목적
 
 `mobile-persistent` Header는 모든 메뉴를 언제든 사용할 수 있지만 `390px` 이하에서 로고, 서비스, 기술, FAQ, 문의가 한 줄에 모여 시각적으로 지나치게 촘촘하다. 태블릿에서는 전체 메뉴를 유지하고, 모바일에서는 현재 읽고 있는 섹션 하나와 문의만 보여 정보 밀도를 낮춘다.
@@ -44,7 +46,7 @@
 - 모바일 현재 섹션 링크는 Header 전체 좌표를 기준으로 중앙에 놓는다. 로고나 문의 CTA의 실제 글자 폭에 따라 중앙 위치가 흔들리지 않아야 한다.
 - 현재 섹션은 글자색과 `aria-current="location"`으로만 표현한다.
 - `560px 이하`에서는 공유 active indicator를 숨긴다. 섹션 전환 시 밑줄이 이동하거나 잘못된 위치를 통과하지 않는다.
-- 섹션명 변경에는 slide, scale, bounce와 blur를 사용하지 않는다. React 상태 갱신과 함께 즉시 교체한다.
+- 섹션명 전환의 mask, 세로 이동 범위와 timing은 `2026-08-17-mobile-header-vertical-roll-design.md`를 따른다.
 - glass tone과 logo·CTA 색상 전환은 현재 surface 기반 규칙을 그대로 사용한다.
 
 ## 5. 접근성과 대체 동작

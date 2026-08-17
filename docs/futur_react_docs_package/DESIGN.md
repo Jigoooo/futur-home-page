@@ -120,7 +120,14 @@ FUTUR.
 ### Font Stack
 
 ```css
-font-family: Pretendard, "Apple SD Gothic Neo", "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+font-family:
+  Pretendard,
+  'Apple SD Gothic Neo',
+  'Noto Sans KR',
+  system-ui,
+  -apple-system,
+  BlinkMacSystemFont,
+  sans-serif;
 ```
 
 ### 타이포 원칙
@@ -183,11 +190,11 @@ FUTUR 랜딩은 “숨쉬는 듯한 레이아웃”이 중요합니다.
 
 권장 범위:
 
-| 화면 | 섹션 상하 여백 |
-|---|---:|
-| Desktop | 160px ~ 200px |
-| Tablet | 120px ~ 150px |
-| Mobile | 88px ~ 120px |
+| 화면    | 섹션 상하 여백 |
+| ------- | -------------: |
+| Desktop |  160px ~ 200px |
+| Tablet  |  120px ~ 150px |
+| Mobile  |   88px ~ 120px |
 
 주의:
 
@@ -205,9 +212,9 @@ FUTUR 랜딩은 “숨쉬는 듯한 레이아웃”이 중요합니다.
   --radius-md: 30px;
   --radius-sm: 20px;
 
-  --shadow: 0 32px 90px rgba(25, 45, 86, .10);
-  --shadow-soft: 0 18px 54px rgba(25, 45, 86, .075);
-  --shadow-hover: 0 36px 90px rgba(20, 42, 94, .16);
+  --shadow: 0 32px 90px rgba(25, 45, 86, 0.1);
+  --shadow-soft: 0 18px 54px rgba(25, 45, 86, 0.075);
+  --shadow-hover: 0 36px 90px rgba(20, 42, 94, 0.16);
 }
 ```
 
@@ -227,20 +234,20 @@ FUTUR 랜딩은 “숨쉬는 듯한 레이아웃”이 중요합니다.
 
 ```css
 :root {
-  --ease: cubic-bezier(.16, 1, .3, 1);
-  --spring: cubic-bezier(.2, 1.25, .34, 1);
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --spring: cubic-bezier(0.2, 1.25, 0.34, 1);
 }
 ```
 
 ### Duration
 
-| 목적 | 시간 |
-|---|---:|
-| Button hover | 220ms ~ 320ms |
-| Card hover | 260ms ~ 360ms |
-| Section reveal | 620ms ~ 760ms |
+| 목적               |          시간 |
+| ------------------ | ------------: |
+| Button hover       | 220ms ~ 320ms |
+| Card hover         | 260ms ~ 360ms |
+| Section reveal     | 620ms ~ 760ms |
 | Tab content switch | 260ms ~ 380ms |
-| Floating idle | 4s ~ 7s |
+| Floating idle      |       4s ~ 7s |
 
 ### 애니메이션 원칙
 
@@ -253,9 +260,11 @@ FUTUR 랜딩은 “숨쉬는 듯한 레이아웃”이 중요합니다.
 
 ```css
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    animation-duration: .001ms !important;
-    transition-duration: .001ms !important;
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
     scroll-behavior: auto !important;
   }
 }
@@ -283,12 +292,12 @@ FUTUR 랜딩은 “숨쉬는 듯한 레이아웃”이 중요합니다.
 
 상태:
 
-| 상태 | 표현 |
-|---|---|
-| default | solid/navy 또는 white/line |
-| hover | spotlight, arrow 이동 |
-| active | 살짝 눌림 가능 |
-| focus | blue ring |
+| 상태     | 표현                         |
+| -------- | ---------------------------- |
+| default  | solid/navy 또는 white/line   |
+| hover    | spotlight, arrow 이동        |
+| active   | 살짝 눌림 가능               |
+| focus    | blue ring                    |
 | disabled | opacity + cursor not-allowed |
 
 ---
@@ -637,9 +646,12 @@ Motion:
 ### Breakpoints
 
 ```css
-@media (max-width: 1180px) {}
-@media (max-width: 900px) {}
-@media (max-width: 560px) {}
+@media (max-width: 1180px) {
+}
+@media (max-width: 900px) {
+}
+@media (max-width: 560px) {
+}
 ```
 
 ### Mobile 원칙
@@ -734,3 +746,14 @@ Motion:
 - WAI-ARIA Select-Only Combobox Example: https://www.w3.org/WAI/ARIA/apg/patterns/combobox/examples/combobox-select-only/
 - MDN prefers-reduced-motion: https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/At-rules/%40media/prefers-reduced-motion
 - MDN Intersection Observer API: https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API
+
+## 14. 현재 SEO·GEO·공유 자산 계약
+
+- 현재 공개 구조는 `Hero → Services → Technology → FAQ → Footer` 단일 랜딩과 `/privacy`, `/terms`다. 별도 사례·서비스 상세 페이지를 검색 목적으로 만들지 않는다.
+- pathname route 전환은 즉시 top으로 이동하고, Header hash 이동만 명시적으로 smooth를 사용한다.
+- 홈 route가 고유 title·description·canonical·Open Graph·X card와 WebSite·Organization JSON-LD를 소유한다.
+- 회사명은 `FUTUR`, 법적 한국어 상호는 `퓨터`, 영문 대체명은 `Futur`로 구분한다.
+- 검색 favicon과 Organization logo는 `#202523` 원형 배경, 18% padding, 외곽 기준 중앙 정렬을 사용한다.
+- 공유 카드는 기존 검은 FUTUR 구성과 `BUILT FOR WHAT’S NEXT.`를 사용하는 1200×630 PNG이며 심볼 뒤 원형을 넣지 않는다.
+- OAI-SearchBot, GPTBot과 일반 crawler를 모두 허용한다. `llms.txt`에는 실제 서비스와 공개 연락처만 제공한다.
+- Privacy·Terms는 self canonical과 noindex, 404와 `/futur-release`는 검색 제외 header를 사용한다.

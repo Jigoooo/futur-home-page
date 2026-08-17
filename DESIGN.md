@@ -130,6 +130,16 @@ Footer는 둥근 CTA 카드, 그라디언트와 이메일 pill이 없는 검은 
 
 공용 `PageScrollbar`는 landing·privacy·terms에서 현재 문서를 제어한다. `pointer: fine`, `min-width: 901px`, `prefers-reduced-motion: no-preference`를 모두 만족할 때만 `html[data-page-scrollbar-enabled='true']`를 추가하고 native scrollbar를 숨긴다. 그 외 환경과 no-JS에서는 native scrolling을 유지한다. track 클릭, thumb drag, idle fade와 페이지 전환 정리를 제공한다.
 
+pathname이 바뀌는 Footer의 법적 Link는 같은 이벤트 턴에서 scroll top을 먼저 `auto`로 맞춘 뒤 Router navigation을 실행한다. 새 법적 문서의 첫 가시 프레임부터 `scrollY=0`이어야 하며 역방향 smooth 이동을 보여서는 안 된다. 전역 `scroll-behavior`는 사용하지 않고 Header hash 링크와 상단 이동 버튼만 명시적 smooth를 사용한다.
+
+## SEO, GEO and Share Identity
+
+홈 title과 description은 `웹·앱`, `SaaS·솔루션`, `업무 시스템·SI`, `AI 통합·AX`, `운영·유지보수`의 실제 범위를 설명한다. 홈 route가 canonical, Open Graph, X card와 WebSite·Organization JSON-LD를 소유하며 root는 공용 favicon과 문서 기반 meta만 제공한다. Privacy·Terms는 self canonical과 `noindex,follow`, 404는 `noindex,nofollow`, release marker는 `X-Robots-Tag: noindex, nofollow, nosnippet`을 사용한다.
+
+파비콘과 Organization logo는 기존 심볼을 변경하지 않은 B2-B charcoal roundel이다. 배경은 `#202523`, 내부 padding은 `18%`, 원본 알파 외곽을 세로 중앙에 맞춘다. 공유 카드는 기존 `futur_main.png`의 검은 배경·심볼·FUTUR 워드마크를 유지하고 원형 배경 없이 `BUILT FOR WHAT’S NEXT.`를 사용하는 `1200×630 PNG`다.
+
+`robots.txt`는 OAI-SearchBot, GPTBot과 일반 crawler를 모두 허용한다. `llms.txt`는 공개 회사 정보와 네 서비스 범위만 제공하며 포트폴리오, 아티클, 팀 경력, 프로젝트·고객 수치와 업무시간을 만들지 않는다. Sitemap은 색인 가능한 홈 한 개와 실제 변경일만 제공한다.
+
 ## Motion, Accessibility and Product Truth
 
 본문은 기존 `data-landing-reveal` 관찰자를 재사용하고 한 번 보인 항목은 다시 숨기지 않는다. `FUTUR Field`는 콘텐츠 reveal 최대 `20px`, 포인터 반응 최대 `4px`, scale 최대 `1.002`를 공통 상한으로 삼고 blur·glow·3D tilt·반복 bounce를 사용하지 않는다. 서비스 카드와 기술 설명은 단위별로 나타나고 대표 기술 띠는 스크롤 진행과 독립적으로 움직인다. SSR/no-JS에서는 모든 핵심 콘텐츠가 보인다. `prefers-reduced-motion`에서는 이동, 지연과 부드러운 스크롤을 제거하고 처음부터 최종 상태를 표시한다.
@@ -152,6 +162,10 @@ Footer는 둥근 CTA 카드, 그라디언트와 이메일 pill이 없는 검은 
 - [ ] Footer에 blue magnetic·liquid `문의하기` CTA, 3열 utility grid, legal metadata와 작은 이메일이 있고 대형 signature와 서비스 탐색 nav는 없다.
 - [ ] 기본 포인터가 유지되고 custom ring/dot cursor DOM과 dataset이 없다.
 - [ ] `/privacy`, `/terms`는 독립 페이지이며 `퓨터 / Futur` 표기와 공용 PageScrollbar 계약을 유지한다.
+- [ ] Footer에서 법적 페이지로 이동할 때 첫 가시 프레임부터 top이며 역방향 smooth scroll이 없다.
+- [ ] 홈 meta·canonical·Open Graph·X card와 WebSite·Organization JSON-LD가 실제 서비스 범위를 사용한다.
+- [ ] B2-B favicon·Organization logo와 1200×630 FUTUR 공유 카드가 실제 규격으로 제공된다.
+- [ ] robots·sitemap·llms.txt와 release marker noindex 계약이 유지된다.
 - [ ] `1280px`, `1180px`, `900px`, `390px`에서 레이아웃과 가로 overflow가 안전하다.
 - [ ] no-JS, reduced motion, 키보드 탐색과 axe WCAG 2.2 AA가 유지된다.
 - [ ] contact server/mail safety를 포함한 전체 Playwright, lint, build가 통과한다.

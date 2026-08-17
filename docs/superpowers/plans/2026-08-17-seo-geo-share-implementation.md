@@ -374,7 +374,7 @@ expect(existsSync(join(harness.deployPath, '.incoming', firstSha))).toBe(false);
 
 - [ ] **Step 4: robots와 sitemap 갱신**
 
-robots는 OAI-SearchBot, GPTBot, `*`을 모두 `Allow: /`로 선언하고 Sitemap을 유지한다. Sitemap은 홈 한 개와 실제 콘텐츠 변경일 `2026-08-17`을 사용한다.
+robots는 OAI-SearchBot, GPTBot, `*`을 모두 `Allow: /`로 선언하고 Sitemap을 유지한다. Sitemap은 홈 한 개와 실제 콘텐츠 변경일 `2026-08-18`을 사용한다.
 
 - [ ] **Step 5: rollback cleanup 구현**
 

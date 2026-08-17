@@ -21,6 +21,7 @@
   - 하단 문구는 `BUILT FOR WHAT’S NEXT.`로 교체한다.
   - 최종 규격은 `1200×630 PNG`다.
 - TLS 보강은 사용자가 열어 둔 VS Code Remote SSH `futur-prod` 세션에서 Computer Use로 수행한다. GitHub Actions 배포 workflow에는 인증서 명령을 추가하지 않는다.
+- 서버 배포 루트에서는 release 기반 현행 런타임만 보존하고, 사용되지 않는 legacy Prisma·Nitro·정적 빌드·로그와 실패 incoming 사본을 제거한다.
 
 ## 3. 법적 문서 라우트 전환
 
@@ -143,7 +144,7 @@
   - Nginx `1.18.0`, active
   - Certbot `4.40.0`
   - `certbot.timer` enabled, active
-  - 관련 Nginx 설정 `/etc/nginx/sites-enabled/default`
+  - 관련 Nginx 설정 `/etc/nginx/sites-enabled/futur.co.kr`
   - HTTP와 HTTPS server block 모두 `server_name futur.co.kr www.futur.co.kr`
   - HTTP는 `return 301 https://$host$request_uri`
   - HTTPS는 `/etc/letsencrypt/live/futur.co.kr/` 인증서를 사용하고 `localhost:3000`으로 proxy
@@ -161,10 +162,56 @@
   5. HTTPS `www` 전용 redirect server block을 추가하고 apex reverse proxy server block과 분리
   6. `nginx -t` 후 reload
   7. 인증서 SAN, path/query 보존 301, apex 200과 갱신 타이머 확인
+  8. 기존 무료 Let’s Encrypt 자동 갱신 계약을 유지하고 `certbot renew --dry-run`으로 apex+www SAN 인증서 갱신을 검증
 - 전체 Nginx 설정을 확인했을 때 예상하지 못한 다른 서비스와 공유되거나 설정 경계를 안전하게 특정할 수 없으면 apply를 실행하지 않는다.
 - 실패하면 백업한 Nginx 설정을 복구하고 `nginx -t` 후 reload한다. 확장 발급된 인증서는 그대로 두어도 기존 apex 서비스에 영향을 주지 않는다.
 
-## 9. 검증
+## 9. 서버 배포 디렉터리 정리
+
+### 읽기 전용 조사 결과
+
+- 배포 루트: `/home/futur/front/futur-home-page`
+- 현재 서비스:
+  - `current` → `releases/4a271eea50b516e6711db90d190e7c3cc08c4c2b`
+  - PID `428671`
+  - `/home/futur/front/futur-home-page/current/server/index.mjs`
+  - 포트 `3000` 단독 사용
+- release 체계가 사용하는 경로:
+  - `current`
+  - `releases` 약 27MB, 최근 5개
+  - `shared` 약 140KB, `runtime.env`, `ecosystem.config.cjs`, `last-successful-release`, rollback state 포함
+- legacy 잔존 항목:
+  - `public` 약 934MB, 과거 asset과 source map 포함
+  - `server` 약 96MB, 과거 `node_modules`, chunk, SQLite DB와 업로드 포함
+  - `prisma` 약 8KB
+  - `logs` 약 2.7MB
+  - 루트 `ecosystem.config.cjs`, `nitro.json`, `pm2.sh`
+  - 실패한 `.incoming/f79ea7…`, `.incoming/5de9b5…` 약 4.1MB, runtime env 사본 포함
+  - PID `358794`, `358796`: 2026-01-05부터 실행 중인 legacy `server/index.mjs`, listen port 없음, 현재 PM2 dump에 없음
+
+### 정리 계약
+
+1. 현재 `current` SHA, `/futur-release`, 포트 3000과 공개 HTTPS를 다시 확인한다.
+2. 실행 시점에 정확히 `/home/futur/front/futur-home-page/server/index.mjs`를 실행하는 PID를 다시 조회하고, listen port가 없으며 current 경로와 다름을 확인한다. 조사 시점 PID는 `358794`, `358796`이었다.
+3. 검증된 legacy PID에 `SIGTERM`을 보내고 제한 시간 안에 종료되는지 확인한다.
+4. 종료되지 않을 때만 동일 cmdline이 다시 확인된 legacy PID에 `SIGKILL`을 사용한다.
+5. 현재 PM2 dump에 `spec-lens`, `futur`만 있는지 재확인하고 `pm2 save`로 현재 목록을 유지한다.
+6. 삭제 대상을 `/home/futur/front/futur-home-page-legacy-cleanup-<timestamp>`로 먼저 이동하지 않는다. 약 1GB이고 runtime env 사본을 포함하므로 서버 내 중복 백업을 만들지 않고, 정확한 절대 경로와 파일 유형을 검증한 후 직접 삭제한다.
+7. 다음 경로만 삭제한다.
+   - `/home/futur/front/futur-home-page/prisma`
+   - `/home/futur/front/futur-home-page/public`
+   - `/home/futur/front/futur-home-page/server`
+   - `/home/futur/front/futur-home-page/logs`
+   - `/home/futur/front/futur-home-page/ecosystem.config.cjs`
+   - `/home/futur/front/futur-home-page/nitro.json`
+   - `/home/futur/front/futur-home-page/pm2.sh`
+   - `/home/futur/front/futur-home-page/.incoming/f79ea7bf0d5fce52c89d31dbacc79abcc90a54fc`
+   - `/home/futur/front/futur-home-page/.incoming/5de9b5ce87194fc23124ba5cb1b002174bd9fae6`
+8. `.incoming` 상위 디렉터리는 다음 배포가 재사용하므로 유지한다.
+9. `current`, `releases`, `shared`와 `/root/.pm2/logs`는 삭제하지 않는다.
+10. 정리 뒤 현재 Node PID·port 3000, apex 홈페이지, `/privacy`, `/terms`, `/futur-release`를 재검증한다.
+
+## 10. 검증
 
 ### 자동 검증
 
@@ -185,16 +232,19 @@
 - `https://futur.co.kr/`은 200을 유지한다.
 - `https://www.futur.co.kr/path?query=1`은 인증서 오류 없이 `https://futur.co.kr/path?query=1`로 301 이동해야 한다.
 - 인증서에는 apex와 www가 모두 포함되고 자동 갱신이 활성화되어야 한다.
+- `certbot renew --dry-run`이 apex+www SAN 인증서에 대해 성공해야 한다.
+- 배포 루트에는 `current`, `releases`, `shared`, 비어 있는 `.incoming`만 남고 legacy Prisma·server·public·logs가 없어야 한다.
+- 포트 3000은 현재 `current/server/index.mjs`만 사용해야 한다.
 - Codex 내부 브라우저에서 홈, Privacy, Terms, Footer 링크와 공유 메타를 확인한다.
 
-## 10. 배포 이후 수동 작업
+## 11. 배포 이후 수동 작업
 
 - Google Search Console에서 홈 URL 검사를 실행하고 색인 생성을 요청한다.
 - 네이버 서치어드바이저에서 홈 수집 요청과 사이트맵 상태를 확인한다.
 - 카카오 개발자 도구에서 홈 URL과 새 OG 이미지 URL의 Open Graph 캐시를 초기화한다.
 - 검색 결과의 title, description과 favicon 변경은 재수집 이후 반영되며 즉시 갱신을 보장하지 않는다.
 
-## 11. 참고 기준
+## 12. 참고 기준
 
 - Google Search favicon: <https://developers.google.com/search/docs/appearance/favicon-in-search>
 - Google site name: <https://developers.google.com/search/docs/appearance/site-names>

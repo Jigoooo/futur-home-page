@@ -470,6 +470,7 @@ Motion:
 - `560px` 이하 현재 섹션명은 `15px / 750 / -0.015em`으로 강조하고 로고와 문의 버튼의 typography는 유지한다.
 - 현재 섹션은 중앙 masked lane에서 이전 `-6px`, 새 라벨 `+6px` 범위의 무반동 세로 롤링으로 교체한다. 진입은 `200ms`, `power3.out`이며 overshoot를 사용하지 않는다.
 - Hero와 Footer에서는 중앙 섹션명을 비우고, reduced motion에서는 즉시 교체한다.
+- JavaScript가 활성화된 첫 화면은 동기식 viewport 판정으로 hydration 전에 서비스·기술·FAQ를 숨겨 좁은 Header의 잘림을 막는다.
 - no-JS에서는 서비스·기술·FAQ·문의 전체 hash navigation을 노출한다.
 - 실제 배경 surface가 Header 중간선을 통과할 때 light/dark glass tone을 전환한다.
 

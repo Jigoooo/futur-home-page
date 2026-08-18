@@ -14,9 +14,26 @@ test('keeps four informational service cards with one surface and lens each', as
 
   const cards = page.locator('#services [data-service-card]');
   await expect(cards).toHaveCount(4);
+  await expect(cards.locator('[data-service-card-index]')).toHaveCount(0);
   await expect(cards.locator('[data-service-card-surface]')).toHaveCount(4);
   await expect(cards.locator('[data-service-card-lens][aria-hidden="true"]')).toHaveCount(4);
   await expect(cards.locator('a, button, [role], [tabindex], img, picture, svg')).toHaveCount(0);
+
+  const firstCard = cards.first();
+  await expect(firstCard.getByRole('heading', { level: 3 })).toHaveText('웹·앱·SaaS 개발');
+  await expect(firstCard.getByRole('heading', { level: 3 })).toHaveCSS('margin-top', '0px');
+  await expect(firstCard.getByRole('paragraph')).toHaveCSS('font-size', '17px');
+  await expect(firstCard.getByRole('paragraph')).toHaveCSS('font-weight', '500');
+  await expect(firstCard.getByRole('listitem')).toHaveText([
+    '웹·모바일·데스크톱 앱',
+    'SaaS·독립 솔루션',
+    '관리자·고객 포털',
+  ]);
+  expect(
+    await cards.evaluateAll((elements) =>
+      elements.map((element) => Math.round(element.getBoundingClientRect().height)),
+    ),
+  ).toEqual([360, 420, 420, 360]);
 
   const cursorValues = await cards.evaluateAll((elements) =>
     elements.map((element) => getComputedStyle(element).cursor),
@@ -30,6 +47,39 @@ test('keeps four informational service cards with one surface and lens each', as
   }));
   expect(pageWidth).toMatchObject({ height: 900, width: 1280 });
   expect(pageWidth.scrollWidth).toBeLessThanOrEqual(pageWidth.width);
+});
+
+test('keeps service titles on one line across the narrow two-column desktop range', async ({
+  page,
+}) => {
+  for (const [width, expectedFontSize] of [
+    [1180, '36px'],
+    [901, '30px'],
+  ] as const) {
+    await page.setViewportSize({ width, height: 844 });
+    await page.goto('/#services');
+    await waitForLandingHydration(page);
+
+    const cards = page.locator('[data-service-card]');
+    const titleLines = await cards.getByRole('heading', { level: 3 }).evaluateAll((elements) =>
+      elements.map((element) => {
+        const range = document.createRange();
+        range.selectNodeContents(element);
+        return new Set(Array.from(range.getClientRects(), (rect) => Math.round(rect.top))).size;
+      }),
+    );
+    expect(titleLines).toEqual([1, 1, 1, 1]);
+    await expect(cards.first().getByRole('heading', { level: 3 })).toHaveCSS(
+      'font-size',
+      expectedFontSize,
+    );
+    expect(
+      await cards.evaluateAll(
+        (elements) =>
+          new Set(elements.map((element) => Math.round(element.getBoundingClientRect().left))).size,
+      ),
+    ).toBe(2);
+  }
 });
 
 test('lifts one fine-pointer service surface and tracks the local ink lens', async ({ page }) => {
@@ -154,6 +204,16 @@ test('uses a compact Footer utility grid and preserves real information', async 
   await expect(footer.locator('address')).toBeVisible();
   expect(await footer.locator('a[href^="mailto:"]').count()).toBeGreaterThanOrEqual(2);
 
+  const prompt = footer.getByText('현재 상황과 필요한 기능을 알려주세요.', { exact: true });
+  await expect(prompt).toBeVisible();
+  expect(
+    await prompt.evaluate((element) => {
+      const range = document.createRange();
+      range.selectNodeContents(element);
+      return new Set(Array.from(range.getClientRects(), (rect) => Math.round(rect.top))).size;
+    }),
+  ).toBe(1);
+
   const lowerHairlineCount = await footer.locator(':scope > div > *').evaluateAll(
     (elements) =>
       elements.filter((element) => {
@@ -250,6 +310,20 @@ test('keeps Services and Footer readable without horizontal overflow at supporte
     }));
     expect(layout.columns).toBe(width > 900 ? 3 : width > 560 ? 2 : 1);
     if (width === 900) expect(layout.wordmarkColumn).toBe('span 2');
+    if (width === 900 || width === 390) {
+      const expectedHeight = width === 900 ? 340 : 330;
+      const heights = await page
+        .locator('[data-service-card]')
+        .evaluateAll((elements) =>
+          elements.map((element) => Math.round(element.getBoundingClientRect().height)),
+        );
+      expect(
+        heights.every((height) => height >= expectedHeight && height <= expectedHeight + 8),
+      ).toBe(true);
+    }
+    if (width === 390) {
+      await expect(page.locator('[data-service-card] li').first()).toHaveCSS('font-size', '15px');
+    }
   }
   await page.close();
 

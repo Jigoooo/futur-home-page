@@ -174,7 +174,7 @@ test.describe('검색 색인 이관 계약', () => {
     const llms = await llmsResponse.text();
     expect(llmsResponse.status()).toBe(200);
     expect(llmsResponse.headers()['content-type']).toContain('text/plain');
-    expect(llms).toContain('서비스·솔루션 개발');
+    expect(llms).toContain('웹·앱·SaaS 개발');
     expect(llms).toContain('업무 시스템·SI');
     expect(llms).toContain('AI 통합·AX');
     expect(llms).toContain('운영·유지보수');

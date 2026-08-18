@@ -441,6 +441,33 @@ test('keeps the mobile header geometry stable with active-only navigation', asyn
   }
 });
 
+test('hides narrow section labels on the first painted frame before hydration', async ({
+  browser,
+}) => {
+  const context = await browser.newContext({ viewport: mobileViewports[0] });
+  await context.route('**/*', async (route) => {
+    if (route.request().resourceType() === 'script') {
+      await route.abort();
+      return;
+    }
+
+    await route.continue();
+  });
+  const page = await context.newPage();
+  await page.goto('/');
+
+  await expect(page.locator('html')).toHaveAttribute(
+    'data-header-initial-layout',
+    'mobile-persistent',
+  );
+  await expect(header(page)).toHaveAttribute('data-header-hydrated', 'false');
+  await expect.poll(() => visibleSectionLabels(page)).toEqual([]);
+  await expect(navigation(page).getByRole('link', { name: '문의', exact: true })).toBeVisible();
+  await expectNoHorizontalOverflow(page);
+
+  await context.close();
+});
+
 test('keeps the full menu comfortably spaced at tablet widths', async ({ page }) => {
   for (const viewport of [
     { width: 900, height: 844 },

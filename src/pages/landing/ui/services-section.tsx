@@ -50,9 +50,6 @@ export function ServicesSection() {
             <div className={styles.surface} data-service-card-surface>
               <span className={styles.lens} data-service-card-lens aria-hidden='true' />
               <div className={styles.copy}>
-                <span className={styles.index} data-service-card-index>
-                  {capability.index}
-                </span>
                 <h3>{capability.title}</h3>
                 <p>{capability.description}</p>
                 <ul aria-label={`${capability.title} 범위`}>

@@ -51,7 +51,7 @@ export function TechnologySection() {
       </div>
 
       <div className={styles.index} data-technology-index>
-        {technologyCapabilities.map((capability, index) => (
+        {technologyCapabilities.map((capability) => (
           <article
             className={styles.row}
             key={capability.key}
@@ -62,7 +62,6 @@ export function TechnologySection() {
               className={cx(styles.rowInfo, sharedStyles.reveal, sharedStyles.revealUp)}
               data-landing-reveal='up'
             >
-              <span className={styles.rowNumber}>{String(index + 1).padStart(2, '0')}</span>
               <h3>{capability.label}</h3>
               <p>{capability.description}</p>
             </div>
@@ -92,7 +91,7 @@ export function TechnologySection() {
           <div className={styles.disclosurePanel} data-technology-disclosure-panel>
             <div className={styles.disclosureContent} data-technology-disclosure-content>
               <div className={styles.fullList}>
-                {technologyCapabilities.map((capability, capabilityIndex) => (
+                {technologyCapabilities.map((capability) => (
                   <section
                     className={styles.technologyChapter}
                     key={capability.key}
@@ -107,9 +106,6 @@ export function TechnologySection() {
                       data-technology-chapter-heading
                       data-landing-reveal='up'
                     >
-                      <span className={styles.chapterNumber}>
-                        {String(capabilityIndex + 1).padStart(2, '0')}
-                      </span>
                       <h3>{capability.label}</h3>
                       <p>{capability.description}</p>
                     </header>

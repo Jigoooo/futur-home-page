@@ -72,6 +72,9 @@ test('shows representative technologies and exposes all 70 through a native disc
   await waitForLandingHydration(page);
 
   const technology = page.locator('#technology');
+  for (const number of ['01', '02', '03', '04']) {
+    await expect(technology.getByText(number, { exact: true })).toHaveCount(0);
+  }
   const disclosure = technology.locator('details[data-technology-details]');
   await expect(technology.locator('[data-technology-summary]')).toHaveCount(4);
   await expect(technology.locator('[data-technology-marquee]')).toHaveCount(4);
@@ -88,9 +91,7 @@ test('shows representative technologies and exposes all 70 through a native disc
   await expect(disclosure.locator('[data-technology]')).toHaveCount(70);
 });
 
-test('uses SUIT for Korean content and Space Grotesk for English display and service numbers', async ({
-  page,
-}) => {
+test('uses SUIT for Korean content and Space Grotesk for English display', async ({ page }) => {
   const fontRequests: string[] = [];
   page.on('request', (request) => {
     if (request.resourceType() === 'font') fontRequests.push(request.url());
@@ -108,7 +109,6 @@ test('uses SUIT for Korean content and Space Grotesk for English display and ser
       hero: read('[data-landing-hero] h1'),
       logo: read('[data-landing-nav] a[aria-label="FUTUR home"]'),
       serviceHeading: read('[data-service-intro] h2'),
-      serviceNumber: read('[data-service-card-index]'),
     };
   });
 
@@ -123,7 +123,6 @@ test('uses SUIT for Korean content and Space Grotesk for English display and ser
   expect(typography.serviceHeading).toEqual(
     expect.objectContaining({ family: expect.stringContaining('SUIT Variable'), weight: '800' }),
   );
-  expect(typography.serviceNumber.family).toContain('Space Grotesk Variable');
   expect(fontRequests.length).toBeGreaterThan(0);
   expect(
     fontRequests.every((requestUrl) => new URL(requestUrl).origin === new URL(page.url()).origin),

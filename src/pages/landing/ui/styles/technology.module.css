@@ -69,20 +69,10 @@
 .rowInfo {
   display: grid;
   width: min(1400px, calc(100% - 64px));
-  grid-template-columns: 64px minmax(220px, 0.68fr) minmax(320px, 0.8fr);
+  grid-template-columns: minmax(220px, 0.68fr) minmax(320px, 0.8fr);
   gap: clamp(32px, 5vw, 84px);
   align-items: start;
   margin-inline: auto;
-}
-
-.rowNumber {
-  padding-top: 8px;
-  color: rgba(235, 239, 247, 0.58);
-  font-family: var(--font-display);
-  font-size: 12px;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 0.1em;
 }
 
 .row h3,
@@ -243,20 +233,10 @@
 
 .chapterHeading {
   display: grid;
-  grid-template-columns: 64px minmax(220px, 0.68fr) minmax(320px, 0.8fr);
+  grid-template-columns: minmax(220px, 0.68fr) minmax(320px, 0.8fr);
   gap: clamp(32px, 5vw, 84px);
   align-items: start;
   padding-bottom: clamp(26px, 3vw, 40px);
-}
-
-.chapterNumber {
-  padding-top: 6px;
-  color: rgba(235, 239, 247, 0.52);
-  font-family: var(--font-display);
-  font-size: 12px;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 0.1em;
 }
 
 .chapterHeading h3,
@@ -282,7 +262,7 @@
 }
 
 .chapterGroups {
-  padding-left: calc(64px + clamp(32px, 5vw, 84px));
+  padding-left: 0;
 }
 
 .disclosureClose {
@@ -369,17 +349,17 @@
 
 @media (max-width: 1180px) {
   .rowInfo {
-    grid-template-columns: 52px minmax(210px, 0.55fr) minmax(280px, 0.8fr);
+    grid-template-columns: minmax(210px, 0.55fr) minmax(280px, 0.8fr);
     gap: 30px;
   }
 
   .chapterHeading {
-    grid-template-columns: 52px minmax(210px, 0.55fr) minmax(280px, 0.8fr);
+    grid-template-columns: minmax(210px, 0.55fr) minmax(280px, 0.8fr);
     gap: 30px;
   }
 
   .chapterGroups {
-    padding-left: 82px;
+    padding-left: 0;
   }
 }
 
@@ -395,23 +375,27 @@
   }
 
   .rowInfo {
-    grid-template-columns: 46px minmax(0, 1fr);
+    grid-template-columns: 1fr;
+    gap: 14px;
   }
 
   .rowInfo > p {
-    grid-column: 2;
+    grid-column: 1;
+    margin-top: 8px;
   }
 
   .chapterHeading {
-    grid-template-columns: 46px minmax(0, 1fr);
+    grid-template-columns: 1fr;
+    gap: 14px;
   }
 
   .chapterHeading p {
-    grid-column: 2;
+    grid-column: 1;
+    margin-top: 6px;
   }
 
   .chapterGroups {
-    padding-left: 76px;
+    padding-left: 0;
   }
 
   .technologyGroup {
@@ -463,10 +447,6 @@
     margin-top: 8px;
   }
 
-  .rowNumber {
-    padding-top: 0;
-  }
-
   .marqueeViewport {
     margin-top: 42px;
   }
@@ -496,10 +476,6 @@
   .chapterHeading p {
     grid-column: 1;
     margin-top: 6px;
-  }
-
-  .chapterNumber {
-    padding-top: 0;
   }
 
   .chapterGroups {

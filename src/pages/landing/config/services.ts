@@ -4,10 +4,10 @@ export const serviceCapabilities: ServiceCapability[] = [
   {
     key: 'product',
     index: '01',
-    title: '서비스·솔루션 개발',
+    title: '웹·앱·SaaS 개발',
     description:
       '웹과 앱, SaaS와 독립 솔루션을 기획 의도와 실제 사용 흐름에 맞춰 설계하고 구현합니다.',
-    scopes: ['웹 서비스·SaaS', '모바일·데스크톱 앱', '관리자·고객 포털'],
+    scopes: ['웹·모바일·데스크톱 앱', 'SaaS·독립 솔루션', '관리자·고객 포털'],
     tone: 'ice',
   },
   {

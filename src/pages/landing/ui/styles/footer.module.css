@@ -30,6 +30,11 @@
   text-wrap: pretty;
 }
 
+.footerPrompt {
+  display: inline-block;
+  max-width: 100%;
+}
+
 .footerCta {
   display: inline-flex;
   margin-top: 46px;

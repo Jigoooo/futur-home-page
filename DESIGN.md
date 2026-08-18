@@ -24,7 +24,7 @@ Hero의 문구, particle surface와 WebGL fallback은 유지한다. 랜딩은 �
 
 ## Typography
 
-폰트는 외부 CDN 없이 로컬 패키지로 제공한다. 한글과 한영 혼합 문장은 `SUIT Variable`, Hero 영문 H1·FUTUR 로고·서비스 번호는 `Space Grotesk Variable`을 사용한다. 기존 `FUTUR Sans Critical` Pretendard subset은 SUIT 로딩 전 한글 fallback으로 유지한다.
+폰트는 외부 CDN 없이 로컬 패키지로 제공한다. 한글과 한영 혼합 문장은 `SUIT Variable`, Hero 영문 H1과 FUTUR 로고는 `Space Grotesk Variable`을 사용한다. 기존 `FUTUR Sans Critical` Pretendard subset은 SUIT 로딩 전 한글 fallback으로 유지한다.
 
 - Hero H1: `700`, `-0.035em`, `0.96`
 - 대형 한글 제목: `800`, `-0.032em`, `1.10`
@@ -79,12 +79,12 @@ Services는 짧은 전환 인트로와 네 개의 타이포그래피 중심 capa
 
 - 인트로 제목: `새로운 서비스부터, 운영 중인 시스템까지.`
 - 인트로 설명: `웹·앱과 업무 시스템을 만들고, 기존 시스템과 AI 기능을 연결하며, 배포 이후 운영까지 이어갑니다.`
-- 카드: 서비스·솔루션 개발, 업무 시스템·SI, AI 통합·AX, 운영·유지보수
+- 카드: 웹·앱·SaaS 개발, 업무 시스템·SI, AI 통합·AX, 운영·유지보수
 - `업무 시스템·SI` 범위에는 `API·시스템 연동`을 포함한다.
 
 surface는 warm off-white `#F4F4F0`이며 Hero와 명확한 cut으로 전환한다. 인트로는 desktop 두 열, tablet·mobile 한 열이고 viewport를 채우지 않는 자연 높이를 쓴다.
 
-desktop은 두 열 bento다. 1번과 4번은 전폭, 2번과 3번은 반폭이며 카드 surface는 각각 ice, sand, mint, periwinkle의 낮은 채도 단색이다. 기본 상태에는 border와 shadow를 사용하지 않고 `20px` radius만 쓴다. 이미지·SVG·아이콘 없이 번호·제목·설명·업무 범위의 정렬과 여백으로만 위계를 만든다. 인트로와 gallery 간격은 desktop `clamp(52px, 5vw, 72px)`, tablet `56px`, mobile `48px`이고 카드는 최초 진입 시 최대 `20px` 아래에서 한 번 나타난다.
+desktop은 두 열 bento다. 첫 번째와 네 번째 카드는 전폭, 두 번째와 세 번째 카드는 반폭이며 카드 surface는 각각 ice, sand, mint, periwinkle의 낮은 채도 단색이다. 기본 상태에는 border와 shadow를 사용하지 않고 `20px` radius만 쓴다. 순서를 오해하게 만드는 번호와 이미지·SVG·아이콘 없이 제목·설명·업무 범위의 정렬과 여백으로만 위계를 만든다. 설명은 `17px / 500`, tablet·mobile 업무 범위는 최소 `15px`을 유지한다. `901~1180px`의 2×2 구간은 제목을 `clamp(30px, 3.2vw, 36px)`로 줄여 한 줄을 유지한다. 인트로와 gallery 간격은 desktop `clamp(52px, 5vw, 72px)`, tablet `56px`, mobile `48px`이고 카드는 최초 진입 시 최대 `20px` 아래에서 한 번 나타난다.
 
 fine pointer 환경의 카드는 `Lifted Ink Surface`를 사용한다. 내부 surface만 `translateY(-4px) scale(1.002)`로 들어 올리고, 카드 tone별 blue·orange·green·violet radial ink lens와 사전 렌더된 shadow opacity를 포인터 위치에서 드러낸다. 진입은 `320ms power3.out`, 복귀는 `480ms back.out(1.2)`, lens fade는 `180ms`다. 카드 자체는 정보성 `<article>`이며 링크·버튼·role·`tabIndex`·focus·pointer cursor와 hover 전용 정보가 없다. touch, coarse pointer와 reduced motion에서는 surface와 lens가 정적 최종 상태로 남는다.
 
@@ -97,7 +97,7 @@ fine pointer 환경의 카드는 `Lifted Ink Surface`를 사용한다. 내부 su
 Technology는 near-black `#090B10` surface 위에 네 개의 경계 없는 kinetic index row를 제공한다. 아이콘, 칩, 이미지, 카드, 성과 수치와 회피성 그라디언트를 사용하지 않는다.
 
 - 제목: `기술은 목적과 환경에 맞게 선택합니다.`
-- 기본 화면: 클라이언트, 백엔드·데이터, AI·AX, 클라우드·운영의 번호·역량명·설명과 대형 대표 기술 띠
+- 기본 화면: 클라이언트, 백엔드·데이터, AI·AX, 클라우드·운영의 역량명·설명과 대형 대표 기술 띠. 순서나 단계를 뜻하지 않는 번호는 표시하지 않는다.
 - native `<details>/<summary>`: 기본 닫힘, `기술 범위 전체 보기`
 - 전체 화면: 네 직군 chapter 안에 16개 분류와 70개 기술을 평문 행으로 표시
 

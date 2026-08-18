@@ -20,8 +20,8 @@ export function FooterSection() {
         <div className={styles.footerTop}>
           <h2>필요한 변화가 있다면, 그 시작부터 함께합니다.</h2>
           <p>
-            새로운 아이디어도, 이미 운영 중인 시스템의 문제도 괜찮습니다. 현재 상황과 필요한 기능을
-            알려주세요.
+            새로운 아이디어도, 이미 운영 중인 시스템의 문제도 괜찮습니다.{' '}
+            <span className={styles.footerPrompt}>현재 상황과 필요한 기능을 알려주세요.</span>
           </p>
           <Button
             className={styles.footerCta}

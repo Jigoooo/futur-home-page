@@ -1,6 +1,6 @@
 # FUTUR 모바일 Header 세로 롤링 설계
 
-> Approved on 2026-08-17 and refined on 2026-08-18. 이 설계는 `2026-08-17-mobile-header-active-section-design.md`의 “모바일 섹션명 즉시 교체” 계약을 대체한다. 2026-08-18 보정에서는 hash 선점프와 라벨 반동을 제거했다. 반응형 노출 구조와 no-JS 전체 탐색 원칙은 그대로 유지한다.
+> Approved on 2026-08-17 and refined on 2026-08-18. 이 설계는 `2026-08-17-mobile-header-active-section-design.md`의 “모바일 섹션명 즉시 교체” 계약을 대체한다. 2026-08-18 보정에서는 hash 선점프와 라벨 반동을 제거하고, JavaScript 환경의 hydration 전 모바일 메뉴 flash를 차단했다. 반응형 노출 구조와 no-JS 전체 탐색 원칙은 그대로 유지한다.
 
 ## 1. 목적
 
@@ -48,7 +48,8 @@ React Bits의 Rotating Text가 사용하는 mask와 위·아래 교체 구조를
 
 - 라벨은 native anchor로 유지한다. 현재 섹션 변화는 스크롤에 따른 위치 정보이므로 `aria-live`를 추가하지 않아 화면 읽기 사용자를 반복적으로 방해하지 않는다.
 - `prefers-reduced-motion: reduce`에서는 timeline을 만들지 않고 활성 anchor를 즉시 표시한다.
-- JavaScript가 없거나 hydration 전에는 `data-header-mobile-roll="enhanced"`가 없으므로 서비스·기술·FAQ·문의 전체 hash navigation을 표시한다.
+- JavaScript 환경에서는 동기식 `data-header-initial-layout` 판정을 이용해 `560px` 이하 hydration 전 서비스·기술·FAQ를 숨긴다. hydration이 끝나면 현재 섹션 anchor만 표시한다.
+- JavaScript가 없으면 초기 layout dataset이 생성되지 않으므로 서비스·기술·FAQ·문의 전체 hash navigation을 표시한다.
 - `prefers-contrast: more`와 backdrop-filter 미지원 환경의 색상·focus ring은 기존 Header 계약을 유지한다.
 - viewport가 `560px` 경계를 오갈 때 timeline과 임시 속성을 정리하고, 태블릿 전체 메뉴의 접근성 상태를 즉시 복원한다.
 
@@ -66,6 +67,7 @@ React Bits의 Rotating Text가 사용하는 mask와 위·아래 교체 구조를
 - 같은 세 viewport에서 현재 섹션명은 `15px / 750 / -0.015em`이고 문의 버튼의 기존 타이포그래피는 변하지 않는다.
 - 종료 상태에서 활성 라벨 중심과 Header 중심의 오차는 `1px` 이하다.
 - Hero와 Footer에서는 중앙 라벨이 없고, 서비스·기술·FAQ에서는 하나만 보인다.
+- JavaScript가 활성화된 `390px`, `320px` 첫 paint에서는 hydration 전에 세 섹션 라벨이 노출되거나 Header 밖으로 넘치지 않는다.
 - 연속 전환 중 timeline이 누적되지 않고 최종 `aria-current`, inert, opacity와 transform이 정확하다.
 - `561px`, `768px`, `900px`에서는 전체 메뉴와 shared indicator가 그대로 보이고 mobile roll 속성이 남지 않는다.
 - reduced motion에서는 transform·transition 지연 없이 즉시 교체된다.

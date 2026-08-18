@@ -124,7 +124,7 @@ test.describe('운영 배포 계약', () => {
     expect(route).toContain('status: 503');
   });
 
-  test('www HTTPS를 apex로 보내고 apex Nitro proxy만 유지하는 Nginx 계약을 갖는다', () => {
+  test('www HTTPS를 apex로 보내고 apex Nitro proxy와 텍스트 압축을 유지하는 Nginx 계약을 갖는다', () => {
     expect(existsSync(nginxConfigPath)).toBe(true);
     const config = readFileSync(nginxConfigPath, 'utf8');
 
@@ -135,5 +135,13 @@ test.describe('운영 배포 계약', () => {
     expect(config).toContain('proxy_pass http://localhost:3000;');
     expect(config).toContain('ssl_certificate /etc/letsencrypt/live/futur.co.kr/fullchain.pem;');
     expect(config).toContain('ssl_certificate_key /etc/letsencrypt/live/futur.co.kr/privkey.pem;');
+    expect(config).toContain('gzip on;');
+    expect(config).toContain('gzip_vary on;');
+    expect(config).toContain('gzip_proxied any;');
+    expect(config).toContain('gzip_comp_level 6;');
+    expect(config).toContain('gzip_min_length 1024;');
+    expect(config).toMatch(
+      /gzip_types[\s\S]*text\/css[\s\S]*application\/javascript[\s\S]*text\/javascript/,
+    );
   });
 });

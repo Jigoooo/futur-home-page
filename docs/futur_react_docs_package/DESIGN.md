@@ -101,7 +101,7 @@ FUTUR.
   --line-2: #eef3f9;
   --surface: #ffffff;
   --soft: #f5f8ff;
-  --bg: #fbfcff;
+  --bg: #fbfeff;
 }
 ```
 

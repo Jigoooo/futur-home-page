@@ -15,12 +15,84 @@ test('uses one light service gallery without the reversed-L split or transition 
   await waitForLandingHydration(page);
 
   const services = page.locator('#services');
-  await expect(services).toHaveCSS('background-color', 'rgb(244, 244, 240)');
+  await expect(services).toHaveCSS('background-color', 'rgb(251, 254, 255)');
   await expect(services.locator('[data-service-card]')).toHaveCount(4);
   await expect(
     services.locator('[data-service-sticky-index], [data-service-surface-gate]'),
   ).toHaveCount(0);
   await expect(services.locator('img, picture, svg')).toHaveCount(0);
+});
+
+test('keeps the blue scrollbar visible and adapts it to each landing surface', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto('/');
+  await waitForLandingHydration(page);
+
+  const track = page.locator('[data-page-scrollbar-track]');
+  const thumb = page.locator('[data-page-scrollbar-thumb]');
+  await expect(track).toHaveCount(1);
+  await expect(track).toHaveAttribute('data-page-scrollbar-surface', 'dark');
+
+  await page.waitForTimeout(1_050);
+  await expect(track).not.toHaveAttribute('data-visible', 'true');
+  await expect(track).toHaveCSS('opacity', '0.5');
+  await expect(thumb).toHaveCSS('background-color', 'rgba(127, 168, 255, 0.82)');
+
+  for (const [sectionId, surface, color] of [
+    ['services', 'light', 'rgba(30, 77, 196, 0.62)'],
+    ['technology', 'dark', 'rgba(127, 168, 255, 0.82)'],
+    ['faq', 'light', 'rgba(30, 77, 196, 0.62)'],
+    ['footer', 'dark', 'rgba(127, 168, 255, 0.82)'],
+  ] as const) {
+    await page.locator(`#${sectionId}`).evaluate((element) => {
+      element.scrollIntoView({ block: 'center', behavior: 'instant' });
+    });
+    await expect(track).toHaveAttribute('data-page-scrollbar-surface', surface);
+    await expect(thumb).toHaveCSS('background-color', color);
+  }
+});
+
+test('keeps the scrollbar thumb on one inset axis while hover expands it', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto('/#technology');
+  await waitForLandingHydration(page);
+
+  const track = page.locator('[data-page-scrollbar-track]');
+  const readGeometry = () =>
+    track.evaluate((element) => {
+      const thumb = element.querySelector<HTMLElement>('[data-page-scrollbar-thumb]')!;
+      const trackRect = element.getBoundingClientRect();
+      const thumbRect = thumb.getBoundingClientRect();
+      return {
+        centerDelta: thumbRect.left + thumbRect.width / 2 - (trackRect.left + trackRect.width / 2),
+        thumbWidth: thumbRect.width,
+        thumbRightGap: window.innerWidth - thumbRect.right,
+        trackCenter: trackRect.left + trackRect.width / 2,
+        trackRightGap: window.innerWidth - trackRect.right,
+        trackWidth: trackRect.width,
+      };
+    });
+
+  const idle = await readGeometry();
+  expect(idle).toEqual({
+    centerDelta: 0,
+    thumbRightGap: 16,
+    thumbWidth: 6,
+    trackCenter: 1261,
+    trackRightGap: 12,
+    trackWidth: 14,
+  });
+
+  await track.hover();
+  await expect(track).toHaveAttribute('data-hovered', 'true');
+  await expect.poll(readGeometry).toEqual({
+    centerDelta: 0,
+    thumbRightGap: 15,
+    thumbWidth: 8,
+    trackCenter: idle.trackCenter,
+    trackRightGap: 12,
+    trackWidth: 14,
+  });
 });
 
 test('presents four factual technology rows with continuous type at intermediate widths', async ({

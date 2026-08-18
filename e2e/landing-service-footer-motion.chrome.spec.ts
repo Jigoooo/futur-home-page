@@ -82,6 +82,27 @@ test('keeps service titles on one line across the narrow two-column desktop rang
   }
 });
 
+test('uses one cool flat-white surface across the light landing sections', async ({ page }) => {
+  await page.goto('/#services');
+  await waitForLandingHydration(page);
+
+  await expect(page.locator('[data-landing-page]')).toHaveCSS(
+    'background-color',
+    'rgb(251, 254, 255)',
+  );
+  await expect(page.locator('#services')).toHaveCSS('background-color', 'rgb(251, 254, 255)');
+  expect(
+    await page
+      .locator('html')
+      .evaluate((element) =>
+        getComputedStyle(element).getPropertyValue('--bg').trim().toLowerCase(),
+      ),
+  ).toBe('#fbfeff');
+  expect(
+    await page.locator('html').evaluate((element) => getComputedStyle(element).backgroundImage),
+  ).toContain('rgb(251, 254, 255)');
+});
+
 test('lifts one fine-pointer service surface and tracks the local ink lens', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.goto('/#services');

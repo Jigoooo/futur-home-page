@@ -3,7 +3,7 @@ name: FUTUR Landing
 description: Hero와 타이포그래피 중심 서비스 갤러리, 움직이는 기술 인덱스를 결합한 개발 파트너 랜딩
 colors:
   hero: '#202523'
-  service-surface: '#F4F4F0'
+  service-surface: '#FBFEFF'
   technology: '#090B10'
   blue: '#315CFF'
 typography:
@@ -82,7 +82,7 @@ Services는 짧은 전환 인트로와 네 개의 타이포그래피 중심 capa
 - 카드: 웹·앱·SaaS 개발, 업무 시스템·SI, AI 통합·AX, 운영·유지보수
 - `업무 시스템·SI` 범위에는 `API·시스템 연동`을 포함한다.
 
-surface는 warm off-white `#F4F4F0`이며 Hero와 명확한 cut으로 전환한다. 인트로는 desktop 두 열, tablet·mobile 한 열이고 viewport를 채우지 않는 자연 높이를 쓴다.
+surface는 검은 Hero·Technology와 blue accent에 맞춘 cool flat-white `#FBFEFF`이며 Hero와 명확한 cut으로 전환한다. FAQ와 같은 밝은 배경 토큰을 공유하고, 인트로는 desktop 두 열, tablet·mobile 한 열이며 viewport를 채우지 않는 자연 높이를 쓴다.
 
 desktop은 두 열 bento다. 첫 번째와 네 번째 카드는 전폭, 두 번째와 세 번째 카드는 반폭이며 카드 surface는 각각 ice, sand, mint, periwinkle의 낮은 채도 단색이다. 기본 상태에는 border와 shadow를 사용하지 않고 `20px` radius만 쓴다. 순서를 오해하게 만드는 번호와 이미지·SVG·아이콘 없이 제목·설명·업무 범위의 정렬과 여백으로만 위계를 만든다. 설명은 `17px / 500`, tablet·mobile 업무 범위는 최소 `15px`을 유지한다. `901~1180px`의 2×2 구간은 제목을 `clamp(30px, 3.2vw, 36px)`로 줄여 한 줄을 유지한다. 인트로와 gallery 간격은 desktop `clamp(52px, 5vw, 72px)`, tablet `56px`, mobile `48px`이고 카드는 최초 진입 시 최대 `20px` 아래에서 한 번 나타난다.
 
@@ -128,7 +128,7 @@ Footer는 둥근 CTA 카드, 그라디언트와 이메일 pill이 없는 검은 
 
 `/privacy`, `/terms`는 dialog·modal·backdrop 없는 독립 페이지를 유지한다. 한국어 회사명은 `퓨터`, 영문 브랜드는 `Futur`를 쓰고 법적 본문은 `퓨터(영문명 Futur, 이하 “회사”)`로 표기한다.
 
-공용 `PageScrollbar`는 landing·privacy·terms에서 현재 문서를 제어한다. `pointer: fine`, `min-width: 901px`, `prefers-reduced-motion: no-preference`를 모두 만족할 때만 `html[data-page-scrollbar-enabled='true']`를 추가하고 native scrollbar를 숨긴다. 그 외 환경과 no-JS에서는 native scrolling을 유지한다. track 클릭, thumb drag, idle fade와 페이지 전환 정리를 제공한다.
+공용 `PageScrollbar`는 landing·privacy·terms에서 현재 문서를 제어한다. `pointer: fine`, `min-width: 901px`, `prefers-reduced-motion: no-preference`를 모두 만족할 때만 `html[data-page-scrollbar-enabled='true']`를 추가하고 native scrollbar를 숨긴다. 그 외 환경과 no-JS에서는 native scrolling을 유지한다. landing에서는 viewport 중앙을 지나는 `data-header-surface`를 기준으로 `data-page-scrollbar-surface="dark|light"`를 갱신한다. 밝은 면은 deep blue `#1E4DC4`, 어두운 면은 light blue `#7FA8FF`를 사용하고 legal route는 light를 기본값으로 사용한다. idle opacity `0.5`, scroll 중 `0.88`, hover·drag `1`로 thumb를 완전히 숨기지 않는다. track은 화면 오른쪽 `12px`에 고정된 `14px` hit area를 사용해 hover 전후 중심축을 유지하고, thumb만 `6px → 8px → 10px`로 확장한다. track 클릭, thumb drag와 페이지 전환 정리는 유지한다.
 
 pathname이 바뀌는 Footer의 법적 Link는 같은 이벤트 턴에서 scroll top을 먼저 `auto`로 맞춘 뒤 Router navigation을 실행한다. 새 법적 문서의 첫 가시 프레임부터 `scrollY=0`이어야 하며 역방향 smooth 이동을 보여서는 안 된다. 전역 `scroll-behavior`는 사용하지 않는다. Header hash 링크와 상단 이동 버튼은 Router의 기본 hash jump를 끄고 `420~650ms`, `power2.inOut` 범위의 단일 GSAP scroll을 사용한다. 이동 중 활성 메뉴는 클릭한 목적지로 고정하고 wheel·touch·scroll key 입력이 들어오면 즉시 제어권을 사용자에게 돌려준다. reduced motion에서는 즉시 이동한다.
 

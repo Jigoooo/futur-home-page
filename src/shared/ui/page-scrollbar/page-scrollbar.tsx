@@ -11,7 +11,9 @@ import styles from './page-scrollbar.module.css';
 
 const MIN_THUMB_SIZE = 48;
 const TRACK_PADDING = 14;
-const IDLE_HIDE_DELAY = 900;
+const IDLE_RELAX_DELAY = 900;
+
+type ScrollbarSurface = 'dark' | 'light';
 
 type ScrollState = {
   clientHeight: number;
@@ -42,8 +44,21 @@ function getScrollState(): ScrollState {
   };
 }
 
+function getVisibleScrollbarSurface(): ScrollbarSurface {
+  const probeY = window.innerHeight / 2;
+  const surface = Array.from(document.querySelectorAll<HTMLElement>('[data-header-surface]')).find(
+    (element) => {
+      const rect = element.getBoundingClientRect();
+      return rect.top <= probeY && rect.bottom > probeY;
+    },
+  );
+
+  return surface?.dataset.headerSurface === 'dark' ? 'dark' : 'light';
+}
+
 export function PageScrollbar() {
   const [scrollState, setScrollState] = useState<ScrollState | null>(null);
+  const [surface, setSurface] = useState<ScrollbarSurface>('light');
   const [isActive, setIsActive] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
@@ -62,7 +77,7 @@ export function PageScrollbar() {
     idleTimerRef.current = window.setTimeout(() => {
       setIsActive(false);
       idleTimerRef.current = null;
-    }, IDLE_HIDE_DELAY);
+    }, IDLE_RELAX_DELAY);
   }, [clearIdleTimer]);
 
   useEffect(() => {
@@ -76,6 +91,7 @@ export function PageScrollbar() {
     const update = () => {
       frame = 0;
       setScrollState(getScrollState());
+      setSurface(getVisibleScrollbarSurface());
     };
     const scheduleUpdate = () => {
       if (frame) return;
@@ -89,6 +105,7 @@ export function PageScrollbar() {
     scheduleUpdate();
     window.addEventListener('scroll', handleScroll, { passive: true });
     window.addEventListener('resize', scheduleUpdate);
+    window.addEventListener('landing-surface-change', scheduleUpdate);
 
     const resizeObserver =
       typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(scheduleUpdate);
@@ -99,6 +116,7 @@ export function PageScrollbar() {
       if (frame) window.cancelAnimationFrame(frame);
       window.removeEventListener('scroll', handleScroll);
       window.removeEventListener('resize', scheduleUpdate);
+      window.removeEventListener('landing-surface-change', scheduleUpdate);
       resizeObserver?.disconnect();
       clearIdleTimer();
       delete document.documentElement.dataset.pageScrollbarEnabled;
@@ -185,6 +203,7 @@ export function PageScrollbar() {
       ref={trackRef}
       className={styles.track}
       data-page-scrollbar-track
+      data-page-scrollbar-surface={surface}
       data-visible={isActive || isHovered || isDragging ? 'true' : undefined}
       data-hovered={isHovered || isDragging ? 'true' : undefined}
       data-dragging={isDragging ? 'true' : undefined}

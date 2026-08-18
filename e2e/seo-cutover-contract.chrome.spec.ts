@@ -7,7 +7,7 @@ const projectRoot = fileURLToPath(new URL('../', import.meta.url));
 test.describe('검색 색인 이관 계약', () => {
   const homeTitle = 'FUTUR | 웹·앱·업무 시스템·AI 통합 개발';
   const homeDescription =
-    '퓨처(Futur)는 웹·앱, SaaS·솔루션, 업무 시스템·SI, AI 통합·AX 구축과 운영·유지보수를 함께하는 개발 파트너입니다.';
+    '퓨터(Futur)는 웹·앱, SaaS·솔루션, 업무 시스템·SI, AI 통합·AX 구축과 운영·유지보수를 함께하는 개발 파트너입니다.';
   const redirects = [
     ['/contact', '/#footer'],
     ['/menu', '/#services'],
@@ -79,6 +79,10 @@ test.describe('검색 색인 이관 계약', () => {
       'https://futur.co.kr/',
     );
     await expect(page.locator('meta[property="og:title"]')).toHaveAttribute('content', homeTitle);
+    await expect(page.locator('meta[property="og:description"]')).toHaveAttribute(
+      'content',
+      homeDescription,
+    );
     await expect(page.locator('meta[property="og:image"]')).toHaveAttribute(
       'content',
       'https://futur.co.kr/media/share/futur-main-og-v2.png',
@@ -90,6 +94,10 @@ test.describe('검색 색인 이관 계약', () => {
     await expect(page.locator('link[rel="icon"][sizes="48x48"]')).toHaveAttribute(
       'href',
       '/favicon-48.png',
+    );
+    await expect(page.locator('meta[name="twitter:description"]')).toHaveAttribute(
+      'content',
+      homeDescription,
     );
     await expect(page.locator('meta[name="keywords"]')).toHaveCount(0);
     await expect(page.locator('meta[name="geo.position"], meta[name="ICBM"]')).toHaveCount(0);
@@ -170,6 +178,8 @@ test.describe('검색 색인 이관 계약', () => {
     expect(llms).toContain('업무 시스템·SI');
     expect(llms).toContain('AI 통합·AX');
     expect(llms).toContain('운영·유지보수');
+    expect(llms).toContain('퓨터(Futur)');
+    expect(llms).not.toContain('퓨처');
     expect(llms).not.toMatch(/완료 프로젝트|고객 만족|평균 경력|업무시간|포트폴리오|아티클/);
   });
 });

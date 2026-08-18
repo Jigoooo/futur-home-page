@@ -3,7 +3,7 @@ import { COMPANY_INFOS } from './company-infos';
 export const HOME_SEO = {
   canonicalUrl: `${COMPANY_INFOS.URL}/`,
   description:
-    '퓨처(Futur)는 웹·앱, SaaS·솔루션, 업무 시스템·SI, AI 통합·AX 구축과 운영·유지보수를 함께하는 개발 파트너입니다.',
+    '퓨터(Futur)는 웹·앱, SaaS·솔루션, 업무 시스템·SI, AI 통합·AX 구축과 운영·유지보수를 함께하는 개발 파트너입니다.',
   imageAlt: '검은 배경 위 FUTUR 심볼과 BUILT FOR WHAT’S NEXT. 문구',
   imageUrl: `${COMPANY_INFOS.URL}/media/share/futur-main-og-v2.png`,
   title: 'FUTUR | 웹·앱·업무 시스템·AI 통합 개발',

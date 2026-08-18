@@ -25,31 +25,43 @@ test('animates header navigation scroll to sections', async ({ page }) => {
   await page.goto('/');
   await waitForLandingHydration(page);
 
-  await page.evaluate(() => {
-    const testWindow = window as Window & { __lastScrollBehavior?: ScrollBehavior };
-    const scrollTo = window.scrollTo.bind(window);
+  const trace = await page.evaluate(
+    () =>
+      new Promise<{ duration: number; finalY: number; frames: number[] }>((resolve) => {
+        const header = document.querySelector<HTMLElement>('[data-landing-nav]')!;
+        const target = document.querySelector<HTMLElement>('#services')!;
+        const link = header.querySelector<HTMLAnchorElement>('a[href="#services"]')!;
+        const offset = Number.parseFloat(
+          getComputedStyle(header).getPropertyValue('--landing-compact-header-offset'),
+        );
+        const finalY = target.getBoundingClientRect().top + window.scrollY - offset;
+        const frames: number[] = [];
+        const startedAt = performance.now();
+        let settledFrames = 0;
 
-    window.scrollTo = ((options?: ScrollToOptions | number, y?: number) => {
-      if (typeof options === 'object' && options) {
-        testWindow.__lastScrollBehavior = options.behavior;
-        scrollTo({ ...options, behavior: 'auto' });
-        return;
-      }
-
-      scrollTo(options ?? 0, y ?? 0);
-    }) as typeof window.scrollTo;
-  });
-
-  await page
-    .getByRole('navigation', { name: '주요 메뉴' })
-    .getByRole('link', { name: '서비스' })
-    .click();
-
-  await expect(page.locator('#services')).toBeInViewport();
-
-  const behavior = await page.evaluate(
-    () => (window as Window & { __lastScrollBehavior?: ScrollBehavior }).__lastScrollBehavior,
+        link.click();
+        const sample = () => {
+          frames.push(window.scrollY);
+          settledFrames = Math.abs(window.scrollY - finalY) <= 1 ? settledFrames + 1 : 0;
+          const duration = performance.now() - startedAt;
+          if ((settledFrames >= 3 && duration >= 300) || duration >= 800) {
+            resolve({ duration, finalY, frames });
+            return;
+          }
+          requestAnimationFrame(sample);
+        };
+        requestAnimationFrame(sample);
+      }),
   );
 
-  expect(behavior).toBe('smooth');
+  expect(new Set(trace.frames.map((value) => Math.round(value))).size).toBeGreaterThan(6);
+  expect(trace.duration).toBeGreaterThanOrEqual(380);
+  expect(trace.duration).toBeLessThanOrEqual(760);
+  expect(Math.max(...trace.frames)).toBeLessThanOrEqual(trace.finalY + 1);
+  expect(
+    trace.frames.every((value, index) => index === 0 || value >= trace.frames[index - 1]! - 1),
+  ).toBe(true);
+  expect(trace.frames.at(-1)).toBeCloseTo(trace.finalY, 0);
+  await expect(page).toHaveURL(/#services$/);
+  await expect(page.locator('#services')).toBeInViewport();
 });

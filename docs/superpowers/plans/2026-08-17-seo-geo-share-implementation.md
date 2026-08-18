@@ -276,7 +276,7 @@ git commit -m "feat(brand): 검색 로고와 공유 카드 자산 추가"
 ```ts
 const title = 'FUTUR | 웹·앱·업무 시스템·AI 통합 개발';
 const description =
-  '퓨처(Futur)는 웹·앱, SaaS·솔루션, 업무 시스템·SI, AI 통합·AX 구축과 운영·유지보수를 함께하는 개발 파트너입니다.';
+  '퓨터(Futur)는 웹·앱, SaaS·솔루션, 업무 시스템·SI, AI 통합·AX 구축과 운영·유지보수를 함께하는 개발 파트너입니다.';
 
 await expect(page).toHaveTitle(title);
 await expect(page.locator('meta[name="description"]')).toHaveAttribute('content', description);
@@ -296,7 +296,7 @@ export const HOME_SEO = {
   canonicalUrl: 'https://futur.co.kr/',
   title: 'FUTUR | 웹·앱·업무 시스템·AI 통합 개발',
   description:
-    '퓨처(Futur)는 웹·앱, SaaS·솔루션, 업무 시스템·SI, AI 통합·AX 구축과 운영·유지보수를 함께하는 개발 파트너입니다.',
+    '퓨터(Futur)는 웹·앱, SaaS·솔루션, 업무 시스템·SI, AI 통합·AX 구축과 운영·유지보수를 함께하는 개발 파트너입니다.',
   imageUrl: 'https://futur.co.kr/media/share/futur-main-og-v2.png',
   imageAlt: '검은 배경 위 FUTUR 심볼과 BUILT FOR WHAT’S NEXT. 문구',
 } as const;

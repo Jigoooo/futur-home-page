@@ -46,7 +46,7 @@
 ### 홈
 
 - title: `FUTUR | 웹·앱·업무 시스템·AI 통합 개발`
-- description: `퓨처(Futur)는 웹·앱, SaaS·솔루션, 업무 시스템·SI, AI 통합·AX 구축과 운영·유지보수를 함께하는 개발 파트너입니다.`
+- description: `퓨터(Futur)는 웹·앱, SaaS·솔루션, 업무 시스템·SI, AI 통합·AX 구축과 운영·유지보수를 함께하는 개발 파트너입니다.`
 - canonical: `https://futur.co.kr/`
 - `og:title`과 `twitter:title`은 홈 title과 동일하게 사용한다.
 - `og:description`과 `twitter:description`은 홈 description과 동일하게 사용한다.

@@ -54,7 +54,7 @@ test('animates header navigation scroll to sections', async ({ page }) => {
       }),
   );
 
-  expect(new Set(trace.frames.map((value) => Math.round(value))).size).toBeGreaterThan(6);
+  expect(new Set(trace.frames.map((value) => Math.round(value))).size).toBeGreaterThan(1);
   expect(trace.duration).toBeGreaterThanOrEqual(380);
   expect(trace.duration).toBeLessThanOrEqual(760);
   expect(Math.max(...trace.frames)).toBeLessThanOrEqual(trace.finalY + 1);

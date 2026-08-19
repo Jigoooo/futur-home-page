@@ -293,7 +293,13 @@ test('keeps legal documents as Korean-named standalone pages with the shared scr
   await page.setViewportSize({ width: 390, height: 844 });
   await page.reload();
   await expect(page.locator('html')).not.toHaveAttribute('data-page-scrollbar-enabled', 'true');
-  await expect(page.locator('[data-page-scrollbar-track]')).toHaveCount(0);
+  await expect(page.locator('[data-page-scroll-progress]')).toBeVisible();
+  await expect(page.locator('[data-page-scroll-progress]')).toHaveAttribute(
+    'data-page-scrollbar-surface',
+    'light',
+  );
+  await expect(page.locator('[data-page-scrollbar-track]')).toHaveCount(1);
+  await expect(page.locator('[data-page-scrollbar-track]')).toBeHidden();
 });
 
 test('opens legal routes at the top without reverse smooth scrolling', async ({ page }) => {

@@ -76,10 +76,10 @@ test('keeps the scrollbar thumb on one inset axis while hover expands it', async
   const idle = await readGeometry();
   expect(idle).toEqual({
     centerDelta: 0,
-    thumbRightGap: 16,
+    thumbRightGap: 12,
     thumbWidth: 6,
-    trackCenter: 1261,
-    trackRightGap: 12,
+    trackCenter: 1265,
+    trackRightGap: 8,
     trackWidth: 14,
   });
 
@@ -87,12 +87,77 @@ test('keeps the scrollbar thumb on one inset axis while hover expands it', async
   await expect(track).toHaveAttribute('data-hovered', 'true');
   await expect.poll(readGeometry).toEqual({
     centerDelta: 0,
-    thumbRightGap: 15,
+    thumbRightGap: 11,
     thumbWidth: 8,
     trackCenter: idle.trackCenter,
-    trackRightGap: 12,
+    trackRightGap: 8,
     trackWidth: 14,
   });
+});
+
+test('shows a passive scroll progress rail while mobile keeps native scrolling', async ({
+  browser,
+}) => {
+  const mobilePage = await browser.newPage({ viewport: { width: 390, height: 844 } });
+  await mobilePage.goto('/#top');
+  await waitForLandingHydration(mobilePage);
+  await mobilePage.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
+
+  const progress = mobilePage.locator('[data-page-scroll-progress]');
+  const fill = mobilePage.locator('[data-page-scroll-progress-fill]');
+  const readScale = () =>
+    fill.evaluate((element) => new DOMMatrixReadOnly(getComputedStyle(element).transform).m22);
+
+  await expect(mobilePage.locator('html')).not.toHaveAttribute(
+    'data-page-scrollbar-enabled',
+    'true',
+  );
+  await expect(progress).toBeVisible();
+  await expect(progress).toHaveAttribute('aria-hidden', 'true');
+  await expect(progress).toHaveCSS('pointer-events', 'none');
+  await expect(progress).toHaveCSS('right', '3px');
+  await expect(progress).toHaveCSS('width', '3px');
+  await expect.poll(readScale).toBeCloseTo(0, 3);
+
+  await mobilePage.locator('#services').evaluate((element) => {
+    element.scrollIntoView({ block: 'center', behavior: 'instant' });
+  });
+  await expect(progress).toHaveAttribute('data-page-scrollbar-surface', 'light');
+  await expect(fill).toHaveCSS('background-color', 'rgba(30, 77, 196, 0.88)');
+  await expect.poll(readScale).toBeGreaterThan(0);
+
+  await mobilePage.locator('#technology').evaluate((element) => {
+    element.scrollIntoView({ block: 'center', behavior: 'instant' });
+  });
+  await expect(progress).toHaveAttribute('data-page-scrollbar-surface', 'dark');
+  await expect(fill).toHaveCSS('background-color', 'rgb(127, 168, 255)');
+
+  await mobilePage.evaluate(() => {
+    window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'instant' });
+  });
+  await expect.poll(readScale).toBeCloseTo(1, 3);
+  await mobilePage.close();
+
+  const reducedPage = await browser.newPage({
+    reducedMotion: 'reduce',
+    viewport: { width: 390, height: 844 },
+  });
+  await reducedPage.goto('/');
+  await waitForLandingHydration(reducedPage);
+  await expect(reducedPage.locator('[data-page-scroll-progress]')).toBeVisible();
+  await expect(reducedPage.locator('[data-page-scroll-progress-fill]')).toHaveCSS(
+    'transition-duration',
+    '0s',
+  );
+  await reducedPage.close();
+
+  const noScriptPage = await browser.newPage({
+    javaScriptEnabled: false,
+    viewport: { width: 390, height: 844 },
+  });
+  await noScriptPage.goto('/');
+  await expect(noScriptPage.locator('[data-page-scroll-progress]')).toHaveCount(0);
+  await noScriptPage.close();
 });
 
 test('presents four factual technology rows with continuous type at intermediate widths', async ({

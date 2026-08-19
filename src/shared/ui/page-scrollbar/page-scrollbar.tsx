@@ -81,12 +81,10 @@ export function PageScrollbar() {
   }, [clearIdleTimer]);
 
   useEffect(() => {
-    const shouldUseOverlay = window.matchMedia(
+    const overlayQuery = window.matchMedia(
       '(pointer: fine) and (min-width: 901px) and (prefers-reduced-motion: no-preference)',
-    ).matches;
-    if (!shouldUseOverlay) return undefined;
+    );
 
-    document.documentElement.dataset.pageScrollbarEnabled = 'true';
     let frame = 0;
     const update = () => {
       frame = 0;
@@ -97,12 +95,23 @@ export function PageScrollbar() {
       if (frame) return;
       frame = window.requestAnimationFrame(update);
     };
+    const syncOverlayMode = () => {
+      if (overlayQuery.matches) {
+        document.documentElement.dataset.pageScrollbarEnabled = 'true';
+      } else {
+        clearIdleTimer();
+        setIsActive(false);
+        delete document.documentElement.dataset.pageScrollbarEnabled;
+      }
+      scheduleUpdate();
+    };
     const handleScroll = () => {
-      revealTemporarily();
+      if (overlayQuery.matches) revealTemporarily();
       scheduleUpdate();
     };
 
-    scheduleUpdate();
+    syncOverlayMode();
+    overlayQuery.addEventListener('change', syncOverlayMode);
     window.addEventListener('scroll', handleScroll, { passive: true });
     window.addEventListener('resize', scheduleUpdate);
     window.addEventListener('landing-surface-change', scheduleUpdate);
@@ -114,6 +123,7 @@ export function PageScrollbar() {
 
     return () => {
       if (frame) window.cancelAnimationFrame(frame);
+      overlayQuery.removeEventListener('change', syncOverlayMode);
       window.removeEventListener('scroll', handleScroll);
       window.removeEventListener('resize', scheduleUpdate);
       window.removeEventListener('landing-surface-change', scheduleUpdate);
@@ -139,6 +149,11 @@ export function PageScrollbar() {
   }, [scrollState]);
 
   if (!geometry) return null;
+
+  const scrollProgress = Math.max(
+    0,
+    Math.min((scrollState?.scrollTop ?? 0) / geometry.maxScrollTop, 1),
+  );
 
   const scrollToThumbPosition = (clientY: number) => {
     const track = trackRef.current;
@@ -199,29 +214,44 @@ export function PageScrollbar() {
   };
 
   return (
-    <div
-      ref={trackRef}
-      className={styles.track}
-      data-page-scrollbar-track
-      data-page-scrollbar-surface={surface}
-      data-visible={isActive || isHovered || isDragging ? 'true' : undefined}
-      data-hovered={isHovered || isDragging ? 'true' : undefined}
-      data-dragging={isDragging ? 'true' : undefined}
-      style={{ height: geometry.trackHeight }}
-      aria-hidden='true'
-      onPointerEnter={() => setIsHovered(true)}
-      onPointerLeave={() => setIsHovered(false)}
-      onPointerDown={handleTrackPointerDown}
-    >
+    <>
       <div
-        className={styles.thumb}
-        data-page-scrollbar-thumb
-        style={{
-          height: geometry.thumbHeight,
-          transform: `translate3d(0, ${geometry.thumbTop}px, 0)`,
-        }}
-        onPointerDown={handleThumbPointerDown}
-      />
-    </div>
+        ref={trackRef}
+        className={styles.track}
+        data-page-scrollbar-track
+        data-page-scrollbar-surface={surface}
+        data-visible={isActive || isHovered || isDragging ? 'true' : undefined}
+        data-hovered={isHovered || isDragging ? 'true' : undefined}
+        data-dragging={isDragging ? 'true' : undefined}
+        style={{ height: geometry.trackHeight }}
+        aria-hidden='true'
+        onPointerEnter={() => setIsHovered(true)}
+        onPointerLeave={() => setIsHovered(false)}
+        onPointerDown={handleTrackPointerDown}
+      >
+        <div
+          className={styles.thumb}
+          data-page-scrollbar-thumb
+          style={{
+            height: geometry.thumbHeight,
+            transform: `translate3d(0, ${geometry.thumbTop}px, 0)`,
+          }}
+          onPointerDown={handleThumbPointerDown}
+        />
+      </div>
+
+      <div
+        className={styles.mobileProgress}
+        data-page-scroll-progress
+        data-page-scrollbar-surface={surface}
+        aria-hidden='true'
+      >
+        <span
+          className={styles.mobileProgressFill}
+          data-page-scroll-progress-fill
+          style={{ transform: `scaleY(${scrollProgress})` }}
+        />
+      </div>
+    </>
   );
 }

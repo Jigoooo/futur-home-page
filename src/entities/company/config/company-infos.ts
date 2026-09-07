@@ -1,17 +1,16 @@
 export const COMPANY_INFOS = {
   NAME: 'Futur',
-  LEGAL_NAME_KO: '퓨터',
-  CEO: '김지우, 김진성',
+  LEGAL_NAME_KO: '주식회사 퓨터',
+  CEO: '김지영',
   EMAIL: 'kjwoo@futur.co.kr',
   PHONE: '010-2355-7934',
-  ADDRESS: '전라북도 익산시 인북로 3길 46 3층',
+  ADDRESS: '서울특별시 송파구 삼전로10길 32, 202호(삼전동, GOOD PEOPLE)',
   ADDRESS_ENGLISH: {
-    LOCALITY: 'Iksan-si',
-    REGION: 'Jeollabuk-do',
+    LOCALITY: 'Songpa-gu',
+    REGION: 'Seoul',
     COUNTRY: 'KR',
   },
-  BUSINESS_LICENSE: '731-01-03807',
-  MAIL_ORDER_LICENSE: '2024-전북익산-0393',
+  BUSINESS_LICENSE: '841-86-03872',
   URL: 'https://futur.co.kr',
   LOGO_URL: 'https://futur.co.kr/organization-logo-512.png',
   DESCRIPTION:

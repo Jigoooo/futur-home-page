@@ -248,12 +248,16 @@ test('uses a compact Footer utility grid and preserves real information', async 
     '서비스와 시스템을 만들고, 필요한 기술을 연결해 운영까지 이어갑니다.',
     '개인정보처리방침',
     '이용약관',
-    '사업자등록번호',
-    '통신판매업',
+    '주식회사 퓨터',
+    '대표 김지영',
+    '사업자등록번호 841-86-03872',
+    '서울특별시 송파구 삼전로10길 32, 202호(삼전동, GOOD PEOPLE)',
     '개인정보 보호책임자',
   ]) {
     await expect(footer.getByText(text, { exact: false }).first()).toBeVisible();
   }
+  await expect(footer).not.toContainText('731-01-03807');
+  await expect(footer).not.toContainText('2024-전북익산-0393');
 });
 
 test('draws one utility hairline and reveals the three Footer columns once', async ({ page }) => {

@@ -110,13 +110,13 @@ test.describe('검색 색인 이관 계약', () => {
 
     expect(website).toMatchObject({
       '@id': 'https://futur.co.kr/#website',
-      alternateName: ['퓨터', 'Futur'],
+      alternateName: ['주식회사 퓨터', 'Futur'],
       name: 'FUTUR',
       url: 'https://futur.co.kr/',
     });
     expect(organization).toMatchObject({
       '@id': 'https://futur.co.kr/#organization',
-      legalName: '퓨터',
+      legalName: '주식회사 퓨터',
       logo: {
         '@type': 'ImageObject',
         height: 512,

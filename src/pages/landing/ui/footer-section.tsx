@@ -81,8 +81,8 @@ export function FooterSection() {
           <div className={styles.legalFacts} data-footer-legal-facts>
             <span>© 2026 FUTUR. All rights reserved.</span>
             <span>
-              대표 {COMPANY_INFOS.CEO} · 사업자등록번호 {COMPANY_INFOS.BUSINESS_LICENSE} ·
-              통신판매업 {COMPANY_INFOS.MAIL_ORDER_LICENSE}
+              {COMPANY_INFOS.LEGAL_NAME_KO} · 대표 {COMPANY_INFOS.CEO} · 사업자등록번호{' '}
+              {COMPANY_INFOS.BUSINESS_LICENSE}
             </span>
             <span>
               개인정보 보호책임자 {COMPANY_INFOS.PRIVACY_OFFICER.NAME} (

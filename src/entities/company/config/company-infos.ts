@@ -16,7 +16,7 @@ export const COMPANY_INFOS = {
   DESCRIPTION:
     '웹·앱, SaaS·솔루션, 업무 시스템·SI, AI 통합·AX 구축과 운영·유지보수를 함께하는 개발 파트너입니다.',
   PRIVACY_OFFICER: {
-    NAME: '김지우',
+    NAME: '김지영',
     POSITION: '대표',
     EMAIL: 'kjwoo@futur.co.kr',
   },
